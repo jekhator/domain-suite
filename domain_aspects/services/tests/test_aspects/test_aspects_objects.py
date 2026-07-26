@@ -275,8 +275,9 @@ class TestRetried:
 
     def test_retried_with_dynamic_policy_selector(self) -> None:
         """Create Retried with dynamic policy selector."""
+        from mixin_retry import RetryPolicy
 
-        def selector(*args: object, **kwargs: object) -> object:
+        def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
             return None
 
         entry = objs.Retried(policy_from_request=selector)
@@ -301,7 +302,7 @@ class TestRetried:
             jitter=True,
         )
 
-        def selector(*args: object, **kwargs: object) -> object:
+        def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
             return None
 
         with pytest.raises(ValueError, match="both"):

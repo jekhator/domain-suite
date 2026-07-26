@@ -41,10 +41,10 @@ class TestLoggedWrapperSync:
     def test_logged_wrapper_with_payload_extractors(self) -> None:
         """Logged wrapper processes payload extractors without errors."""
 
-        def extract_request(x: int) -> dict:
+        def extract_request(x: object) -> dict:
             return {"input": x}
 
-        def extract_result(result: int) -> dict:
+        def extract_result(result: object) -> dict:
             return {"output": result}
 
         logged = objs.Logged(

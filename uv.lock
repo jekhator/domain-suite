@@ -455,9 +455,9 @@ dev = [
 requires-dist = [
     { name = "boto3", marker = "extra == 'all'", specifier = ">=1.28.0" },
     { name = "boto3", marker = "extra == 'cloudwatch'", specifier = ">=1.28.0" },
-    { name = "mixin-suite", marker = "extra == 'all'", specifier = ">=0.3.0" },
-    { name = "mixin-suite", marker = "extra == 'logging'", specifier = ">=0.3.0" },
-    { name = "mixin-suite", marker = "extra == 'sensitivity'", specifier = ">=0.3.0" },
+    { name = "mixin-suite", marker = "extra == 'all'", specifier = ">=0.5.0" },
+    { name = "mixin-suite", marker = "extra == 'logging'", specifier = ">=0.5.0" },
+    { name = "mixin-suite", marker = "extra == 'sensitivity'", specifier = ">=0.5.0" },
 ]
 provides-extras = ["all", "cloudwatch", "logging", "sensitivity"]
 
@@ -467,7 +467,7 @@ dev = [
     { name = "boto3" },
     { name = "botocore" },
     { name = "httpx" },
-    { name = "mixin-suite", specifier = ">=0.3.0" },
+    { name = "mixin-suite", specifier = ">=0.5.0" },
     { name = "mypy" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov" },
@@ -721,11 +721,11 @@ wheels = [
 
 [[package]]
 name = "mixin-suite"
-version = "0.3.0"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/82/b5/76b409aeb1e0880df2eb6e8cf6eaf1d80172a9f47299f9ed19f23de24100/mixin_suite-0.3.0.tar.gz", hash = "sha256:3781c5b94eae58e93fd8cc1ca1add142722c09121d149d3a79a6af37a52b8321", size = 392739, upload-time = "2026-07-18T01:59:26.942Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/57/76a94bf85c2e87dfdda40aafbc69bed3abf6e7665228a13f9b9808cb3692/mixin_suite-0.5.0.tar.gz", hash = "sha256:fc1bb96ab474e6b4a215991314112e3b4dac0f66ef7b6578822f290412328e10", size = 402996, upload-time = "2026-07-26T10:24:44.03Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/63/9454fd39b49b563bf4144acba415e2a2f4ee74e8cce8ca6f46467e27e4cc/mixin_suite-0.3.0-py3-none-any.whl", hash = "sha256:0214060d62e7f59fe24a7b84bebefc80aa6919db9c22ad7d9e3e2f8aa326772d", size = 82849, upload-time = "2026-07-18T01:59:25.665Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/49/b63e4472919f9235576f950ea5df05f7346599fc9eb4d4445d9b5aeed3c9/mixin_suite-0.5.0-py3-none-any.whl", hash = "sha256:62f52db53d068ca1b01fc0d3dddc8ddb3e6c8ef941c9166df27df67a52c794f8", size = 82066, upload-time = "2026-07-26T10:24:42.727Z" },
 ]
 
 [[package]]

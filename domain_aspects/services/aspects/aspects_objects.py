@@ -8,7 +8,7 @@ import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, Optional, TypeVar
+from typing import TYPE_CHECKING, Optional, TypeVar
 
 from domain_aspects.services.constants import aspects as const
 
@@ -66,7 +66,7 @@ class Logged:
 
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
-                return _decorate_class_logged(
+                return self._decorate_class_logged(
                     target,
                     event,
                     payload_from_request,
@@ -74,7 +74,7 @@ class Logged:
                     payload_from_exc,
                     timed,
                 )
-            return _build_logged_wrapper(
+            return self._build_logged_wrapper(
                 target,
                 event,
                 payload_from_request,
@@ -84,6 +84,209 @@ class Logged:
             )
 
         return decorator
+
+    @staticmethod
+    def _build_logged_wrapper(
+        target: Callable,
+        event: str,
+        payload_from_request: Optional[Callable[..., dict]],
+        payload_from_result: Optional[Callable[[object], dict]],
+        payload_from_exc: Optional[Callable[[BaseException], dict]],
+        timed: bool,
+    ) -> Callable:
+        """Build native wrapper for logging entry/exit/error events.
+
+        Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
+        Extractions are guarded: errors log WARNING, operation continues.
+        """
+        from mixin_logging import LoggingMixin, log_error, log_info
+
+        if asyncio.iscoroutinefunction(target):
+
+            @functools.wraps(target)
+            async def async_logged(*args: object, **kwargs: object) -> object:
+                logger = None
+                if args and isinstance(args[0], LoggingMixin):
+                    logger = args[0]
+
+                start_payload: dict = {}
+                if payload_from_request:
+                    try:
+                        start_payload = payload_from_request(*args, **kwargs) or {}
+                    except Exception as e:
+                        log_error(
+                            f"Logged: extraction failed for {event}.start",
+                            error=str(e),
+                        )
+                        start_payload = {}
+
+                if logger:
+                    logger.log_info(f"{event}.start", **start_payload)
+                else:
+                    log_info(f"{event}.start", **start_payload)
+
+                try:
+                    result = await target(*args, **kwargs)
+                    end_payload: dict = {}
+                    if payload_from_result:
+                        try:
+                            end_payload = payload_from_result(result) or {}
+                        except Exception as e:
+                            log_error(
+                                f"Logged: extraction failed for {event}.end",
+                                error=str(e),
+                            )
+                            end_payload = {}
+
+                    if logger:
+                        logger.log_info(f"{event}.end", **end_payload)
+                    else:
+                        log_info(f"{event}.end", **end_payload)
+
+                    return result
+                except BaseException as e:
+                    error_payload: dict = {
+                        "error_type": type(e).__name__,
+                    }
+                    if payload_from_exc:
+                        try:
+                            error_payload.update(payload_from_exc(e) or {})
+                        except Exception as extraction_error:
+                            log_error(
+                                f"Logged: extraction failed for {event}.error",
+                                error=str(extraction_error),
+                            )
+
+                    if logger:
+                        logger.log_error(f"{event}.error", **error_payload)
+                    else:
+                        log_error(f"{event}.error", **error_payload)
+
+                    raise
+
+            return async_logged
+        else:
+
+            @functools.wraps(target)
+            def sync_logged(*args: object, **kwargs: object) -> object:
+                logger = None
+                if args and isinstance(args[0], LoggingMixin):
+                    logger = args[0]
+
+                start_payload: dict = {}
+                if payload_from_request:
+                    try:
+                        start_payload = payload_from_request(*args, **kwargs) or {}
+                    except Exception as e:
+                        log_error(
+                            f"Logged: extraction failed for {event}.start",
+                            error=str(e),
+                        )
+                        start_payload = {}
+
+                if logger:
+                    logger.log_info(f"{event}.start", **start_payload)
+                else:
+                    log_info(f"{event}.start", **start_payload)
+
+                try:
+                    result = target(*args, **kwargs)
+                    end_payload: dict = {}
+                    if payload_from_result:
+                        try:
+                            end_payload = payload_from_result(result) or {}
+                        except Exception as e:
+                            log_error(
+                                f"Logged: extraction failed for {event}.end",
+                                error=str(e),
+                            )
+                            end_payload = {}
+
+                    if logger:
+                        logger.log_info(f"{event}.end", **end_payload)
+                    else:
+                        log_info(f"{event}.end", **end_payload)
+
+                    return result
+                except BaseException as e:
+                    error_payload: dict = {
+                        "error_type": type(e).__name__,
+                    }
+                    if payload_from_exc:
+                        try:
+                            error_payload.update(payload_from_exc(e) or {})
+                        except Exception as extraction_error:
+                            log_error(
+                                f"Logged: extraction failed for {event}.error",
+                                error=str(extraction_error),
+                            )
+
+                    if logger:
+                        logger.log_error(f"{event}.error", **error_payload)
+                    else:
+                        log_error(f"{event}.error", **error_payload)
+
+                    raise
+
+            return sync_logged
+
+    @staticmethod
+    def _decorate_class_logged(
+        cls: type[object],
+        event: str,
+        payload_from_request: Optional[Callable[..., dict]],
+        payload_from_result: Optional[Callable[[object], dict]],
+        payload_from_exc: Optional[Callable[[BaseException], dict]],
+        timed: bool,
+    ) -> type[object]:
+        """Fan out @logged over all public methods in the class.
+
+        Rules:
+        - Only methods in cls.__dict__ (not inherited)
+        - Skip: _-prefixed, dunders, properties, nested classes
+        - Preserve: classmethod/staticmethod via unwrap/rewrap
+        - Override: methods already marked with LOGGED_MARKER are left untouched
+        """
+        for name, method in list(cls.__dict__.items()):
+            if name.startswith("_"):
+                continue
+            if isinstance(method, property):
+                continue
+            if isinstance(method, type):
+                continue
+
+            is_classmethod = isinstance(method, classmethod)
+            is_staticmethod = isinstance(method, staticmethod)
+
+            if is_classmethod or is_staticmethod:
+                unwrapped = method.__func__
+            else:
+                unwrapped = method
+
+            if not callable(unwrapped):
+                continue
+
+            if hasattr(unwrapped, LOGGED_MARKER):
+                continue
+
+            decorated = Logged._build_logged_wrapper(
+                unwrapped,
+                event,
+                payload_from_request,
+                payload_from_result,
+                payload_from_exc,
+                timed,
+            )
+            setattr(decorated, LOGGED_MARKER, True)
+
+            if is_classmethod:
+                setattr(cls, name, classmethod(decorated))
+            elif is_staticmethod:
+                setattr(cls, name, staticmethod(decorated))
+            else:
+                setattr(cls, name, decorated)
+
+        return cls
 
 
 @dataclass(frozen=True, slots=True)
@@ -254,12 +457,12 @@ class Retried:
 
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
-                return _decorate_class_retried(
+                return self._decorate_class_retried(
                     target,
                     policy,
                     policy_from_request,
                 )
-            return _build_retried_wrapper(
+            return self._build_retried_wrapper(
                 target,
                 policy,
                 policy_from_request,
@@ -267,229 +470,27 @@ class Retried:
 
         return decorator
 
+    @staticmethod
+    def _build_retried_wrapper(
+        target: Callable,
+        policy: Optional[RetryPolicy],
+        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
+    ) -> Callable:
+        """Build retry wrapper for a single callable with optional dynamic policy."""
+        from mixin_retry import RetryExecutor
 
-def _build_logged_wrapper(
-    target: Callable,
-    event: str,
-    payload_from_request: Optional[Callable[..., dict]],
-    payload_from_result: Optional[Callable[[object], dict]],
-    payload_from_exc: Optional[Callable[[BaseException], dict]],
-    timed: bool,
-) -> Callable:
-    """Build native wrapper for logging entry/exit/error events.
+        executor = RetryExecutor()
 
-    Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
-    Extractions are guarded: errors log WARNING, operation continues.
-    """
-    from mixin_logging import LoggingMixin, log_error, log_info
+        if policy is not None:
+            wrapped_fn = executor.wrap(target, policy)
+            setattr(wrapped_fn, RETRIED_MARKER, True)
+            return wrapped_fn
 
-    if asyncio.iscoroutinefunction(target):
-
-        @functools.wraps(target)
-        async def async_logged(*args: Any, **kwargs: Any) -> Any:
-            logger = None
-            if args and isinstance(args[0], LoggingMixin):
-                logger = args[0]
-
-            start_payload: dict = {}
-            if payload_from_request:
-                try:
-                    start_payload = payload_from_request(*args, **kwargs) or {}
-                except Exception as e:
-                    log_error(
-                        f"Logged: extraction failed for {event}.start",
-                        error=str(e),
-                    )
-                    start_payload = {}
-
-            if logger:
-                logger.log_info(f"{event}.start", **start_payload)
-            else:
-                log_info(f"{event}.start", **start_payload)
-
-            try:
-                result = await target(*args, **kwargs)
-                end_payload: dict = {}
-                if payload_from_result:
-                    try:
-                        end_payload = payload_from_result(result) or {}
-                    except Exception as e:
-                        log_error(
-                            f"Logged: extraction failed for {event}.end",
-                            error=str(e),
-                        )
-                        end_payload = {}
-
-                if logger:
-                    logger.log_info(f"{event}.end", **end_payload)
-                else:
-                    log_info(f"{event}.end", **end_payload)
-
-                return result
-            except BaseException as e:
-                error_payload: dict = {
-                    "error_type": type(e).__name__,
-                }
-                if payload_from_exc:
-                    try:
-                        error_payload.update(payload_from_exc(e) or {})
-                    except Exception as extraction_error:
-                        log_error(
-                            f"Logged: extraction failed for {event}.error",
-                            error=str(extraction_error),
-                        )
-
-                if logger:
-                    logger.log_error(f"{event}.error", **error_payload)
-                else:
-                    log_error(f"{event}.error", **error_payload)
-
-                raise
-
-        return async_logged
-    else:
-
-        @functools.wraps(target)
-        def sync_logged(*args: Any, **kwargs: Any) -> Any:
-            logger = None
-            if args and isinstance(args[0], LoggingMixin):
-                logger = args[0]
-
-            start_payload: dict = {}
-            if payload_from_request:
-                try:
-                    start_payload = payload_from_request(*args, **kwargs) or {}
-                except Exception as e:
-                    log_error(
-                        f"Logged: extraction failed for {event}.start",
-                        error=str(e),
-                    )
-                    start_payload = {}
-
-            if logger:
-                logger.log_info(f"{event}.start", **start_payload)
-            else:
-                log_info(f"{event}.start", **start_payload)
-
-            try:
-                result = target(*args, **kwargs)
-                end_payload: dict = {}
-                if payload_from_result:
-                    try:
-                        end_payload = payload_from_result(result) or {}
-                    except Exception as e:
-                        log_error(
-                            f"Logged: extraction failed for {event}.end",
-                            error=str(e),
-                        )
-                        end_payload = {}
-
-                if logger:
-                    logger.log_info(f"{event}.end", **end_payload)
-                else:
-                    log_info(f"{event}.end", **end_payload)
-
-                return result
-            except BaseException as e:
-                error_payload: dict = {
-                    "error_type": type(e).__name__,
-                }
-                if payload_from_exc:
-                    try:
-                        error_payload.update(payload_from_exc(e) or {})
-                    except Exception as extraction_error:
-                        log_error(
-                            f"Logged: extraction failed for {event}.error",
-                            error=str(extraction_error),
-                        )
-
-                if logger:
-                    logger.log_error(f"{event}.error", **error_payload)
-                else:
-                    log_error(f"{event}.error", **error_payload)
-
-                raise
-
-        return sync_logged
-
-
-def _decorate_class_logged(
-    cls: type[Any],
-    event: str,
-    payload_from_request: Optional[Callable[..., dict]],
-    payload_from_result: Optional[Callable[[object], dict]],
-    payload_from_exc: Optional[Callable[[BaseException], dict]],
-    timed: bool,
-) -> type[Any]:
-    """Fan out @logged over all public methods in the class.
-
-    Rules:
-    - Only methods in cls.__dict__ (not inherited)
-    - Skip: _-prefixed, dunders, properties, nested classes
-    - Preserve: classmethod/staticmethod via unwrap/rewrap
-    - Override: methods already marked with LOGGED_MARKER are left untouched
-    """
-    for name, method in list(cls.__dict__.items()):
-        if name.startswith("_"):
-            continue
-        if isinstance(method, property):
-            continue
-        if isinstance(method, type):
-            continue
-
-        is_classmethod = isinstance(method, classmethod)
-        is_staticmethod = isinstance(method, staticmethod)
-
-        if is_classmethod or is_staticmethod:
-            unwrapped = method.__func__
-        else:
-            unwrapped = method
-
-        if not callable(unwrapped):
-            continue
-
-        if hasattr(unwrapped, LOGGED_MARKER):
-            continue
-
-        decorated = _build_logged_wrapper(
-            unwrapped,
-            event,
-            payload_from_request,
-            payload_from_result,
-            payload_from_exc,
-            timed,
-        )
-        setattr(decorated, LOGGED_MARKER, True)
-
-        if is_classmethod:
-            setattr(cls, name, classmethod(decorated))
-        elif is_staticmethod:
-            setattr(cls, name, staticmethod(decorated))
-        else:
-            setattr(cls, name, decorated)
-
-    return cls
-
-
-def _build_retried_wrapper(
-    target: Callable,
-    policy: Optional[RetryPolicy],
-    policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
-) -> Callable:
-    """Build retry wrapper for a single callable with optional dynamic policy."""
-    from mixin_retry import RetryExecutor
-
-    executor = RetryExecutor()
-
-    if policy is not None:
-        wrapped_fn = executor.wrap(target, policy)
-        setattr(wrapped_fn, RETRIED_MARKER, True)
-        return wrapped_fn
-    else:
+        assert policy_from_request is not None
         if asyncio.iscoroutinefunction(target):
 
             @functools.wraps(target)
-            async def async_wrapper_dynamic(*args: Any, **kwargs: Any) -> Any:
+            async def async_wrapper_dynamic(*args: object, **kwargs: object) -> object:
                 call_policy = policy_from_request(*args, **kwargs)
                 if call_policy is None:
                     return await target(*args, **kwargs)
@@ -498,69 +499,68 @@ def _build_retried_wrapper(
 
             setattr(async_wrapper_dynamic, RETRIED_MARKER, True)
             return async_wrapper_dynamic
-        else:
 
-            @functools.wraps(target)
-            def sync_wrapper_dynamic(*args: Any, **kwargs: Any) -> Any:
-                call_policy = policy_from_request(*args, **kwargs)
-                if call_policy is None:
-                    return target(*args, **kwargs)
-                wrapped_fn = executor.wrap(target, call_policy)
-                return wrapped_fn(*args, **kwargs)
+        @functools.wraps(target)
+        def sync_wrapper_dynamic(*args: object, **kwargs: object) -> object:
+            call_policy = policy_from_request(*args, **kwargs)
+            if call_policy is None:
+                return target(*args, **kwargs)
+            wrapped_fn = executor.wrap(target, call_policy)
+            return wrapped_fn(*args, **kwargs)
 
-            setattr(sync_wrapper_dynamic, RETRIED_MARKER, True)
-            return sync_wrapper_dynamic
+        setattr(sync_wrapper_dynamic, RETRIED_MARKER, True)
+        return sync_wrapper_dynamic
 
+    @staticmethod
+    def _decorate_class_retried(
+        cls: type[object],
+        policy: Optional[RetryPolicy],
+        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
+    ) -> type[object]:
+        """Fan out @retried over all public methods in the class.
 
-def _decorate_class_retried(
-    cls: type[Any],
-    policy: Optional[RetryPolicy],
-    policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
-) -> type[Any]:
-    """Fan out @retried over all public methods in the class.
+        Rules:
+        - Only methods in cls.__dict__ (not inherited)
+        - Skip: _-prefixed, dunders, properties, nested classes
+        - Preserve: classmethod/staticmethod via unwrap/rewrap
+        - Override: methods already marked with RETRIED_MARKER are left untouched
+        """
+        for name, method in list(cls.__dict__.items()):
+            if name.startswith("_"):
+                continue
+            if isinstance(method, property):
+                continue
+            if isinstance(method, type):
+                continue
 
-    Rules:
-    - Only methods in cls.__dict__ (not inherited)
-    - Skip: _-prefixed, dunders, properties, nested classes
-    - Preserve: classmethod/staticmethod via unwrap/rewrap
-    - Override: methods already marked with RETRIED_MARKER are left untouched
-    """
-    for name, method in list(cls.__dict__.items()):
-        if name.startswith("_"):
-            continue
-        if isinstance(method, property):
-            continue
-        if isinstance(method, type):
-            continue
+            is_classmethod = isinstance(method, classmethod)
+            is_staticmethod = isinstance(method, staticmethod)
 
-        is_classmethod = isinstance(method, classmethod)
-        is_staticmethod = isinstance(method, staticmethod)
+            if is_classmethod or is_staticmethod:
+                unwrapped = method.__func__
+            else:
+                unwrapped = method
 
-        if is_classmethod or is_staticmethod:
-            unwrapped = method.__func__
-        else:
-            unwrapped = method
+            if not callable(unwrapped):
+                continue
 
-        if not callable(unwrapped):
-            continue
+            if hasattr(unwrapped, RETRIED_MARKER):
+                continue
 
-        if hasattr(unwrapped, RETRIED_MARKER):
-            continue
+            decorated = Retried._build_retried_wrapper(
+                unwrapped,
+                policy,
+                policy_from_request,
+            )
 
-        decorated = _build_retried_wrapper(
-            unwrapped,
-            policy,
-            policy_from_request,
-        )
+            if is_classmethod:
+                setattr(cls, name, classmethod(decorated))
+            elif is_staticmethod:
+                setattr(cls, name, staticmethod(decorated))
+            else:
+                setattr(cls, name, decorated)
 
-        if is_classmethod:
-            setattr(cls, name, classmethod(decorated))
-        elif is_staticmethod:
-            setattr(cls, name, staticmethod(decorated))
-        else:
-            setattr(cls, name, decorated)
-
-    return cls
+        return cls
 
 
 AspectEntry = (
