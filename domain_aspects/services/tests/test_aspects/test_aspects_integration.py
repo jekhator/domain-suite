@@ -145,23 +145,6 @@ class TestRealDepsIntegration:
         with pytest.raises(TenancyError):
             service.tenant_method(tenant_id="test")
 
-    def test_sensitive_real_sig_repr_masking(self) -> None:
-        """Sensitive applies mixin-sensitivity repr masking to class."""
-        from dataclasses import field
-
-        from mixin_sensitivity import Sensitivity
-
-        @aspects(objs.Sensitive())
-        @dataclass(frozen=True, slots=True)
-        class Credentials:
-            username: str
-            password: str = field(metadata={"sensitivity": Sensitivity.SECRET})
-
-        creds = Credentials(username="alice", password="secret123")
-        creds_repr = repr(creds)
-        assert "secret123" not in creds_repr
-        assert "alice" in creds_repr
-
     def test_monitored_real_sig(self) -> None:
         """Monitored calls monitored(event, sink) correctly via real dependency."""
 
@@ -272,3 +255,277 @@ class TestRealDepsIntegration:
         assert len(collected_events) == 1
         event = collected_events[0]
         assert event.labels == ()
+
+    def test_stacked_retried_wrap_errors_plain_class(self) -> None:
+        """Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
+
+        Verifies the composition defect fix: Retried must wrap class methods, not
+        replace the class. Retried sees raw ValueError, retries succeed on attempt 3,
+        WrapErrors sits outside and would convert final exception to DomainError if
+        retries exhausted.
+        """
+        from mixin_retry import RetryPolicy
+
+        from domain_errors import DomainError
+
+        class TestError(DomainError):
+            domain = "test"
+            code = "retried_fail"
+            http_status = 500
+
+        policy = RetryPolicy(
+            max_attempts=3,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: isinstance(e, ValueError),
+        )
+        calls = {"n": 0}
+
+        @aspects(
+            objs.Logged("test_retried"),
+            objs.Retried(policy=policy),
+            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
+        )
+        class Service:
+            def flaky(self) -> str:
+                calls["n"] += 1
+                if calls["n"] < 3:
+                    raise ValueError("transient")
+                return "ok"
+
+        service = Service()
+        result = service.flaky()
+        assert result == "ok"
+        assert calls["n"] == 3
+
+    def test_stacked_retried_wrap_errors_exhaustion(self) -> None:
+        """Stacked Retried+WrapErrors: retries exhausted -> ValueError wrapped to DomainError."""
+        from mixin_retry import RetryPolicy
+
+        from domain_errors import DomainError
+
+        class TestError(DomainError):
+            domain = "test"
+            code = "retried_exhaust"
+            http_status = 500
+
+        policy = RetryPolicy(
+            max_attempts=2,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: isinstance(e, ValueError),
+        )
+        calls = {"n": 0}
+
+        @aspects(
+            objs.Retried(policy=policy),
+            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
+        )
+        class Service:
+            def always_fails(self) -> str:
+                calls["n"] += 1
+                raise ValueError("permanent")
+
+        service = Service()
+        with pytest.raises(TestError) as exc_info:
+            service.always_fails()
+        assert isinstance(exc_info.value.__cause__, ValueError)
+        assert calls["n"] == 2
+
+    def test_stacked_logged_retried_async(self) -> None:
+        """Stacked Logged+Retried on async class method."""
+        import asyncio
+
+        from mixin_logging import LoggingMixin
+        from mixin_retry import RetryPolicy
+
+        policy = RetryPolicy(
+            max_attempts=3,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: isinstance(e, ValueError),
+        )
+        calls = {"n": 0}
+
+        @aspects(
+            objs.Logged("async_test"),
+            objs.Retried(policy=policy),
+        )
+        class Service(LoggingMixin):
+            async def flaky_async(self) -> str:
+                calls["n"] += 1
+                if calls["n"] < 3:
+                    raise ValueError("transient")
+                return "async_ok"
+
+        service = Service()
+        result = asyncio.run(service.flaky_async())
+        assert result == "async_ok"
+        assert calls["n"] == 3
+
+    def test_retried_selector_none_passthrough_class(self) -> None:
+        """Retried with policy_from_request=None on class: single-attempt passthrough."""
+        calls = {"n": 0}
+
+        @aspects(
+            objs.Retried(policy_from_request=lambda *a, **k: None),
+        )
+        class Service:
+            def no_retry(self) -> str:
+                calls["n"] += 1
+                if calls["n"] < 3:
+                    raise ValueError("should not retry")
+                return "ok"
+
+        service = Service()
+        with pytest.raises(ValueError):
+            service.no_retry()
+        assert calls["n"] == 1
+
+    def test_logged_class_skips_privates_properties_nested(self) -> None:
+        """Logged on class: skips _-prefixed methods, properties, nested classes."""
+        from mixin_logging import LoggingMixin
+
+        @aspects(objs.Logged(event="test.skips"))
+        class Service(LoggingMixin):
+            public_value = 42
+
+            def public_method(self) -> str:
+                return "public"
+
+            def _private_method(self) -> str:
+                return "private"
+
+            @property
+            def prop(self) -> str:
+                return "property"
+
+            class NestedClass:
+                pass
+
+        service = Service()
+        assert service.public_method() == "public"
+        assert service._private_method() == "private"
+        assert service.prop == "property"
+        assert isinstance(service.NestedClass, type)
+
+    def test_logged_class_preserves_classmethod_staticmethod(self) -> None:
+        """Logged on class: preserves classmethod/staticmethod wrappers."""
+
+        @aspects(objs.Logged(event="test.class_static"))
+        class Service:
+            @classmethod
+            def class_method(cls) -> str:
+                return "classmethod"
+
+            @staticmethod
+            def static_method() -> str:
+                return "staticmethod"
+
+        assert Service.class_method() == "classmethod"
+        assert Service.static_method() == "staticmethod"
+
+    def test_retried_class_skips_privates_properties_nested(self) -> None:
+        """Retried on class: skips _-prefixed methods, properties, nested classes."""
+        from mixin_retry import RetryPolicy
+
+        policy = RetryPolicy(
+            max_attempts=1,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: False,
+        )
+
+        @aspects(objs.Retried(policy=policy))
+        class Service:
+            public_value = 42
+
+            def public_method(self) -> str:
+                return "public"
+
+            def _private_method(self) -> str:
+                return "private"
+
+            @property
+            def prop(self) -> str:
+                return "property"
+
+            class NestedClass:
+                pass
+
+        service = Service()
+        assert service.public_method() == "public"
+        assert service._private_method() == "private"
+        assert service.prop == "property"
+        assert isinstance(service.NestedClass, type)
+
+    def test_retried_class_preserves_classmethod_staticmethod(self) -> None:
+        """Retried on class: preserves classmethod/staticmethod wrappers."""
+        from mixin_retry import RetryPolicy
+
+        policy = RetryPolicy(
+            max_attempts=1,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: False,
+        )
+
+        @aspects(objs.Retried(policy=policy))
+        class Service:
+            @classmethod
+            def class_method(cls) -> str:
+                return "classmethod"
+
+            @staticmethod
+            def static_method() -> str:
+                return "staticmethod"
+
+        assert Service.class_method() == "classmethod"
+        assert Service.static_method() == "staticmethod"
+
+    def test_logged_skips_already_marked_methods(self) -> None:
+        """Logged on class: skips methods already marked with LOGGED_MARKER."""
+        from mixin_logging import LoggingMixin
+
+        @aspects(objs.Logged(event="test.second"))
+        @aspects(objs.Logged(event="test.first"))
+        class Service(LoggingMixin):
+            def method(self) -> str:
+                return "ok"
+
+        service = Service()
+        result = service.method()
+        assert result == "ok"
+
+    def test_retried_skips_already_marked_methods(self) -> None:
+        """Retried on class: skips methods already marked with RETRIED_MARKER."""
+        from mixin_retry import RetryPolicy
+
+        policy = RetryPolicy(
+            max_attempts=1,
+            backoff_base_seconds=0.0,
+            backoff_multiplier=1.0,
+            backoff_max_seconds=0.0,
+            jitter=False,
+            should_retry=lambda e: False,
+        )
+
+        @aspects(objs.Retried(policy=policy))
+        @aspects(objs.Retried(policy=policy))
+        class Service:
+            def method(self) -> str:
+                return "ok"
+
+        service = Service()
+        result = service.method()
+        assert result == "ok"

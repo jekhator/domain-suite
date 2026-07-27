@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, TypeVar
 
+from domain_aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
+from domain_aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
 from domain_aspects.services.constants import aspects as const
 
 if TYPE_CHECKING:
+    from mixin_retry import RetryPolicy
+
     from domain_monitoring.services.metrics.metrics_client import MetricSink
+
+T = TypeVar("T")
 
 
 class AspectKind(StrEnum):
@@ -22,14 +29,21 @@ class AspectKind(StrEnum):
     THROTTLED = "THROTTLED"
     MONITORED = "MONITORED"
     WRAP_ERRORS = "WRAP_ERRORS"
-    SENSITIVE = "SENSITIVE"
+    RETRIED = "RETRIED"
 
 
 @dataclass(frozen=True, slots=True)
 class Logged:
-    """Lazy-import logging mixin, emit event on entry and exit."""
+    """Native event logging with entry/exit/error emissions and optional timing.
+
+    Emits structured events via instance LoggingMixin.log_* or ambient mixin_logging functions.
+    """
 
     event: str
+    payload_from_request: Optional[Callable[..., dict]] = None
+    payload_from_result: Optional[Callable[[object], dict]] = None
+    payload_from_exc: Optional[Callable[[BaseException], dict]] = None
+    timed: bool = False
 
     def __post_init__(self) -> None:
         if not self.event or not isinstance(self.event, str):
@@ -40,12 +54,33 @@ class Logged:
         return AspectKind.LOGGED
 
     def build(self) -> Callable:
-        """Lazily import and apply logged decorator."""
-        try:
-            from mixin_logging import logged
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_LOGGED_IMPORT_MISSING) from e
-        return logged(self.event)
+        """Build native logged wrapper for function/method or class targets."""
+        event = self.event
+        payload_from_request = self.payload_from_request
+        payload_from_result = self.payload_from_result
+        payload_from_exc = self.payload_from_exc
+        timed = self.timed
+
+        def decorator(target: Callable) -> Callable:
+            if inspect.isclass(target):
+                return _LoggedBuilders.decorate_class_logged(
+                    target,
+                    event,
+                    payload_from_request,
+                    payload_from_result,
+                    payload_from_exc,
+                    timed,
+                )
+            return _LoggedBuilders.build_logged_wrapper(
+                target,
+                event,
+                payload_from_request,
+                payload_from_result,
+                payload_from_exc,
+                timed,
+            )
+
+        return decorator
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,26 +221,51 @@ class Monitored:
 
 
 @dataclass(frozen=True, slots=True)
-class Sensitive:
-    """Sensitive field masking via mixin-sensitivity."""
+class Retried:
+    """Exponential backoff retry with static or dynamic policy selection.
+
+    Exactly one of policy or policy_from_request must be provided (not both, not neither).
+    Retries see raw exceptions for predicate matching before WRAP_ERRORS converts them.
+    """
+
+    policy: Optional[RetryPolicy] = None
+    policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]] = None
 
     def __post_init__(self) -> None:
-        pass
+        has_policy = self.policy is not None
+        has_selector = self.policy_from_request is not None
+
+        if not has_policy and not has_selector:
+            raise ValueError(const.ERR_ASPECT_RETRIED_POLICY_REQUIRED)
+        if has_policy and has_selector:
+            raise ValueError(const.ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED)
 
     @property
     def kind(self) -> AspectKind:
-        return AspectKind.SENSITIVE
+        return AspectKind.RETRIED
 
     def build(self) -> Callable:
-        """Lazily import and apply sensitive decorator."""
-        try:
-            from mixin_sensitivity import sensitive
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_SENSITIVE_IMPORT_MISSING) from e
-        return sensitive
+        """Build retry wrapper via RetryExecutor with optional dynamic policy."""
+        policy = self.policy
+        policy_from_request = self.policy_from_request
+
+        def decorator(target: Callable) -> Callable:
+            if inspect.isclass(target):
+                return _RetriedBuilders.decorate_class_retried(
+                    target,
+                    policy,
+                    policy_from_request,
+                )
+            return _RetriedBuilders.build_retried_wrapper(
+                target,
+                policy,
+                policy_from_request,
+            )
+
+        return decorator
 
 
 AspectEntry = (
-    Logged | Requires | TenantScoped | Throttled | Monitored | WrapErrors | Sensitive
+    Logged | Requires | TenantScoped | Throttled | Monitored | WrapErrors | Retried
 )
 """Union type alias for all aspect entry types."""

@@ -6,12 +6,35 @@ from typing import Any
 
 import pytest
 
+import domain_aspects
 from domain_aspects.errors.aspects_errors import AspectDeclarationError
 from domain_aspects.services.aspects import (
     aspects_client as client_module,
     aspects_objects as objs,
 )
 from domain_aspects.services.constants import aspects as const
+
+
+class TestPublicAPI:
+    """Test public API exports."""
+
+    def test_monitored_in_public_api(self) -> None:
+        """Monitored is exported from domain_aspects root."""
+        assert hasattr(domain_aspects, "Monitored")
+        assert "Monitored" in domain_aspects.__all__
+        assert domain_aspects.Monitored is objs.Monitored
+
+    def test_retried_in_public_api(self) -> None:
+        """Retried is exported from domain_aspects root."""
+        assert hasattr(domain_aspects, "Retried")
+        assert "Retried" in domain_aspects.__all__
+        assert domain_aspects.Retried is objs.Retried
+
+    def test_aspect_order_in_public_api(self) -> None:
+        """ASPECT_ORDER is exported from domain_aspects root."""
+        assert hasattr(domain_aspects, "ASPECT_ORDER")
+        assert "ASPECT_ORDER" in domain_aspects.__all__
+        assert domain_aspects.ASPECT_ORDER is const.ASPECT_ORDER
 
 
 class TestAspectsFlatten:
@@ -57,16 +80,14 @@ class TestAspectsFlatten:
         entries = (
             objs.Logged(event="test"),
             entry_set,
-            objs.Sensitive(),
         )
         result = aspects_svc._flatten(entries)  # type: ignore[arg-type]
-        assert len(result) == 4
+        assert len(result) == 3
         kinds = {e.kind for e in result}
         assert kinds == {
             objs.AspectKind.LOGGED,
             objs.AspectKind.REQUIRES,
             objs.AspectKind.THROTTLED,
-            objs.AspectKind.SENSITIVE,
         }
 
 
@@ -146,10 +167,9 @@ class TestAspectsSort:
         throttled = objs.Throttled(scope="api", rate="100/hour")
         monitored = objs.Monitored(event="test.operation")
         wrap = objs.WrapErrors(as_=ValueError)
-        sensitive = objs.Sensitive()
-        entries = [wrap, logged, sensitive, requires, tenant, throttled, monitored]
+        entries = [wrap, logged, requires, tenant, throttled, monitored]
         result = aspects_svc._sort(entries)  # type: ignore[arg-type]
-        assert len(result) == 7
+        assert len(result) == 6
         kinds = [e.kind for e in result]
         assert kinds == [
             objs.AspectKind.LOGGED,
@@ -157,7 +177,6 @@ class TestAspectsSort:
             objs.AspectKind.TENANT_SCOPED,
             objs.AspectKind.THROTTLED,
             objs.AspectKind.MONITORED,
-            objs.AspectKind.SENSITIVE,
             objs.AspectKind.WRAP_ERRORS,
         ]
 
@@ -196,7 +215,6 @@ class TestAspectsCall:
         decorator = aspects_svc(
             objs.Logged(event="test"),
             entry_set,
-            objs.Sensitive(),
         )
         assert callable(decorator)
 
@@ -236,7 +254,7 @@ class TestAspectsCall:
         class ExampleClass:
             value: str = "example"
 
-        decorator = aspects_svc(objs.Sensitive())
+        decorator = aspects_svc(objs.Requires(permission="read"))
         decorated = decorator(ExampleClass)
         assert decorated is ExampleClass
 
@@ -283,7 +301,6 @@ class TestAspectsIntegration:
             objs.TenantScoped(param_name="tenant_id"),
             objs.Throttled(scope="api", rate="100/hour"),
             objs.WrapErrors(as_=ValueError),
-            objs.Sensitive(),
         )
         assert callable(decorator)
 
@@ -296,7 +313,6 @@ class TestAspectsIntegration:
             objs.TenantScoped(param_name="tenant_id"),
             objs.Throttled(scope="api", rate="100/hour"),
             objs.WrapErrors(as_=ValueError),
-            objs.Sensitive(),
         )
         assert callable(decorator)
 
@@ -309,7 +325,6 @@ class TestAspectsIntegration:
                 objs.TenantScoped(param_name="tenant_id"),
                 objs.Throttled(scope="api", rate="100/hour"),
                 objs.WrapErrors(as_=ValueError),
-                objs.Sensitive(),
             }
         )
         aspects_svc = client_module.Aspects()

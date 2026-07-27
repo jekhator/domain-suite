@@ -8,7 +8,7 @@ from domain_aspects.services.aspects.aspects_objects import (
     AspectKind,
     Logged,
     Requires,
-    Sensitive,
+    Retried,
     TenantScoped,
     Throttled,
     WrapErrors,
@@ -20,8 +20,8 @@ __all__ = [
     "AspectKind",
     "Logged",
     "Requires",
+    "Retried",
     "TenantScoped",
     "Throttled",
     "WrapErrors",
-    "Sensitive",
 ]

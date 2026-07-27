@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Aspect import error messages corrected**: Rewrote three misleading error messages in `domain_aspects.services.constants.aspects`: `ERR_ASPECT_REQUIRES_IMPORT_MISSING`, `ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING`, and `ERR_ASPECT_THROTTLED_IMPORT_MISSING` now correctly state that domain-security and domain-api-limiter are built into domain-suite (not external packages with non-existent extras); messages now direct users to reinstall domain-suite rather than non-existent [security] or [throttle] extras. All seven ERR_ASPECT_*_IMPORT_MISSING constants audited against pyproject.toml extras; logging and sensitivity extras verified correct; hard-dependency messages (domain-errors, domain-monitoring) remain unchanged.
 - **Strict-suite CI pin bump to 0.4.0**: Updated `.github/workflows/strict-module.yml` strict-module and loc-cap invocations from `strict-suite==0.3.0` to `strict-suite==0.4.0`; R001-R011 rule set unchanged so no new violations surface; all six domain roots remain fully compliant.
+- Wheel no longer ships conftest/test-constants files.
 
 ## [0.3.1] - 2026-07-18
 

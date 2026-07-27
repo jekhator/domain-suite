@@ -44,9 +44,3 @@ def stub_wrap_errors() -> objs.WrapErrors:
 def stub_monitored() -> objs.Monitored:
     """Monitored entry fixture."""
     return objs.Monitored(event="test.operation")
-
-
-@pytest.fixture
-def stub_sensitive() -> objs.Sensitive:
-    """Sensitive entry fixture."""
-    return objs.Sensitive()
