@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-27
+
+### Removed
+- Sensitive aspect marker: removed from the aspects surface. Sensitivity repr-masking is adopted directly via mixin-suite's SensitiveRepr base class (one-line swap; field metadata unchanged).
+
+### Added
+- Retried aspect: native retry composition carrying the whole RetryPolicy DTO - Retried(policy=RetryPolicy(...)) - plus a per-request selector form Retried(policy_from_request=...) returning RetryPolicy or None (None = no retry). Exactly one of the two forms required.
+- Native Logged/Monitored wrapper builds: aspect wrappers build natively from mixin-suite capabilities with LatencyClock as the single timing truth; timing fields are capability-rounded (2 decimals).
+- Logged payload_from_result passthrough: rich-field extraction on the Logged marker.
+
+### Changed
+- ASPECT_ORDER grows to 7 entries with RETRIED innermost.
+- Dependency floor: mixin-suite>=0.5.0 (lockstep pair; upgrade both together).
+- All 6 wheel roots move to 0.5.0.
+- Post-RC types-and-structure pass: wrapper builders containerized (aspects_logged_builders / aspects_retried_builders), mypy narrowing fixes - zero behavior delta.
+
 ### Fixed
 
 - **Aspect import error messages corrected**: Rewrote three misleading error messages in `domain_aspects.services.constants.aspects`: `ERR_ASPECT_REQUIRES_IMPORT_MISSING`, `ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING`, and `ERR_ASPECT_THROTTLED_IMPORT_MISSING` now correctly state that domain-security and domain-api-limiter are built into domain-suite (not external packages with non-existent extras); messages now direct users to reinstall domain-suite rather than non-existent [security] or [throttle] extras. All seven ERR_ASPECT_*_IMPORT_MISSING constants audited against pyproject.toml extras; logging and sensitivity extras verified correct; hard-dependency messages (domain-errors, domain-monitoring) remain unchanged.
