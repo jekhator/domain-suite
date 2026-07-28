@@ -72,7 +72,7 @@ except DatabaseError as e:
     print(f"Error domain: {e.domain}, code: {e.code}, http_status: {e.http_status}, retryable: {e.retryable}")
 ```
 
-**Output (Python 3.11+, domain-suite==0.2.0):**
+**Output (Python 3.11+, domain-suite==0.5.0):**
 ```
 Error domain: database, code: db_connection_failed, http_status: 503, retryable: True
 ```
@@ -107,7 +107,7 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.2.0):**
+**Output (Python 3.11+, domain-suite==0.5.0):**
 ```
 Admin access granted
 ```
@@ -134,7 +134,7 @@ result = create_document("My Document")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.2.0):**
+**Output (Python 3.11+, domain-suite==0.5.0):**
 ```
 {'id': 'doc_123', 'title': 'My Document'}
 ```
@@ -161,7 +161,7 @@ result = process_document("doc_123")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.2.0):**
+**Output (Python 3.11+, domain-suite==0.5.0):**
 ```
 {'status': 'success'}
 ```
@@ -198,7 +198,7 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.2.0):**
+**Output (Python 3.11+, domain-suite==0.5.0):**
 ```
 {'id': 'doc_123', 'title': 'My Doc'}
 ```
@@ -213,9 +213,9 @@ Each package retains its original public API and namespace. Internal dependencie
 
 ## Optional Extras
 
-- **`[logging]`**: Integrates with `mixin-logging>=0.6.0` for structured event logging adapters.
-- **`[sensitivity]`**: Integrates with `mixin-sensitivity>=0.4.0` for automatic PII/PHI field masking.
-- **`[all]`**: Includes both `mixin-logging` and `mixin-sensitivity`.
+- **`[logging]`**: Integrates with `mixin-suite>=0.5.0` for structured event logging adapters.
+- **`[sensitivity]`**: Integrates with `mixin-suite>=0.5.0` for automatic PII/PHI field masking.
+- **`[all]`**: Includes both mixin-suite packages.
 
 Future versions may introduce new extras or migrate integrations (e.g., `mixin-suite` packages if they consolidate similarly).
 
