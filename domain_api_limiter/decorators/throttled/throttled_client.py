@@ -14,11 +14,11 @@ from domain_api_limiter.services.policy.policy_objects import (
     TierRate,
 )
 
-Decorated = TypeVar("Decorated", bound=Callable[..., Any])
-
 
 class Throttled:
     """Decorator factory attaching validated ThrottlePolicy to callables and classes."""
+
+    Decorated = TypeVar("Decorated", bound=Callable[..., Any])
 
     def __call__(
         self,

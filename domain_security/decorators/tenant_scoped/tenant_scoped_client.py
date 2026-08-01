@@ -21,14 +21,14 @@ from domain_security.errors.security_errors import (
 )
 from domain_security.services.tenancy.tenancy_client import TenancyGuard
 
-Params = ParamSpec("Params")
-Return = TypeVar("Return")
-
 _TENANT_SCOPED_DECORATED_MARKER = "__tenant_scoped_decorated__"
 
 
 class TenantScoped:
     """Decorator factory enforcing the tenant boundary from the ambient security context."""
+
+    Params = ParamSpec("Params")
+    Return = TypeVar("Return")
 
     def __init__(self, guard: TenancyGuard | None = None) -> None:
         """Store the tenancy guard, defaulting to the standard TenancyGuard."""

@@ -17,8 +17,6 @@ if TYPE_CHECKING:
 
     from domain_monitoring.services.metrics.metrics_client import MetricSink
 
-T = TypeVar("T")
-
 
 class AspectKind(StrEnum):
     """Aspect classification kinds."""

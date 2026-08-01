@@ -16,14 +16,14 @@ from domain_security.context.security_context.security_context_objects import (
 from domain_security.services.authz.authz_client import Authorizer
 from domain_security.services.authz.authz_objects import Permission
 
-Params = ParamSpec("Params")
-Return = TypeVar("Return")
-
 _REQUIRES_DECORATED_MARKER = "__requires_decorated__"
 
 
 class Requires:
     """Decorator factory enforcing a permission from the ambient security context."""
+
+    Params = ParamSpec("Params")
+    Return = TypeVar("Return")
 
     def __init__(self, authorizer: Authorizer | None = None) -> None:
         """Store the authorizer, defaulting to the scope-based Authorizer."""

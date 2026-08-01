@@ -76,8 +76,8 @@ class TestRetrievalProvenanceCreation:
                 occurred_at="2026-07-07T12:00:00Z",
             )
             assert False, "Should raise ValueError"
-        except ValueError as e:
-            assert "query must be non-empty" in str(e)
+        except ValueError as error:
+            assert "query must be non-empty" in str(error)
 
     def test_empty_principal_id_raises(self) -> None:
         """Empty principal_id raises ValueError."""
@@ -93,8 +93,8 @@ class TestRetrievalProvenanceCreation:
                 occurred_at="2026-07-07T12:00:00Z",
             )
             assert False, "Should raise ValueError"
-        except ValueError as e:
-            assert "principal_id must be non-empty" in str(e)
+        except ValueError as error:
+            assert "principal_id must be non-empty" in str(error)
 
     def test_empty_session_id_raises(self) -> None:
         """Empty session_id raises ValueError."""
@@ -110,8 +110,8 @@ class TestRetrievalProvenanceCreation:
                 occurred_at="2026-07-07T12:00:00Z",
             )
             assert False, "Should raise ValueError"
-        except ValueError as e:
-            assert "session_id must be non-empty" in str(e)
+        except ValueError as error:
+            assert "session_id must be non-empty" in str(error)
 
     def test_negative_duration_raises(self) -> None:
         """Negative duration_ms raises ValueError."""
@@ -127,8 +127,8 @@ class TestRetrievalProvenanceCreation:
                 occurred_at="2026-07-07T12:00:00Z",
             )
             assert False, "Should raise ValueError"
-        except ValueError as e:
-            assert "duration_ms must be non-negative" in str(e)
+        except ValueError as error:
+            assert "duration_ms must be non-negative" in str(error)
 
     def test_empty_occurred_at_raises(self) -> None:
         """Empty occurred_at raises ValueError."""
@@ -144,8 +144,8 @@ class TestRetrievalProvenanceCreation:
                 occurred_at="",
             )
             assert False, "Should raise ValueError"
-        except ValueError as e:
-            assert "occurred_at must be non-empty" in str(e)
+        except ValueError as error:
+            assert "occurred_at must be non-empty" in str(error)
 
 
 class TestRetrievalProvenanceFactories:
