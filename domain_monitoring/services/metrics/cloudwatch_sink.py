@@ -36,8 +36,8 @@ class CloudWatchMetricSink:
         """
         try:
             import boto3
-        except ImportError as e:  # pragma: no cover
-            raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from e
+        except ImportError as error:  # pragma: no cover
+            raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
 
         self.namespace = namespace
         self._cloudwatch = boto3.client("cloudwatch")
@@ -71,7 +71,10 @@ class CloudWatchMetricSink:
             List of dimension dicts for CloudWatch.
         """
         dimensions: list[dict[str, str]] = [
-            {"Name": metrics_const.CLOUDWATCH_DIMENSION_OUTCOME, "Value": event.outcome.value}
+            {
+                "Name": metrics_const.CLOUDWATCH_DIMENSION_OUTCOME,
+                "Value": event.outcome.value,
+            }
         ]
 
         for label_key, label_value in event.labels:

@@ -101,8 +101,8 @@ class Requires:
         """Lazily import and apply requires decorator."""
         try:
             from domain_security.decorators.requires import requires
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_REQUIRES_IMPORT_MISSING) from e
+        except ImportError as error:
+            raise ImportError(const.ERR_ASPECT_REQUIRES_IMPORT_MISSING) from error
         return requires(self.permission)
 
 
@@ -124,8 +124,8 @@ class TenantScoped:
         """Lazily import and apply tenant_scoped decorator."""
         try:
             from domain_security.decorators.tenant_scoped import tenant_scoped
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING) from e
+        except ImportError as error:
+            raise ImportError(const.ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING) from error
         return tenant_scoped(self.param_name)
 
 
@@ -153,8 +153,8 @@ class Throttled:
         """Lazily import and apply throttled decorator."""
         try:
             from domain_api_limiter.decorators.throttled import throttled
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_THROTTLED_IMPORT_MISSING) from e
+        except ImportError as error:
+            raise ImportError(const.ERR_ASPECT_THROTTLED_IMPORT_MISSING) from error
         tiers_dict = dict(self.tiers) if self.tiers else None
         return throttled(self.scope, self.rate, tiers=tiers_dict)
 
@@ -180,8 +180,8 @@ class WrapErrors:
         """Import and apply wrap_errors decorator."""
         try:
             from domain_errors import wrap_errors
-        except ImportError as e:
-            raise ImportError(const.ERR_ASPECT_WRAP_ERRORS_IMPORT_MISSING) from e
+        except ImportError as error:
+            raise ImportError(const.ERR_ASPECT_WRAP_ERRORS_IMPORT_MISSING) from error
         return wrap_errors(as_=self.as_, catch=self.catch)  # type: ignore[arg-type]
 
 
@@ -210,8 +210,8 @@ class Monitored:
             from domain_monitoring.decorators.monitored.monitored_client import (
                 monitored,
             )
-        except ImportError as e:  # pragma: no cover
-            raise ImportError(const.ERR_ASPECT_MONITORED_IMPORT_MISSING) from e
+        except ImportError as error:  # pragma: no cover
+            raise ImportError(const.ERR_ASPECT_MONITORED_IMPORT_MISSING) from error
         return monitored(
             self.event,
             sink=self.sink,

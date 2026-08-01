@@ -24,6 +24,6 @@ jobs:
         with:
           enable-cache: true
       - name: Ruff lint
-        run: uvx ruff@0.15.14 check domain_aspects/
+        run: uvx ruff@0.15.14 check .
       - name: Ruff format check
         run: uvx ruff@0.15.14 format --check domain_aspects/
