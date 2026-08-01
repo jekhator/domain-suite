@@ -6,7 +6,7 @@ import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Optional, TypeVar
+from typing import TYPE_CHECKING, Optional
 
 from domain_aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
 from domain_aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
