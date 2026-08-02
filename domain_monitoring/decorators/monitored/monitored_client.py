@@ -23,10 +23,12 @@ class MonitoredClient:
     def monitored(
         event: str,
         sink: Optional[MetricSink] = None,
-        labels_from_result: Optional[Callable[[object], tuple[tuple[str, str], ...]]]
-        = None,
-        labels_from_exc: Optional[Callable[[BaseException], tuple[tuple[str, str], ...]]]
-        = None,
+        labels_from_result: Optional[
+            Callable[[object], tuple[tuple[str, str], ...]]
+        ] = None,
+        labels_from_exc: Optional[
+            Callable[[BaseException], tuple[tuple[str, str], ...]]
+        ] = None,
     ) -> Callable[[Target], Target]:
         """Apply metric tracking to callables and classes."""
 
@@ -105,9 +107,7 @@ class MonitoredClient:
                 result = fn(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
-                labels = (
-                    labels_from_result(result) if labels_from_result else ()
-                )
+                labels = labels_from_result(result) if labels_from_result else ()
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
@@ -116,10 +116,10 @@ class MonitoredClient:
                 )
                 actual_sink.emit(metric_event)
                 return result
-            except Exception as exc:
+            except Exception as error:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
-                labels = labels_from_exc(exc) if labels_from_exc else ()
+                labels = labels_from_exc(error) if labels_from_exc else ()
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,
@@ -155,9 +155,7 @@ class MonitoredClient:
                 result = await fn(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
-                labels = (
-                    labels_from_result(result) if labels_from_result else ()
-                )
+                labels = labels_from_result(result) if labels_from_result else ()
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
@@ -166,10 +164,10 @@ class MonitoredClient:
                 )
                 actual_sink.emit(metric_event)
                 return result
-            except Exception as exc:
+            except Exception as error:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
-                labels = labels_from_exc(exc) if labels_from_exc else ()
+                labels = labels_from_exc(error) if labels_from_exc else ()
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,

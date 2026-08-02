@@ -62,8 +62,8 @@ class TestErrorChainWrap:
         wrapped = ErrorChain.wrap(original, as_=CustomDomainError, message="wrapped")
         try:
             raise wrapped from original
-        except CustomDomainError as e:
-            assert e.__cause__ is original
+        except CustomDomainError as error:
+            assert error.__cause__ is original
 
 
 class TestErrorChainHistory:
@@ -86,8 +86,8 @@ class TestErrorChainHistory:
         outer = RuntimeError("outer")
         try:
             raise outer from inner
-        except RuntimeError as e:
-            links = ErrorChain.history(e)
+        except RuntimeError as error:
+            links = ErrorChain.history(error)
         assert len(links) == 2
         assert links[0].type_name == "RuntimeError"
         assert links[0].via == ChainVia.ROOT
@@ -103,8 +103,8 @@ class TestErrorChainHistory:
                 raise inner
             except ValueError:
                 raise outer
-        except RuntimeError as e:
-            links = ErrorChain.history(e)
+        except RuntimeError as error:
+            links = ErrorChain.history(error)
         assert len(links) == 2
         assert links[0].type_name == "RuntimeError"
         assert links[0].via == ChainVia.ROOT
@@ -120,8 +120,8 @@ class TestErrorChainHistory:
                 raise inner
             except ValueError:
                 raise outer from None
-        except RuntimeError as e:
-            links = ErrorChain.history(e)
+        except RuntimeError as error:
+            links = ErrorChain.history(error)
         # only outer, because "from None" suppresses context
         assert len(links) == 1
         assert links[0].type_name == "RuntimeError"
@@ -222,9 +222,9 @@ class TestErrorChainCrossings:
         err = KeyError("same domain")
         try:
             raise RuntimeError("also python domain") from err
-        except RuntimeError as e:
+        except RuntimeError as error:
             classifier = FakeDomainClassifier()
-            crossings = ErrorChain.crossings(e, classifiers=(classifier,))
+            crossings = ErrorChain.crossings(error, classifiers=(classifier,))
         # Both KeyError and RuntimeError unmatched, default to "python"
         assert len(crossings) == 0
 
@@ -234,9 +234,9 @@ class TestErrorChainCrossings:
         outer = RuntimeError("app failed")
         try:
             raise outer from inner
-        except RuntimeError as e:
+        except RuntimeError as error:
             classifier = FakeDomainClassifier()
-            crossings = ErrorChain.crossings(e, classifiers=(classifier,))
+            crossings = ErrorChain.crossings(error, classifiers=(classifier,))
         # inner (validation) -> outer (python) is a crossing
         assert len(crossings) == 1
         assert crossings[0].cause.domain == "validation"
@@ -249,9 +249,9 @@ class TestErrorChainCrossings:
         outer = ValueError("oops")
         try:
             raise outer from inner
-        except ValueError as e:
+        except ValueError as error:
             classifier = FakeDomainClassifier()
-            crossings = ErrorChain.crossings(e, classifiers=(classifier,))
+            crossings = ErrorChain.crossings(error, classifiers=(classifier,))
         # inner is the cause, outer is the effect
         assert len(crossings) == 1
         assert crossings[0].cause.type_name == "CustomDomainError"
@@ -274,8 +274,8 @@ class TestErrorChainCrossings:
                     raise e2 from e1
             except ValueError:
                 raise e3 from e2
-        except KeyError as e:
-            crossings = ErrorChain.crossings(e, classifiers=(classifier,))
+        except KeyError as error:
+            crossings = ErrorChain.crossings(error, classifiers=(classifier,))
         # custom->validation and validation->python
         assert len(crossings) == 2
 

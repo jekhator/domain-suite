@@ -13,11 +13,11 @@ from domain_errors.services.chain.chain_objects import (
 )
 from domain_errors.services.constants import chain as const
 
-TypeDomainError = TypeVar("TypeDomainError", bound=DomainError)
-
 
 class ErrorChain:
     """Stateless chaining operations for typed domain errors."""
+
+    TypeDomainError = TypeVar("TypeDomainError", bound=DomainError)
 
     @staticmethod
     def wrap(

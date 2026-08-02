@@ -77,8 +77,8 @@ class TestWrapErrorsSyncWrap:
 
         try:
             divide(10, 0)
-        except DemoError as de:
-            assert isinstance(de.__cause__, ZeroDivisionError)
+        except DemoError as error:
+            assert isinstance(error.__cause__, ZeroDivisionError)
 
     def test_sync_custom_message_passes_through(self) -> None:
         """Custom message parameter is stored in the DomainError."""
@@ -181,8 +181,8 @@ class TestWrapErrorsAsyncWrap:
 
         try:
             asyncio.run(async_divide(10, 0))
-        except DemoError as de:
-            assert isinstance(de.__cause__, ZeroDivisionError)
+        except DemoError as error:
+            assert isinstance(error.__cause__, ZeroDivisionError)
 
     def test_async_custom_message_passes_through(self) -> None:
         """Async custom message parameter is stored in the DomainError."""
@@ -564,8 +564,8 @@ class TestWrapErrorsClassLevel:
 
         try:
             service.sync_method(-1)
-        except DemoError as err:
-            assert isinstance(err.__cause__, ValueError)
+        except DemoError as error:
+            assert isinstance(error.__cause__, ValueError)
 
     def test_class_async_method_wrapped(self) -> None:
         """Async methods in a decorated class are wrapped with async wrapper."""
@@ -842,8 +842,8 @@ class TestWrapErrorsClassLevel:
             def fail(self) -> None:
                 try:
                     raise KeyError("key error")
-                except KeyError as e:
-                    raise ValueError("wrapped key error") from e
+                except KeyError as error:
+                    raise ValueError("wrapped key error") from error
 
         service = ChainService()
 

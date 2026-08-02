@@ -116,17 +116,15 @@ class TestCloudWatchMetricSink:
         def init_no_boto3(self, namespace: str = "domain-monitoring") -> None:
             try:
                 raise ImportError("No module named 'boto3'")
-            except ImportError as e:
+            except ImportError as error:
                 from domain_monitoring.errors.constants import (
                     monitoring as const,
                 )
 
-                raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from e
+                raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
 
         with patch.object(CloudWatchMetricSink, "__init__", init_no_boto3):
-            with pytest.raises(
-                ImportError, match="CloudWatch sink requires boto3"
-            ):
+            with pytest.raises(ImportError, match="CloudWatch sink requires boto3"):
                 CloudWatchMetricSink()
 
     def test_cloudwatch_sink_default_namespace(self) -> None:

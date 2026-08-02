@@ -133,8 +133,8 @@ class TestDomainErrorChainingBehavior:
         original = ValueError("original")
         try:
             raise DomainError(message="wrapped") from original
-        except DomainError as e:
-            assert e.__cause__ is original
+        except DomainError as error:
+            assert error.__cause__ is original
 
 
 class TestDomainErrorContextPropagation:

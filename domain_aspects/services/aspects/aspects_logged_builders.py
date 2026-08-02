@@ -41,10 +41,10 @@ class _LoggedBuilders:
                 if payload_from_request:
                     try:
                         start_payload = payload_from_request(*args, **kwargs) or {}
-                    except Exception as e:
+                    except Exception as error:
                         log_error(
                             f"Logged: extraction failed for {event}.start",
-                            error=str(e),
+                            error=str(error),
                         )
                         start_payload = {}
 
@@ -59,10 +59,10 @@ class _LoggedBuilders:
                     if payload_from_result:
                         try:
                             end_payload = payload_from_result(result) or {}
-                        except Exception as e:
+                        except Exception as error:
                             log_error(
                                 f"Logged: extraction failed for {event}.end",
-                                error=str(e),
+                                error=str(error),
                             )
                             end_payload = {}
 
@@ -72,13 +72,13 @@ class _LoggedBuilders:
                         log_info(f"{event}.end", **end_payload)
 
                     return result
-                except BaseException as e:
+                except BaseException as error:
                     error_payload: dict = {
-                        "error_type": type(e).__name__,
+                        "error_type": type(error).__name__,
                     }
                     if payload_from_exc:
                         try:
-                            error_payload.update(payload_from_exc(e) or {})
+                            error_payload.update(payload_from_exc(error) or {})
                         except Exception as extraction_error:
                             log_error(
                                 f"Logged: extraction failed for {event}.error",
@@ -104,10 +104,10 @@ class _LoggedBuilders:
             if payload_from_request:
                 try:
                     start_payload = payload_from_request(*args, **kwargs) or {}
-                except Exception as e:
+                except Exception as error:
                     log_error(
                         f"Logged: extraction failed for {event}.start",
-                        error=str(e),
+                        error=str(error),
                     )
                     start_payload = {}
 
@@ -122,10 +122,10 @@ class _LoggedBuilders:
                 if payload_from_result:
                     try:
                         end_payload = payload_from_result(result) or {}
-                    except Exception as e:
+                    except Exception as error:
                         log_error(
                             f"Logged: extraction failed for {event}.end",
-                            error=str(e),
+                            error=str(error),
                         )
                         end_payload = {}
 
@@ -135,13 +135,13 @@ class _LoggedBuilders:
                     log_info(f"{event}.end", **end_payload)
 
                 return result
-            except BaseException as e:
+            except BaseException as error:
                 error_payload: dict = {
-                    "error_type": type(e).__name__,
+                    "error_type": type(error).__name__,
                 }
                 if payload_from_exc:
                     try:
-                        error_payload.update(payload_from_exc(e) or {})
+                        error_payload.update(payload_from_exc(error) or {})
                     except Exception as extraction_error:
                         log_error(
                             f"Logged: extraction failed for {event}.error",
