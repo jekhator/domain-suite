@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable
-from typing import Any, ParamSpec, TypeVar
+from typing import Any
 
 from domain_security.context.security_context.security_context_client import (
     SecurityContextManager,
@@ -21,9 +21,6 @@ from domain_security.errors.security_errors import (
 )
 from domain_security.services.tenancy.tenancy_client import TenancyGuard
 
-Params = ParamSpec("Params")
-Return = TypeVar("Return")
-
 _TENANT_SCOPED_DECORATED_MARKER = "__tenant_scoped_decorated__"
 
 
@@ -34,7 +31,7 @@ class TenantScoped:
         """Store the tenancy guard, defaulting to the standard TenancyGuard."""
         self._guard = guard or TenancyGuard()
 
-    def __call__(
+    def __call__[**Params, Return](
         self,
         param_name: str,
     ) -> Callable[[Callable[Params, Return] | type], Callable[Params, Return] | type]:
@@ -49,7 +46,7 @@ class TenantScoped:
 
         return decorate
 
-    def _decorate_callable(
+    def _decorate_callable[**Params, Return](
         self, func: Callable[Params, Return], param_name: str
     ) -> Callable[Params, Return]:
         """Decorate a single callable."""

@@ -5,7 +5,7 @@ import functools
 import inspect
 from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Optional, cast
 
 from domain_monitoring.errors.constants import monitoring as const
 from domain_monitoring.errors.monitoring_errors import MonitoringDeclarationError
@@ -13,14 +13,12 @@ from domain_monitoring.services.metrics.metrics_client import MetricSink
 from domain_monitoring.services.metrics.metrics_objects import MetricEvent
 from domain_monitoring.services.registry.registry_client import MonitorRegistry
 
-Target = TypeVar("Target")
-
 
 class MonitoredClient:
     """Container for monitored decorator and helper methods."""
 
     @staticmethod
-    def monitored(
+    def monitored[Target](
         event: str,
         sink: Optional[MetricSink] = None,
         labels_from_result: Optional[

@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable
-from typing import Any, ParamSpec, TypeVar
+from typing import Any
 
 from domain_security.context.security_context.security_context_client import (
     SecurityContextManager,
@@ -15,9 +15,6 @@ from domain_security.context.security_context.security_context_objects import (
 )
 from domain_security.services.authz.authz_client import Authorizer
 from domain_security.services.authz.authz_objects import Permission
-
-Params = ParamSpec("Params")
-Return = TypeVar("Return")
 
 _REQUIRES_DECORATED_MARKER = "__requires_decorated__"
 
@@ -29,7 +26,7 @@ class Requires:
         """Store the authorizer, defaulting to the scope-based Authorizer."""
         self._authorizer = authorizer or Authorizer()
 
-    def __call__(
+    def __call__[**Params, Return](
         self,
         permission: str,
     ) -> Callable[[Callable[Params, Return] | type], Callable[Params, Return] | type]:
@@ -44,7 +41,7 @@ class Requires:
 
         return decorate
 
-    def _decorate_callable(
+    def _decorate_callable[**Params, Return](
         self, func: Callable[Params, Return], permission: str
     ) -> Callable[Params, Return]:
         """Decorate a single callable."""

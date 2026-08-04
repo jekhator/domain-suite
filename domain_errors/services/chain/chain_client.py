@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TypeVar
-
 from domain_errors.domains.domain_error.domain_error import DomainError
 from domain_errors.services.chain.chain_objects import (
     ChainLink,
@@ -17,7 +15,7 @@ from domain_errors.services.constants import chain as const
 class ErrorChain:
     """Stateless chaining operations for typed domain errors."""
 
-    TypeDomainError = TypeVar("TypeDomainError", bound=DomainError)
+    type TypeDomainError = DomainError
 
     @staticmethod
     def wrap(
