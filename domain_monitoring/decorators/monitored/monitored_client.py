@@ -7,12 +7,12 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Optional, cast
 
+from mixin_logging import get_correlation_id
+
 from domain_monitoring.errors.constants import monitoring as const
 from domain_monitoring.errors.monitoring_errors import MonitoringDeclarationError
 from domain_monitoring.services.metrics.metrics_client import MetricSink
 from domain_monitoring.services.metrics.metrics_objects import MetricEvent
-from mixin_logging import get_correlation_id
-
 from domain_monitoring.services.registry.registry_client import MonitorRegistry
 
 
