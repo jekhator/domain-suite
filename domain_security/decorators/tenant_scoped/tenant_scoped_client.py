@@ -100,9 +100,7 @@ class TenantScoped:
                     param_name=param_name,
                 )
 
-    def _apply_to_method(
-        self, method: Any, param_name: str
-    ) -> Callable[Params, Return] | classmethod | staticmethod:
+    def _apply_to_method(self, method: Any, param_name: str) -> Any:
         """Apply decorator to a method, handling classmethod and staticmethod."""
         if isinstance(method, classmethod):
             return classmethod(self._decorate_callable(method.__func__, param_name))
