@@ -6,13 +6,10 @@ import functools
 import inspect
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, ParamSpec, TypeVar, cast
+from typing import Any, cast
 
 from domain_errors.domains.domain_error.domain_error import DomainError
 from domain_errors.services.chain.chain_client import ErrorChain
-
-Params = ParamSpec("Params")
-Return = TypeVar("Return")
 
 WRAP_ERRORS_MARKER = "__wrap_errors_applied__"
 
@@ -56,7 +53,7 @@ class WrapErrorsClient:
         )
         raise TypeError(msg)
 
-    def _decorate_callable(
+    def _decorate_callable[**Params, Return](
         self, func: Callable[Params, Return]
     ) -> Callable[Params, Return]:
         """Wrap a single callable (function or method)."""
