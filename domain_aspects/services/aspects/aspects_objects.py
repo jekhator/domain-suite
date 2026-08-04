@@ -29,6 +29,7 @@ class AspectKind(StrEnum):
     MONITORED = "MONITORED"
     WRAP_ERRORS = "WRAP_ERRORS"
     RETRIED = "RETRIED"
+    REQUIRE_MIXINS = "REQUIRE_MIXINS"
 
 
 @dataclass(frozen=True, slots=True)

@@ -5,15 +5,12 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from domain_aspects.services.constants import aspects as const
 
-
-class _RequireMixinsKind(StrEnum):
-    """Aspect kind for RequireMixins."""
-
-    REQUIRE_MIXINS = "REQUIRE_MIXINS"
+if TYPE_CHECKING:
+    from domain_aspects.services.aspects.aspects_objects import AspectKind
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +29,9 @@ class RequireMixins:
 
     @property
     def kind(self) -> str:
-        return _RequireMixinsKind.REQUIRE_MIXINS
+        from domain_aspects.services.aspects.aspects_objects import AspectKind
+
+        return AspectKind.REQUIRE_MIXINS
 
     def build(self) -> Callable:
         """Build validation marker for class-target only."""
