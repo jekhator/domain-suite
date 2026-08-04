@@ -44,3 +44,16 @@ def stub_wrap_errors() -> objs.WrapErrors:
 def stub_monitored() -> objs.Monitored:
     """Monitored entry fixture."""
     return objs.Monitored(event="test.operation")
+
+
+@pytest.fixture
+def stub_require_mixins() -> objs.RequireMixins:
+    """RequireMixins entry fixture."""
+
+    class MixinA:
+        pass
+
+    class MixinB:
+        pass
+
+    return objs.RequireMixins(bases=(MixinA, MixinB))

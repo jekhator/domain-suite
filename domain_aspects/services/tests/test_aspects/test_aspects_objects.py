@@ -218,6 +218,7 @@ class TestAspectKindEnum:
         assert objs.AspectKind.MONITORED == "MONITORED"
         assert objs.AspectKind.WRAP_ERRORS == "WRAP_ERRORS"
         assert objs.AspectKind.RETRIED == "RETRIED"
+        assert objs.AspectKind.REQUIRE_MIXINS == "REQUIRE_MIXINS"
 
 
 class TestEntryHashability:
@@ -337,3 +338,129 @@ class TestRetried:
         entry1 = objs.Retried(policy=policy)
         entry2 = objs.Retried(policy=policy)
         assert hash(entry1) == hash(entry2)
+
+
+class TestRequireMixins:
+    """Test RequireMixins validation marker."""
+
+    def test_require_mixins_creation_happy_path(self) -> None:
+        """Create RequireMixins with valid base types."""
+
+        class MixinA:
+            pass
+
+        class MixinB:
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA, MixinB))
+        assert entry.bases == (MixinA, MixinB)
+        assert entry.kind == objs.AspectKind.REQUIRE_MIXINS
+
+    def test_require_mixins_empty_bases_raises(self) -> None:
+        """RequireMixins with empty bases raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            objs.RequireMixins(bases=())
+
+    def test_require_mixins_non_tuple_bases_raises(self) -> None:
+        """RequireMixins with non-tuple bases raises ValueError."""
+
+        class MixinA:
+            pass
+
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            objs.RequireMixins(bases=[MixinA])  # type: ignore
+
+    def test_require_mixins_is_frozen(self) -> None:
+        """RequireMixins is frozen dataclass."""
+
+        class MixinA:
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA,))
+        with pytest.raises(AttributeError):
+            entry.bases = ()  # type: ignore
+
+    def test_require_mixins_hashable(self) -> None:
+        """RequireMixins is hashable for frozenset membership."""
+
+        class MixinA:
+            pass
+
+        class MixinB:
+            pass
+
+        entry1 = objs.RequireMixins(bases=(MixinA, MixinB))
+        entry2 = objs.RequireMixins(bases=(MixinA, MixinB))
+        assert hash(entry1) == hash(entry2)
+
+    def test_require_mixins_build_class_all_bases_present(self) -> None:
+        """RequireMixins.build() validates class has all required bases."""
+
+        class MixinA:
+            pass
+
+        class MixinB:
+            pass
+
+        class GoodClass(MixinA, MixinB):
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA, MixinB))
+        decorator = entry.build()
+        result = decorator(GoodClass)
+        assert result is GoodClass
+
+    def test_require_mixins_build_class_missing_base_raises(self) -> None:
+        """RequireMixins.build() raises if class missing required base."""
+
+        class MixinA:
+            pass
+
+        class MixinB:
+            pass
+
+        class BadClass(MixinA):
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA, MixinB))
+        decorator = entry.build()
+        with pytest.raises(ValueError, match="MixinB"):
+            decorator(BadClass)
+
+    def test_require_mixins_build_function_target_raises(self) -> None:
+        """RequireMixins.build() rejects function targets."""
+
+        class MixinA:
+            pass
+
+        def some_function() -> None:
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA,))
+        decorator = entry.build()
+        with pytest.raises(ValueError, match="class-only marker"):
+            decorator(some_function)
+
+    def test_require_mixins_build_enumerates_all_missing_bases(self) -> None:
+        """RequireMixins.build() enumerates all missing bases in error."""
+
+        class MixinA:
+            pass
+
+        class MixinB:
+            pass
+
+        class MixinC:
+            pass
+
+        class BadClass:
+            pass
+
+        entry = objs.RequireMixins(bases=(MixinA, MixinB, MixinC))
+        decorator = entry.build()
+        with pytest.raises(ValueError) as exc_info:
+            decorator(BadClass)
+        error_msg = str(exc_info.value)
+        assert "MixinA" in error_msg
+        assert "MixinB" in error_msg
+        assert "MixinC" in error_msg
