@@ -9,6 +9,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
 from domain_aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
+from domain_aspects.services.aspects.aspects_require_mixins import RequireMixins
 from domain_aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
 from domain_aspects.services.constants import aspects as const
 
@@ -28,7 +29,6 @@ class AspectKind(StrEnum):
     MONITORED = "MONITORED"
     WRAP_ERRORS = "WRAP_ERRORS"
     RETRIED = "RETRIED"
-    REQUIRE_MIXINS = "REQUIRE_MIXINS"
 
 
 @dataclass(frozen=True, slots=True)
@@ -260,46 +260,6 @@ class Retried:
                 policy,
                 policy_from_request,
             )
-
-        return decorator
-
-
-@dataclass(frozen=True, slots=True)
-class RequireMixins:
-    """Composition validation marker: class must inherit all specified mixin bases.
-
-    Validate-only marker (no runtime wrapper). Performed at composition time, fails loudly.
-    Class-target only; function targets rejected.
-    """
-
-    bases: tuple[type, ...] = ()
-
-    def __post_init__(self) -> None:
-        if not self.bases or not isinstance(self.bases, tuple):
-            raise ValueError(const.ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID)
-
-    @property
-    def kind(self) -> AspectKind:
-        return AspectKind.REQUIRE_MIXINS
-
-    def build(self) -> Callable:
-        """Build validation marker for class-target only."""
-        required_bases = self.bases
-
-        def decorator(target: Callable) -> Callable:
-            if not inspect.isclass(target):
-                raise ValueError(const.ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET)
-
-            missing = [base for base in required_bases if not issubclass(target, base)]
-            if missing:
-                missing_names = ", ".join(base.__name__ for base in missing)
-                raise ValueError(
-                    const.ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES.format(
-                        class_name=target.__name__, missing_bases=missing_names
-                    )
-                )
-
-            return target
 
         return decorator
 

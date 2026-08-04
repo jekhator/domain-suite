@@ -13,13 +13,13 @@ from domain_aspects.services.aspects.aspects_objects import (
     AspectKind,
     Logged,
     Monitored,
-    RequireMixins,
     Requires,
     Retried,
     TenantScoped,
     Throttled,
     WrapErrors,
 )
+from domain_aspects.services.aspects.aspects_require_mixins import RequireMixins
 from domain_aspects.services.constants.aspects import ASPECT_ORDER
 
 __all__ = [
