@@ -75,9 +75,7 @@ class Requires:
             return False
         return callable(obj) or isinstance(obj, (classmethod, staticmethod))
 
-    def _apply_to_method(
-        self, method: Any, permission: str
-    ) -> Callable[Params, Return] | classmethod | staticmethod:
+    def _apply_to_method(self, method: Any, permission: str) -> Any:
         """Apply decorator to a method, handling classmethod and staticmethod."""
         if isinstance(method, classmethod):
             return classmethod(self._decorate_callable(method.__func__, permission))
