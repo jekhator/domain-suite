@@ -5,7 +5,7 @@ Thank you for your interest in contributing to domain-suite!
 ## Development Setup
 
 ### Prerequisites
-- Python 3.11 or later
+- Python 3.12 or later
 - [uv](https://docs.astral.sh/uv/) for dependency management
 
 ### Local Setup
