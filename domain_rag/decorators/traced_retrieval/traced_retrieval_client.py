@@ -5,7 +5,7 @@ import functools
 import inspect
 from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Optional, cast
 
 from domain_rag.errors.constants import retrieval as const
 from domain_rag.errors.retrieval_errors import RetrievalDeclarationError
@@ -13,14 +13,12 @@ from domain_rag.services.provenance.provenance_client import ProvenanceSink
 from domain_rag.services.provenance.provenance_objects import RetrievalProvenance
 from domain_rag.services.registry.registry_client import ProvenanceRegistry
 
-Target = TypeVar("Target")
-
 
 class TracedRetrievalClient:
     """Container for traced retrieval decorator and helper methods."""
 
     @staticmethod
-    def traced_retrieval(
+    def traced_retrieval[Target](
         principal_id: str,
         session_id: str,
         sink: Optional[ProvenanceSink] = None,

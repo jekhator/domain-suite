@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from inspect import isclass
-from typing import Any, TypeVar
+from typing import Any
 
 from domain_api_limiter.errors.api_limiter_errors import ThrottleDeclarationError
 from domain_api_limiter.services.constants import policy as const
@@ -14,13 +14,11 @@ from domain_api_limiter.services.policy.policy_objects import (
     TierRate,
 )
 
-Decorated = TypeVar("Decorated", bound=Callable[..., Any])
-
 
 class Throttled:
     """Decorator factory attaching validated ThrottlePolicy to callables and classes."""
 
-    def __call__(
+    def __call__[Decorated: Callable[..., Any]](
         self,
         scope: str,
         rate: str,
