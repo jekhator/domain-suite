@@ -5,12 +5,8 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from domain_aspects.services.constants import aspects as const
-
-if TYPE_CHECKING:
-    from domain_aspects.services.aspects.aspects_objects import AspectKind
 
 
 @dataclass(frozen=True, slots=True)
