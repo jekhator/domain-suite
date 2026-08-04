@@ -31,6 +31,9 @@ __all__ = [
     "ERR_ASPECT_RETRIED_POLICY_REQUIRED",
     "ERR_ASPECT_RETRIED_POLICY_FROM_REQUEST_REQUIRED",
     "ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED",
+    "ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID",
+    "ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET",
+    "ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES",
 ]
 
 
@@ -127,4 +130,19 @@ ERR_ASPECT_RETRIED_POLICY_FROM_REQUEST_REQUIRED: Final = (
 
 ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED: Final = (
     "Retried cannot specify both policy and policy_from_request; use only one."
+)
+
+
+"""RequireMixins validation error messages."""
+
+ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID: Final = (
+    "RequireMixins.bases must be a non-empty tuple of types."
+)
+
+ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET: Final = (
+    "RequireMixins is a class-only marker; function targets are not allowed."
+)
+
+ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES: Final = (
+    "{class_name} does not inherit required mixins: {missing_bases}."
 )

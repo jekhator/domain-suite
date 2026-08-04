@@ -7,6 +7,8 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Optional, cast
 
+from mixin_logging import get_correlation_id
+
 from domain_monitoring.errors.constants import monitoring as const
 from domain_monitoring.errors.monitoring_errors import MonitoringDeclarationError
 from domain_monitoring.services.metrics.metrics_client import MetricSink
@@ -106,6 +108,7 @@ class MonitoredClient:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()
+                labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
@@ -118,6 +121,7 @@ class MonitoredClient:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_exc(error) if labels_from_exc else ()
+                labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,
@@ -154,6 +158,7 @@ class MonitoredClient:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()
+                labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
@@ -166,6 +171,7 @@ class MonitoredClient:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_exc(error) if labels_from_exc else ()
+                labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,
@@ -226,6 +232,31 @@ class MonitoredClient:
                 public.append(name)
 
         return public
+
+    @staticmethod
+    def _stamp_correlation_labels(
+        labels: tuple[tuple[str, str], ...],
+    ) -> tuple[tuple[str, str], ...]:
+        """Stamp correlation labels from ambient ContextVar; consumer labels win.
+
+        Derives domain lane id as scenario_id/monitoring (if scenario id present).
+        Returns merged labels with consumer-provided labels taking precedence.
+        """
+        scenario_id = get_correlation_id()
+        if not scenario_id:
+            return labels
+
+        label_dict = dict(labels) if labels else {}
+        correlation_label = "correlation_id"
+        domain_correlation_label = "domain_correlation_id"
+
+        if correlation_label not in label_dict:
+            label_dict[correlation_label] = scenario_id
+
+        if domain_correlation_label not in label_dict:
+            label_dict[domain_correlation_label] = f"{scenario_id}/monitoring"
+
+        return tuple(sorted(label_dict.items()))
 
 
 monitored = MonitoredClient.monitored

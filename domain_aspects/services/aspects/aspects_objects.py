@@ -9,6 +9,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
 from domain_aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
+from domain_aspects.services.aspects.aspects_require_mixins import RequireMixins
 from domain_aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
 from domain_aspects.services.constants import aspects as const
 
@@ -28,6 +29,7 @@ class AspectKind(StrEnum):
     MONITORED = "MONITORED"
     WRAP_ERRORS = "WRAP_ERRORS"
     RETRIED = "RETRIED"
+    REQUIRE_MIXINS = "REQUIRE_MIXINS"
 
 
 @dataclass(frozen=True, slots=True)
@@ -264,6 +266,13 @@ class Retried:
 
 
 AspectEntry = (
-    Logged | Requires | TenantScoped | Throttled | Monitored | WrapErrors | Retried
+    Logged
+    | Requires
+    | TenantScoped
+    | Throttled
+    | Monitored
+    | WrapErrors
+    | Retried
+    | RequireMixins
 )
 """Union type alias for all aspect entry types."""

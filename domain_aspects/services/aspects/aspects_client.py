@@ -70,6 +70,7 @@ class Aspects:
                     objs.Monitored,
                     objs.WrapErrors,
                     objs.Retried,
+                    objs.RequireMixins,
                 ),
             ):
                 raise AspectDeclarationError(
