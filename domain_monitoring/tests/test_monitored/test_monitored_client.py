@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
+from mixin_logging import clear_correlation_id, set_correlation_id
 
 from domain_monitoring.decorators.monitored.monitored_client import monitored
 from domain_monitoring.errors.monitoring_errors import MonitoringDeclarationError
@@ -420,8 +421,6 @@ class TestCorrelationStamping:
 
     def test_correlation_stamping_with_ambient_id(self) -> None:
         """@monitored stamps correlation labels from ambient ContextVar."""
-        from mixin_logging import set_correlation_id, clear_correlation_id
-
         sink = CollectingSink()
         scenario_id = "scn-abc123def456"
         set_correlation_id(scenario_id)
@@ -460,8 +459,6 @@ class TestCorrelationStamping:
 
     def test_correlation_stamping_consumer_labels_win(self) -> None:
         """Consumer-provided labels take precedence over stamped correlation."""
-        from mixin_logging import set_correlation_id, clear_correlation_id
-
         sink = CollectingSink()
         scenario_id = "scn-abc123def456"
         set_correlation_id(scenario_id)
@@ -494,8 +491,6 @@ class TestCorrelationStamping:
 
     def test_correlation_stamping_on_async(self) -> None:
         """@monitored stamps correlation on async functions."""
-        from mixin_logging import set_correlation_id, clear_correlation_id
-
         sink = CollectingSink()
         scenario_id = "scn-xyz789abc123"
         set_correlation_id(scenario_id)
@@ -520,8 +515,6 @@ class TestCorrelationStamping:
 
     def test_correlation_stamping_on_failure(self) -> None:
         """@monitored stamps correlation on failure metrics."""
-        from mixin_logging import set_correlation_id, clear_correlation_id
-
         sink = CollectingSink()
         scenario_id = "scn-failure123456789"
         set_correlation_id(scenario_id)
