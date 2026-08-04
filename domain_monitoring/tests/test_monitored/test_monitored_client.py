@@ -409,3 +409,138 @@ class TestMonitoredEdgeCases:
         assert len(sink.events) == 1
         assert sink.events[0].event == "utils.helper"
         assert sink.events[0].outcome == Outcome.SUCCESS
+
+
+class TestCorrelationStamping:
+    """Test correlation id stamping in metrics."""
+
+    def setup_method(self) -> None:
+        """Clear registry before each test."""
+        MonitorRegistry.clear_default_sink()
+
+    def test_correlation_stamping_with_ambient_id(self) -> None:
+        """@monitored stamps correlation labels from ambient ContextVar."""
+        from mixin_logging import set_correlation_id, clear_correlation_id
+
+        sink = CollectingSink()
+        scenario_id = "scn-abc123def456"
+        set_correlation_id(scenario_id)
+
+        try:
+
+            @monitored("test.operation", sink=sink)
+            def fn_with_correlation() -> str:
+                return "result"
+
+            fn_with_correlation()
+
+            assert len(sink.events) == 1
+            labels_dict = dict(sink.events[0].labels)
+            assert labels_dict.get("correlation_id") == scenario_id
+            assert (
+                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
+            )
+        finally:
+            clear_correlation_id()
+
+    def test_correlation_stamping_without_ambient_id(self) -> None:
+        """@monitored without ambient id does not stamp correlation labels."""
+        sink = CollectingSink()
+
+        @monitored("test.operation", sink=sink)
+        def fn_no_correlation() -> str:
+            return "result"
+
+        fn_no_correlation()
+
+        assert len(sink.events) == 1
+        labels_dict = dict(sink.events[0].labels)
+        assert "correlation_id" not in labels_dict
+        assert "domain_correlation_id" not in labels_dict
+
+    def test_correlation_stamping_consumer_labels_win(self) -> None:
+        """Consumer-provided labels take precedence over stamped correlation."""
+        from mixin_logging import set_correlation_id, clear_correlation_id
+
+        sink = CollectingSink()
+        scenario_id = "scn-abc123def456"
+        set_correlation_id(scenario_id)
+
+        try:
+
+            def labels_from_result(result: object) -> tuple[tuple[str, str], ...]:
+                return (
+                    ("correlation_id", "consumer-value"),
+                    ("custom_key", "custom_value"),
+                )
+
+            @monitored(
+                "test.operation", sink=sink, labels_from_result=labels_from_result
+            )
+            def fn_with_labels() -> str:
+                return "result"
+
+            fn_with_labels()
+
+            assert len(sink.events) == 1
+            labels_dict = dict(sink.events[0].labels)
+            assert labels_dict.get("correlation_id") == "consumer-value"
+            assert (
+                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
+            )
+            assert labels_dict.get("custom_key") == "custom_value"
+        finally:
+            clear_correlation_id()
+
+    def test_correlation_stamping_on_async(self) -> None:
+        """@monitored stamps correlation on async functions."""
+        from mixin_logging import set_correlation_id, clear_correlation_id
+
+        sink = CollectingSink()
+        scenario_id = "scn-xyz789abc123"
+        set_correlation_id(scenario_id)
+
+        try:
+
+            @monitored("test.async_operation", sink=sink)
+            async def async_fn_with_correlation() -> str:
+                await asyncio.sleep(0.01)
+                return "async_result"
+
+            asyncio.run(async_fn_with_correlation())
+
+            assert len(sink.events) == 1
+            labels_dict = dict(sink.events[0].labels)
+            assert labels_dict.get("correlation_id") == scenario_id
+            assert (
+                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
+            )
+        finally:
+            clear_correlation_id()
+
+    def test_correlation_stamping_on_failure(self) -> None:
+        """@monitored stamps correlation on failure metrics."""
+        from mixin_logging import set_correlation_id, clear_correlation_id
+
+        sink = CollectingSink()
+        scenario_id = "scn-failure123456789"
+        set_correlation_id(scenario_id)
+
+        try:
+
+            @monitored("test.failing_operation", sink=sink)
+            def fn_that_fails() -> None:
+                raise ValueError("intentional error")
+
+            with pytest.raises(ValueError):
+                fn_that_fails()
+
+            assert len(sink.events) == 1
+            labels_dict = dict(sink.events[0].labels)
+            assert labels_dict.get("correlation_id") == scenario_id
+            assert (
+                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
+            )
+            assert sink.events[0].outcome == Outcome.FAILURE
+        finally:
+            clear_correlation_id()
