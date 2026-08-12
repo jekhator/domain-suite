@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-12
+
+### Added
+
+- **Logged marker timed feature**: Logged aspect now supports `timed=True` to measure operation duration via mixin-suite's LatencyClock, emitting `latency_ms` (rounded to 2 decimals) to end/error payloads. (Item 30 domain leg: Logged rich fields + timing.)
+- **RequireMixins validation-only marker**: New `RequireMixins` aspect for adoption-guard patterns. Validates class-level mixin composition at runtime; class-target only with loud composition-time error if required bases are missing. Validate-only marker (no wrapper layer, no ASPECT_ORDER slot).
+
+### Changed
+
+- **Python floor raised to >=3.12**: Dropped 3.11 from CI matrix; floor enables PEP 695 generic type-parameter syntax.
+- **PEP 695 generic type parameters**: All module-level TypeVars converted to class-scoped PEP 695 syntax across all 6 domain roots (7 type-param sites: traced_retrieval_client, aspects_objects, requires_client, tenant_scoped_client, monitored_client, chain_client, wrap_errors_client, throttled_client).
+- **Ruff check widened to whole tree**: CI now lints all 6 domain roots, not domain_aspects alone. Format --check carve: dialect-governed files (`/formatting-test-files/`, `.formatcarve`) excluded from format-check per item-36/41 (P14/P15/P16 semantic grouping vs ruff per-param formatting).
+- **Exception-binding naming canonicalized**: 25 sites renamed `except ... as e/exc` to `except ... as error` per P10 naming canon (qhcg codified).
+- **Correlation stamping in domain_monitoring**: Logged events now auto-stamp correlation context when ambient correlation ID exists (correlation_id + domain_correlation_id labels; consumer-supplied labels win; no stamp if ambient ID absent).
+- **Dependency floor**: mixin-suite>=0.6.0 (lockstep pair with Logged.timed feature and RequireMixins).
+- All 6 wheel roots move to 0.6.0.
+
+### Fixed
+
+- **Aspect import error messages**: Revisited in 0.5.0 release; verified unchanged and conformant (domain-security/domain-api-limiter built-in).
+
 ## [0.5.0] - 2026-07-27
 
 ### Removed
