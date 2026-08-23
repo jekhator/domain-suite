@@ -118,3 +118,75 @@ class TestLoggedWrapperAsync:
                 await wrapped(5)
 
         asyncio.run(run_test())
+
+
+class TestLoggedWrapperTimed:
+    """Test Logged aspect wrapper with timing enabled."""
+
+    def test_logged_wrapper_sync_timed_includes_latency_ms_on_success(self) -> None:
+        """Logged wrapper with timed=True includes latency_ms in success payload."""
+
+        def extract_result(result: object) -> dict:
+            return {"value": result}
+
+        logged = objs.Logged(
+            event="test.operation",
+            payload_from_result=extract_result,
+            timed=True,
+        )
+        wrapper_factory = logged.build()
+
+        def operation(x: int) -> int:
+            return x * 2
+
+        wrapped = wrapper_factory(operation)
+        result = wrapped(5)
+
+        assert result == 10
+
+    def test_logged_wrapper_sync_timed_includes_latency_ms_on_error(self) -> None:
+        """Logged wrapper with timed=True includes latency_ms in error payload."""
+        logged = objs.Logged(event="test.operation", timed=True)
+        wrapper_factory = logged.build()
+
+        def operation(value: int) -> int:
+            raise ValueError("test error")
+
+        wrapped = wrapper_factory(operation)
+
+        with pytest.raises(ValueError, match="test error"):
+            wrapped(5)
+
+    def test_logged_wrapper_async_timed_includes_latency_ms(self) -> None:
+        """Logged wrapper async with timed=True includes latency_ms."""
+        logged = objs.Logged(event="test.operation", timed=True)
+        wrapper_factory = logged.build()
+
+        async def operation(value: int) -> int:
+            await asyncio.sleep(0.001)
+            return value * 2
+
+        wrapped = wrapper_factory(operation)
+
+        async def run_test() -> None:
+            result = await wrapped(5)
+            assert result == 10
+
+        asyncio.run(run_test())
+
+    def test_logged_wrapper_async_timed_includes_latency_ms_on_error(self) -> None:
+        """Logged wrapper async with timed=True includes latency_ms on error."""
+        logged = objs.Logged(event="test.operation", timed=True)
+        wrapper_factory = logged.build()
+
+        async def operation(value: int) -> int:
+            await asyncio.sleep(0.001)
+            raise ValueError("test error")
+
+        wrapped = wrapper_factory(operation)
+
+        async def run_test() -> None:
+            with pytest.raises(ValueError, match="test error"):
+                await wrapped(5)
+
+        asyncio.run(run_test())

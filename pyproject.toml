@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [{ name = "James Ekhator" }]
 requires-python = ">=3.12"
-optional-dependencies = { logging = ["mixin-suite>=0.5.0"], sensitivity = ["mixin-suite>=0.5.0"], cloudwatch = ["boto3>=1.28.0"], all = ["mixin-suite>=0.5.0", "boto3>=1.28.0"] }
+optional-dependencies = { logging = ["mixin-suite>=0.6.0"], sensitivity = ["mixin-suite>=0.6.0"], cloudwatch = ["boto3>=1.28.0"], all = ["mixin-suite>=0.6.0", "boto3>=1.28.0"] }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -86,7 +86,7 @@ hard_cap = 300
 soft_target = 200
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-cov", "mypy", "ruff", "httpx", "requests", "aiohttp", "botocore", "boto3", "mixin-suite>=0.5.0"]
+dev = ["pytest>=8", "pytest-cov", "mypy", "ruff", "httpx", "requests", "aiohttp", "botocore", "boto3", "mixin-suite>=0.6.0"]
 
 [tool.pyright]
 venvPath = "."

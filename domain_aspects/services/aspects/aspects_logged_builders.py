@@ -26,8 +26,12 @@ class _LoggedBuilders:
 
         Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
         Extractions are guarded: errors log WARNING, operation continues.
+        When timed=True, measures operation duration via mixin_latency.LatencyClock.
         """
         from mixin_logging import LoggingMixin, log_error, log_info
+
+        if timed:
+            from mixin_latency import LatencyClock
 
         if asyncio.iscoroutinefunction(target):
 
@@ -53,6 +57,7 @@ class _LoggedBuilders:
                 else:
                     log_info(f"{event}.start", **start_payload)
 
+                clock = LatencyClock.start() if timed else None
                 try:
                     result = await target(*args, **kwargs)
                     end_payload: dict = {}
@@ -66,6 +71,10 @@ class _LoggedBuilders:
                             )
                             end_payload = {}
 
+                    if clock:
+                        measurement = clock.stop()
+                        end_payload["latency_ms"] = measurement.duration_ms
+
                     if logger:
                         logger.log_info(f"{event}.end", **end_payload)
                     else:
@@ -76,6 +85,10 @@ class _LoggedBuilders:
                     error_payload: dict = {
                         "error_type": type(error).__name__,
                     }
+                    if clock:
+                        measurement = clock.stop()
+                        error_payload["latency_ms"] = measurement.duration_ms
+
                     if payload_from_exc:
                         try:
                             error_payload.update(payload_from_exc(error) or {})
@@ -116,6 +129,7 @@ class _LoggedBuilders:
             else:
                 log_info(f"{event}.start", **start_payload)
 
+            clock = LatencyClock.start() if timed else None
             try:
                 result = target(*args, **kwargs)
                 end_payload: dict = {}
@@ -129,6 +143,10 @@ class _LoggedBuilders:
                         )
                         end_payload = {}
 
+                if clock:
+                    measurement = clock.stop()
+                    end_payload["latency_ms"] = measurement.duration_ms
+
                 if logger:
                     logger.log_info(f"{event}.end", **end_payload)
                 else:
@@ -139,6 +157,10 @@ class _LoggedBuilders:
                 error_payload: dict = {
                     "error_type": type(error).__name__,
                 }
+                if clock:
+                    measurement = clock.stop()
+                    error_payload["latency_ms"] = measurement.duration_ms
+
                 if payload_from_exc:
                     try:
                         error_payload.update(payload_from_exc(error) or {})
