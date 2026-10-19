@@ -1,15 +1,15 @@
 # domain-aspects
 
-Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking.
+Composable decorators for logging, authorization, tenancy, throttling, metric emission, error wrapping, retries, and mixin validation.
 
 ## Overview
 
 `domain-aspects` provides:
 
-- **Aspect composition**: Stack multiple cross-cutting concerns on a function
-- **Declarative syntax**: Use `@aspects(...)` to apply multiple decorators atomically
-- **Pre-built aspects**: Logged, Requires, Throttled, TenantScoped, WrapErrors, Sensitive
-- **Extensible design**: Create custom aspects by implementing the AspectEntry interface
+- **Aspect composition**: Stack multiple cross-cutting concerns on a function or class
+- **Declarative syntax**: Use `@aspects(...)` to apply multiple decorators in one declaration
+- **Fixed ordering**: Concerns apply in a documented order regardless of declaration order
+- **Validation at decoration time**: Duplicate kinds and unknown entries fail before anything runs
 
 ## Quick Start
 
@@ -29,14 +29,17 @@ def create_document(title: str, content: str) -> dict:
 ## Public API
 
 - **`aspects`**: Decorator to compose multiple aspect concerns
-- **`Logged`**: Event logging aspect (from domain-monitoring)
-- **`Requires`**: Authorization aspect (from domain-security)
-- **`Throttled`**: Rate limiting aspect (from domain-api-limiter)
-- **`TenantScoped`**: Tenant isolation aspect (from domain-security)
-- **`WrapErrors`**: Error wrapping aspect (from domain-errors)
-- **`Sensitive`**: Sensitivity masking aspect (from mixin-sensitivity)
-- **`AspectEntry`**: Base interface for custom aspects
-- **`AspectKind`**: Enum of aspect types
+- **`Logged`**: Event logging aspect (mixin-logging)
+- **`Requires`**: Authorization aspect (domain-security)
+- **`TenantScoped`**: Tenant isolation aspect (domain-security)
+- **`Throttled`**: Rate limiting aspect (domain-api-limiter)
+- **`Monitored`**: Metric emission aspect (domain-monitoring)
+- **`WrapErrors`**: Error wrapping aspect (domain-errors)
+- **`Retried`**: Retry aspect with a static or per-call policy (mixin-retry)
+- **`RequireMixins`**: Class-only validation that a class inherits required bases
+- **`AspectEntry`**: Union type of all entry types
+- **`AspectKind`**: Enum of aspect kinds
+- **`ASPECT_ORDER`**: The fixed application order
 - Aspect error classes: `AspectsError`, `AspectDeclarationError`
 
 ## Features
@@ -49,6 +52,7 @@ Detailed documentation for aspect composition:
 
 ### Architecture & Design
 
+- **[flow-trace.md](architecture/flow-trace.md)**: Composition and call flow
 - **[CHANGELOG-history.md](CHANGELOG-history.md)**: Version history before domain-suite consolidation
 
 ### Security & Code Quality
@@ -70,10 +74,10 @@ from domain_aspects import aspects, Logged, Requires, Throttled
 )
 def create_document(title: str, content: str) -> dict:
     # The decorator(s) automatically:
-    # - Log start/success/error events
+    # - Log start/end/error events
     # - Enforce permission checks before execution
     # - Track rate-limit quota
-    # - Handle exceptions and re-raise
+    # - Re-raise exceptions unchanged
     return {"id": "doc_123", "title": title, "content": content}
 ```
 
@@ -97,64 +101,52 @@ def fetch_tenant_data(tenant_id: str):
     # The decorator(s) automatically:
     # - Verify tenant_id matches security context
     # - Wrap exceptions as DatabaseError
-    return {"tenant": tenant_id, "data": {...}}
+    return {"tenant": tenant_id, "data": {}}
 ```
 
-### Sensitivity Masking on Sensitive Data
+### Retries with Error Wrapping
 
 ```python
-from domain_aspects import aspects, Sensitive
+from mixin_retry import RetryPolicy
+
+from domain_aspects import aspects, Retried, WrapErrors
+
+policy = RetryPolicy(
+    max_attempts=3,
+    backoff_base_seconds=0.1,
+    backoff_multiplier=2.0,
+    backoff_max_seconds=2.0,
+    jitter=False,
+    should_retry=lambda error: isinstance(error, TimeoutError),
+)
 
 @aspects(
-    Sensitive(),
+    Retried(policy=policy),
+    WrapErrors(as_=DatabaseError, catch=(TimeoutError,)),
 )
-def get_user_with_ssn(user_id: str) -> dict:
-    # The decorator automatically masks sensitive fields in repr()
-    return {"user_id": user_id, "ssn": "123-45-6789"}  # ssn field marked @sensitive
+def fetch_rows() -> list[str]:
+    return []
 ```
 
-## Aspect Order Matters
+Retries run inside WRAP_ERRORS, so a predicate sees the raw `TimeoutError`. Only the final failure is wrapped.
 
-Aspects are applied in order. Common patterns:
+## Aspect Order
 
-1. **Error wrapping first**: Catch exceptions from downstream aspects
-2. **Authorization second**: Fail fast before expensive operations
-3. **Throttling third**: Track quota after auth passes
-4. **Logging outermost**: Capture all events and times
+The application order is fixed by `ASPECT_ORDER`, outermost first:
 
-```python
-@aspects(
-    WrapErrors(as_=APIError),      # Outermost: catch all exceptions
-    Requires(permission="read"),   # Fail fast on auth
-    Throttled(scope="api", rate="100/hour"),  # Track quota
-    Logged(event="api.read"),      # Innermost: log the core operation
-)
-def read_data(resource_id: str):
-    pass
-```
+1. LOGGED
+2. REQUIRES
+3. TENANT_SCOPED
+4. THROTTLED
+5. MONITORED
+6. WRAP_ERRORS
+7. RETRIED (innermost)
 
-## Custom Aspects
+Declaration order does not matter. Reorder the list in the source and the composed behaviour stays the same.
 
-Extend `AspectEntry` to create custom cross-cutting concerns:
+## Writing Your Own Entries
 
-```python
-from domain_aspects import AspectEntry, AspectKind
-from typing import Callable, Any
-
-class CustomAspect(AspectEntry):
-    kind = AspectKind.CUSTOM
-    
-    def __init__(self, name: str):
-        self.name = name
-    
-    def apply(self, func: Callable) -> Callable:
-        def wrapper(*args, **kwargs):
-            print(f"Before {self.name}")
-            result = func(*args, **kwargs)
-            print(f"After {self.name}")
-            return result
-        return wrapper
-```
+`AspectEntry` is a closed union of the bundled entry types. Custom entry types are not supported by `aspects(...)`; use a plain decorator for a concern the suite does not cover.
 
 ## Next Steps
 
