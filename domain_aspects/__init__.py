@@ -23,13 +23,11 @@ from domain_aspects.services.aspects.aspects_require_mixins import RequireMixins
 from domain_aspects.services.constants.aspects import ASPECT_ORDER
 
 __all__ = [
-    "__version__",
     "ASPECT_ORDER",
-    "aspects",
+    "AspectDeclarationError",
     "AspectEntry",
     "AspectKind",
     "AspectsError",
-    "AspectDeclarationError",
     "Logged",
     "Monitored",
     "RequireMixins",
@@ -38,4 +36,6 @@ __all__ = [
     "TenantScoped",
     "Throttled",
     "WrapErrors",
+    "__version__",
+    "aspects",
 ]
