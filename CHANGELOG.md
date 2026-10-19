@@ -11,15 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Wrap constants module**: The `@wrap_errors` marker name and its target-type error message now live in a decorator constants module under `domain_errors`. The public names and messages are unchanged.
 - **Policy typing**: Policy collection and public-method selection use concrete element types instead of untyped lists and `Any`.
+- **Declared signatures (domain_security)**: `@tenant_scoped` reads the decorated callable's signature once at decoration time instead of on every call. A callable whose signature cannot be read now fails at decoration time.
+- **Logging guidance (domain_aspects)**: `Logged` raises `ImportError` with the mixin-logging extra guidance when that package is missing, as the other aspect entries already do.
+- **Success-path logging (domain_aspects)**: An exception raised while emitting the end event of a logged call is no longer recorded as an operation error. The operation's own exceptions still emit the error event and propagate unchanged.
+- **Retry guard (domain_aspects)**: The dynamic-policy guard in the retry builder raises `ValueError` instead of relying on `assert`, so it still holds under optimized interpreters.
+- **Feature documentation (domain_aspects, domain_security)**: The aspects and security pages now describe the shipped entry types, aspect order, constants and examples. A leftover merge marker in the aspects feature page was removed.
 
 ### Fixed
 
 - **Argument capture on mismatched calls**: `@wrap_errors` no longer lets a bind-time `TypeError` escape when a decorated call fails because its arguments do not match the function signature. The caller receives the target `DomainError` with an empty context, as for any other caught error.
 - **Superscript digits in rate strings**: A rate whose count is a superscript digit (for example a superscript two followed by `/hour`) is rejected as a `ThrottleDeclarationError` instead of escaping as a raw `ValueError`.
+- **Unset tenant values (domain_security)**: `@tenant_scoped` raises `TenancyError` when the tenant argument, or the instance `tenant_id` used with `self.tenant_id`, is `None`. The value was previously compared as the string `None`, so a context bound to a tenant named `None` admitted a call with no tenant.
+- **Falsy custom authorizer and guard (domain_security)**: `Requires(authorizer=...)` and `TenantScoped(guard=...)` keep the supplied object even when it evaluates as falsy. Only `None` selects the default.
 
 ### Removed
 
 - **Unused constants placeholder**: The empty `domain_errors.services.constants.services` module was never imported and has been removed.
+- **Unused declaration constant (domain_security)**: `ERR_TENANT_SCOPED_MISSING_PARAM` was never referenced and has been removed from the constants module.
+- **Duplicate error constants (domain_aspects)**: The aspects service constants module no longer repeats error messages that the errors constants module owns. The messages are unchanged.
 
 ## [0.6.0] - 2026-08-12
 
