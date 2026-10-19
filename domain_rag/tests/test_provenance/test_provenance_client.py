@@ -135,4 +135,4 @@ class TestNullProvenanceSink:
 
         sink.record(event)
 
-        assert True
+        assert vars(sink) == {}

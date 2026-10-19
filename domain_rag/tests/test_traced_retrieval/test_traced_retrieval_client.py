@@ -8,7 +8,9 @@ import pytest
 from domain_rag.decorators.traced_retrieval.traced_retrieval_client import (
     traced_retrieval,
 )
+from domain_rag.errors.constants import retrieval as const
 from domain_rag.errors.retrieval_errors import RetrievalDeclarationError
+from domain_rag.services.constants import provenance as provenance_const
 from domain_rag.services.provenance.provenance_client import CollectingProvenanceSink
 from domain_rag.services.provenance.provenance_objects import ProvenanceOutcome
 from domain_rag.services.registry.registry_client import ProvenanceRegistry
@@ -389,3 +391,135 @@ class TestTracedRetrievalEdgeCases:
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].query == "test query"
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.SUCCESS
+
+
+class _RaisingProvenanceSink:
+    """Sink whose record always fails."""
+
+    def record(self, event: object) -> None:
+        """Raise to simulate a failing audit backend."""
+        raise RuntimeError("audit backend unavailable")
+
+
+class TestTracedRetrievalResultPreservation:
+    """Tracing reports outcomes without altering the wrapped call's result or exception."""
+
+    def test_empty_principal_rejected_at_declaration(self) -> None:
+        """An empty principal_id is rejected when the decorator is applied."""
+        with pytest.raises(
+            RetrievalDeclarationError, match=const.ERR_RETRIEVAL_EMPTY_PRINCIPAL
+        ):
+            traced_retrieval("", "sess_456")
+
+    def test_empty_session_rejected_at_declaration(self) -> None:
+        """An empty session_id is rejected when the decorator is applied."""
+        with pytest.raises(
+            RetrievalDeclarationError, match=const.ERR_RETRIEVAL_EMPTY_SESSION
+        ):
+            traced_retrieval("user_123", "")
+
+    def test_zero_argument_call_uses_placeholder_query(
+        self, collecting_sink: CollectingProvenanceSink
+    ) -> None:
+        """A call with no arguments records the placeholder query instead of failing."""
+
+        @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
+        def retrieve() -> list[str]:
+            return ["chunk1"]
+
+        assert retrieve() == ["chunk1"]
+        assert collecting_sink.events[0].query == provenance_const.NO_QUERY_PLACEHOLDER
+
+    def test_empty_string_query_uses_placeholder(
+        self, collecting_sink: CollectingProvenanceSink
+    ) -> None:
+        """An empty query string records the placeholder and the result is unchanged."""
+
+        @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
+        def retrieve(query: str) -> list[str]:
+            return ["chunk1"]
+
+        assert retrieve("") == ["chunk1"]
+        assert collecting_sink.events[0].query == provenance_const.NO_QUERY_PLACEHOLDER
+
+    def test_non_iterable_ids_keep_result(
+        self, collecting_sink: CollectingProvenanceSink
+    ) -> None:
+        """Non-list id values produce empty id tuples and leave the result untouched."""
+
+        @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
+        def retrieve(query: str) -> dict[str, object]:
+            return {"chunk_ids": 7, "source_document_ids": None}
+
+        assert retrieve("query") == {"chunk_ids": 7, "source_document_ids": None}
+        assert collecting_sink.events[0].chunk_ids == ()
+        assert collecting_sink.events[0].source_document_ids == ()
+
+    def test_sink_failure_keeps_original_exception(self) -> None:
+        """A failing sink adds a note to the call's exception and keeps its type."""
+
+        @traced_retrieval("user_123", "sess_456", sink=_RaisingProvenanceSink())
+        def retrieve(query: str) -> None:
+            raise ValueError("retrieval error")
+
+        with pytest.raises(ValueError, match="retrieval error") as caught:
+            retrieve("query")
+
+        assert any(
+            provenance_const.NOTE_RECORDING_FAILED in note
+            for note in caught.value.__notes__
+        )
+
+    def test_sink_failure_after_success_surfaces(self) -> None:
+        """A failing sink after a successful call raises, so a missed audit record is loud."""
+
+        @traced_retrieval("user_123", "sess_456", sink=_RaisingProvenanceSink())
+        def retrieve(query: str) -> list[str]:
+            return ["chunk1"]
+
+        with pytest.raises(RuntimeError, match="audit backend unavailable"):
+            retrieve("query")
+
+    def test_classmethod_stays_callable_on_instances(
+        self, collecting_sink: CollectingProvenanceSink
+    ) -> None:
+        """Classmethods remain classmethods, so instance calls still bind the class."""
+
+        @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
+        class Retriever:
+            """Retriever with a classmethod."""
+
+            label = "built"
+
+            @classmethod
+            def build(cls, query: str) -> str:
+                """Return the class label."""
+                return f"{cls.label}:{query}"
+
+        assert Retriever().build("q") == "built:q"
+        assert collecting_sink.events[0].query == "q"
+
+    def test_inherited_methods_are_not_wrapped(
+        self, collecting_sink: CollectingProvenanceSink
+    ) -> None:
+        """Only methods defined on the decorated class are traced, including overrides."""
+
+        class Base:
+            """Base with one method."""
+
+            def search(self, query: str) -> str:
+                """Return a value."""
+                return "base"
+
+        @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
+        class Child(Base):
+            """Child that overrides the base method."""
+
+            def search(self, query: str) -> str:
+                """Return a value."""
+                return "child"
+
+        assert Child().search("q") == "child"
+        assert len(collecting_sink.events) == 1
+        assert Base().search("q") == "base"
+        assert len(collecting_sink.events) == 1
