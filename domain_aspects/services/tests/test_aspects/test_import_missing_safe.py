@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+import re
 import sys
 
 import pytest
+from mixin_retry import RetryPolicy
 
 from domain_aspects.services.aspects import aspects_objects as objs
+from domain_aspects.services.constants import aspects as const
 
 
 class TestImportMissingSafe:
     """Test lazy-import ImportError paths with safe monkeypatch (no __import__ leak)."""
 
     def test_logged_build_missing_mixin_logging(self, monkeypatch) -> None:
-        """Logged decorator raises when applying to function with mixin_logging missing."""
+        """Logged decorator raises the add-extra guidance when mixin_logging is missing."""
         entry = objs.Logged(event="test")
         decorator = entry.build()
 
@@ -22,7 +25,9 @@ class TestImportMissingSafe:
         def op() -> int:
             return 42
 
-        with pytest.raises(ModuleNotFoundError, match="mixin_logging"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_LOGGED_IMPORT_MISSING)
+        ):
             decorator(op)
 
     def test_requires_build_missing_domain_security(self, monkeypatch) -> None:
@@ -33,7 +38,9 @@ class TestImportMissingSafe:
         monkeypatch.setitem(sys.modules, "domain_security.decorators", None)
         monkeypatch.setitem(sys.modules, "domain_security.decorators.requires", None)
 
-        with pytest.raises(ImportError, match="domain-security not installed"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_REQUIRES_IMPORT_MISSING)
+        ):
             entry.build()
 
     def test_tenant_scoped_build_missing_domain_security(self, monkeypatch) -> None:
@@ -46,7 +53,9 @@ class TestImportMissingSafe:
             sys.modules, "domain_security.decorators.tenant_scoped", None
         )
 
-        with pytest.raises(ImportError, match="domain-security not installed"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING)
+        ):
             entry.build()
 
     def test_throttled_build_missing_domain_api_limiter(self, monkeypatch) -> None:
@@ -59,7 +68,9 @@ class TestImportMissingSafe:
             sys.modules, "domain_api_limiter.decorators.throttled", None
         )
 
-        with pytest.raises(ImportError, match="domain-api-limiter not installed"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_THROTTLED_IMPORT_MISSING)
+        ):
             entry.build()
 
     def test_wrap_errors_build_missing_domain_errors(self, monkeypatch) -> None:
@@ -68,7 +79,9 @@ class TestImportMissingSafe:
 
         monkeypatch.setitem(sys.modules, "domain_errors", None)
 
-        with pytest.raises(ImportError, match="domain-errors not installed"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_WRAP_ERRORS_IMPORT_MISSING)
+        ):
             entry.build()
 
     def test_monitored_build_missing_domain_monitoring(self, monkeypatch) -> None:
@@ -82,13 +95,13 @@ class TestImportMissingSafe:
             sys.modules, "domain_monitoring.decorators.monitored.monitored_client", None
         )
 
-        with pytest.raises(ImportError, match="domain-monitoring not installed"):
+        with pytest.raises(
+            ImportError, match=re.escape(const.ERR_ASPECT_MONITORED_IMPORT_MISSING)
+        ):
             entry.build()
 
     def test_retried_build_missing_mixin_retry(self, monkeypatch) -> None:
         """Retried decorator raises when applying with mixin_retry missing."""
-        from mixin_retry import RetryPolicy
-
         policy = RetryPolicy(
             max_attempts=2,
             backoff_base_seconds=0.1,
