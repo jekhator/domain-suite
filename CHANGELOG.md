@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero-argument and empty-query retrieval (domain_rag)**: A traced call with no arguments, or with an empty query, no longer fails inside the tracing step. The wrapped call's result is returned unchanged.
 - **Vacuous retrieval tests (domain_rag)**: The immutability and validation tests asserted nothing when no exception was raised. They now use `pytest.raises` with the constant messages.
 
+- **Typed package marker (domain_rag)**: domain_rag ships its py.typed marker like the other roots.
+
 ### Removed
 
 - **Unused constants placeholder**: The empty `domain_errors.services.constants.services` module was never imported and has been removed.
