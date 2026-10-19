@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-18
+
+0.6.0 was recorded in this changelog but never published to PyPI. 0.7.0 is the first release that carries the 0.6.0 changes, together with the optimization pass described below.
+
 ### Changed
 
 - **Wrap constants module**: The `@wrap_errors` marker name and its target-type error message now live in a decorator constants module under `domain_errors`. The public names and messages are unchanged.
@@ -16,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Success-path logging (domain_aspects)**: An exception raised while emitting the end event of a logged call is no longer recorded as an operation error. The operation's own exceptions still emit the error event and propagate unchanged.
 - **Retry guard (domain_aspects)**: The dynamic-policy guard in the retry builder raises `ValueError` instead of relying on `assert`, so it still holds under optimized interpreters.
 - **Feature documentation (domain_aspects, domain_security)**: The aspects and security pages now describe the shipped entry types, aspect order, constants and examples. A leftover merge marker in the aspects feature page was removed.
+- **Monitoring failure recording (domain_monitoring)**: A failing sink or `labels_from_exc` callback no longer replaces the monitored call's exception. The recording error is attached to the exception as a note, and the original exception type and message are kept.
+- **Monitoring success events (domain_monitoring)**: The success event is emitted after the call returns. A sink error on the success path is raised once and is no longer recorded as a failed call.
+- **Monotonic durations (domain_monitoring, domain_rag)**: `duration_ms` is measured with a monotonic clock, so a wall-clock step cannot produce a negative duration.
+- **Class fan-out (domain_monitoring, domain_rag)**: `@monitored` and `@traced_retrieval` on a class wrap the public functions and methods defined on that class. Overridden methods are now wrapped; inherited methods are not wrapped by the class decorator.
+- **Declaration checks (domain_monitoring)**: `@monitored` rejects an empty event name when it is applied.
+- **Declaration checks (domain_rag)**: `@traced_retrieval` rejects an empty `principal_id` or `session_id` when it is applied.
+- **Retrieval result preservation (domain_rag)**: Tracing never changes the wrapped call's result. A call with no query is recorded with the placeholder query `(no query)`. Chunk and source ids that are not lists or tuples are recorded as empty tuples. A sink error on a failed call is attached to the exception as a note; on a successful call it is raised, so a missing provenance record is visible.
+- **Version consistency test**: `test_version_consistency.py` moved from the repository root into `domain_errors/tests/`, where pytest collects it. It compares each root `__version__` with the installed distribution version instead of a hard-coded literal, and the ruff format check no longer excludes it.
 
 ### Fixed
 
@@ -23,12 +35,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Superscript digits in rate strings**: A rate whose count is a superscript digit (for example a superscript two followed by `/hour`) is rejected as a `ThrottleDeclarationError` instead of escaping as a raw `ValueError`.
 - **Unset tenant values (domain_security)**: `@tenant_scoped` raises `TenancyError` when the tenant argument, or the instance `tenant_id` used with `self.tenant_id`, is `None`. The value was previously compared as the string `None`, so a context bound to a tenant named `None` admitted a call with no tenant.
 - **Falsy custom authorizer and guard (domain_security)**: `Requires(authorizer=...)` and `TenantScoped(guard=...)` keep the supplied object even when it evaluates as falsy. Only `None` selects the default.
+- **Classmethods on monitored classes (domain_monitoring)**: `@monitored` keeps classmethods and staticmethods as their descriptor type, so calls through an instance bind correctly. Previously the wrapper was bound as an instance method.
+- **Falsy sinks (domain_monitoring, domain_rag)**: A bound sink that evaluates as falsy is used. Only an unset sink selects the registry default.
+- **Zero-argument and empty-query retrieval (domain_rag)**: A traced call with no arguments, or with an empty query, no longer fails inside the tracing step. The wrapped call's result is returned unchanged.
+- **Vacuous retrieval tests (domain_rag)**: The immutability and validation tests asserted nothing when no exception was raised. They now use `pytest.raises` with the constant messages.
 
 ### Removed
 
 - **Unused constants placeholder**: The empty `domain_errors.services.constants.services` module was never imported and has been removed.
 - **Unused declaration constant (domain_security)**: `ERR_TENANT_SCOPED_MISSING_PARAM` was never referenced and has been removed from the constants module.
 - **Duplicate error constants (domain_aspects)**: The aspects service constants module no longer repeats error messages that the errors constants module owns. The messages are unchanged.
+- **Root conftest (repository)**: The root `conftest.py` is removed; no test needed its autouse fixtures once the version test moved into a tests tree.
+- **Unreachable import guard (domain_monitoring)**: The `ImportError` guard around the CloudWatch sink import in the package root was removed; the sink module imports boto3 only when a sink is created.
 
 ## [0.6.0] - 2026-08-12
 
