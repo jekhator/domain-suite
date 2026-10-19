@@ -108,6 +108,20 @@ class TestRateLimit:
         assert exc_info.value.context.get("period") == "fortnight"
         assert isinstance(exc_info.value.__cause__, ValueError)
 
+    def test_from_rate_superscript_digit_head(self) -> None:
+        """RateLimit.from_rate rejects superscript digits that int() cannot parse."""
+        with pytest.raises(
+            ThrottleDeclarationError,
+            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+        ) as exc_info:
+            RateLimit.from_rate("\u00b2/hour")
+        assert exc_info.value.context.get("rate") == "\u00b2/hour"
+
+    def test_from_rate_unicode_decimal_digits(self) -> None:
+        """RateLimit.from_rate accepts non-ASCII decimal digits that int() parses."""
+        rate = RateLimit.from_rate("\u0663/hour")
+        assert rate.requests == 3
+
     def test_from_rate_zero_requests(self) -> None:
         """RateLimit.from_rate rejects zero request count."""
         with pytest.raises(
