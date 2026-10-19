@@ -39,4 +39,3 @@ class NullSink:
 
     def emit(self, event: MetricEvent) -> None:
         """No-op emit."""
-        pass
