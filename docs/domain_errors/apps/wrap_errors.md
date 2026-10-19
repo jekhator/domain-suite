@@ -201,8 +201,8 @@ class DataError(DomainError):
 def parse_record(data: dict, key: str) -> int:
     # Only ValueError and KeyError are caught and wrapped.
     # A TypeError, for example, propagates raw.
-    value = data[key]  # KeyError → wrapped as DataError
-    return int(value)  # ValueError if value is not numeric → wrapped as DataError
+    value = data[key]  # KeyError -> wrapped as DataError
+    return int(value)  # ValueError if value is not numeric -> wrapped as DataError
 
 try:
     parse_record({}, "missing_key")
@@ -291,7 +291,7 @@ with pytest.raises(PaymentError):
 
 **Class-level behavior:**
 - Decorating a class fans out the decorator over all public callables in `cls.__dict__`.
-- Sync methods get the sync wrapper; async methods get the async wrapper (dispatch preserved per method).
+- Sync methods get the sync wrapper; async methods get the async wrapper (handling preserved per method).
 - Private methods (prefixed with `_`), dunder methods (e.g., `__init__`), properties, and nested classes are skipped.
 - Classmethod and staticmethod are unwrapped, decorated, and rewrapped to preserve their semantics.
 - Methods already decorated with `@wrap_errors` (marked with `__wrap_errors_applied__`) are left untouched (override detection).
@@ -330,9 +330,9 @@ except ServiceError as err:
     # Get crossings (domain boundary hops)
     crossings = ErrorChain.crossings(err, classifiers=(python,))
     for crossing in crossings:
-        print(f"{crossing.cause.domain} → {crossing.effect.domain}")
+        print(f"{crossing.cause.domain} -> {crossing.effect.domain}")
         # Output:
-        # python → service
+        # python -> service
 ```
 
 ## Design Notes

@@ -47,7 +47,7 @@ None. All standards dimensions conform.
 
 ## OBA Compliance Attestation
 
-This feature uses only public, open-source patterns (contextvars, dataclasses, typing, collections.abc). No proprietary IP references, no internal routine/phase language, no AI-attribution trailers. Code is generic and reusable. No em dashes, no backtick-markup.
+This feature uses only public, open-source patterns (contextvars, dataclasses, typing, collections.abc). No proprietary IP references, no internal project-management language, no AI-attribution trailers. Code is generic and reusable. No em dashes, no backtick-markup.
 
 ## Verdict
 

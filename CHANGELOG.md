@@ -52,15 +52,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Logged marker timed feature**: Logged aspect now supports `timed=True` to measure operation duration via mixin-suite's LatencyClock, emitting `latency_ms` (rounded to 2 decimals) to end/error payloads. (Item 30 domain leg: Logged rich fields + timing.)
+- **Logged marker timed feature**: Logged aspect now supports `timed=True` to measure operation duration via mixin-suite's LatencyClock, emitting `latency_ms` (rounded to 2 decimals) to end/error payloads.
 - **RequireMixins validation-only marker**: New `RequireMixins` aspect for adoption-guard patterns. Validates class-level mixin composition at runtime; class-target only with loud composition-time error if required bases are missing. Validate-only marker (no wrapper layer, no ASPECT_ORDER slot).
 
 ### Changed
 
 - **Python floor raised to >=3.12**: Dropped 3.11 from CI matrix; floor enables PEP 695 generic type-parameter syntax.
 - **PEP 695 generic type parameters**: All module-level TypeVars converted to class-scoped PEP 695 syntax across all 6 domain roots (7 type-param sites: traced_retrieval_client, aspects_objects, requires_client, tenant_scoped_client, monitored_client, chain_client, wrap_errors_client, throttled_client).
-- **Ruff check widened to whole tree**: CI now lints all 6 domain roots, not domain_aspects alone. Format --check carve: dialect-governed files (`/formatting-test-files/`, `.formatcarve`) excluded from format-check per item-36/41 (P14/P15/P16 semantic grouping vs ruff per-param formatting).
-- **Exception-binding naming canonicalized**: 25 sites renamed `except ... as e/exc` to `except ... as error` per P10 naming canon (qhcg codified).
+- **Ruff check widened to whole tree**: CI now lints all 6 domain roots, not domain_aspects alone. Format --check carve: dialect-governed files (`/formatting-test-files/`, `.formatcarve`) excluded from format-check (semantic grouping differs from ruff's per-parameter formatting).
+- **Exception-binding naming standardized**: 25 sites renamed `except ... as e/exc` to `except ... as error` per the naming convention.
 - **Correlation stamping in domain_monitoring**: Logged events now auto-stamp correlation context when ambient correlation ID exists (correlation_id + domain_correlation_id labels; consumer-supplied labels win; no stamp if ambient ID absent).
 - **Dependency floor**: mixin-suite>=0.6.0 (lockstep pair with Logged.timed feature and RequireMixins).
 - All 6 wheel roots move to 0.6.0.
@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Optional-dependency extras repoint**: Fixed broken `[logging]`, `[sensitivity]`, and `[all]` extras in pyproject.toml that incorrectly referenced non-existent standalone distributions `mixin-logging>=0.6.0` and `mixin-sensitivity>=0.4.0` (import roots exist only inside mixin-suite). Repointed all extras to `mixin-suite>=0.3.0` for correct PyPI resolution; `[all]` now also includes `boto3>=1.28.0` for cloudwatch sink access.
-- **Constants sweep in domain-monitoring**: Extracted magic strings from `domain_monitoring/services/metrics/cloudwatch_sink.py` into module constants: `DEFAULT_CLOUDWATCH_NAMESPACE` ("domain-monitoring"), `CLOUDWATCH_METRIC_UNIT` ("Milliseconds"), `CLOUDWATCH_DIMENSION_OUTCOME` ("Outcome") in `domain_monitoring/services/constants/metrics.py`. CloudWatchMetricSink now uses named constants instead of inline strings for namespace default and metric field values; AWS API boundary TypedDict keys and put_metric_data kwargs left untouched (API contract).
+- **Constants pass in domain-monitoring**: Extracted magic strings from `domain_monitoring/services/metrics/cloudwatch_sink.py` into module constants: `DEFAULT_CLOUDWATCH_NAMESPACE` ("domain-monitoring"), `CLOUDWATCH_METRIC_UNIT` ("Milliseconds"), `CLOUDWATCH_DIMENSION_OUTCOME` ("Outcome") in `domain_monitoring/services/constants/metrics.py`. CloudWatchMetricSink now uses named constants instead of inline strings for namespace default and metric field values; AWS API boundary TypedDict keys and put_metric_data kwargs left untouched (API contract).
 - **Strict-suite CI pin upgrade to 0.3.0**: Updated `.github/workflows/strict-module.yml` strict-module and loc-cap invocations from `strict-suite==0.2.0` to `strict-suite==0.3.0`; R001-R011 rule set unchanged so no new violations surface; all six domain roots remain fully compliant.
 
 ## [0.3.0] - 2026-07-17
@@ -135,7 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Documentation conformance release: README badges and per-package run-verified examples, docs index, docs tree renamed to full package names, dash and terminology sweeps, and removal of internal artifacts. No code changes.
+- Documentation conformance release: README badges and per-package run-verified examples, docs index, docs tree renamed to full package names, dash and terminology passes, and removal of internal artifacts. No code changes.
 
 ## [0.1.0] - 2026-07-09
 
@@ -155,7 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cleanup-guard.yml`: Directory structure validation
   - `strict-module.yml`: Per-package DTO validation and line-count gatekeeping
   - `no-ai-attribution.yml`: Attribution verification (blocks AI-assistant attribution markers in commits and PRs)
-  - `publish.yml`: PyPI publication via trusted publishers (gated by James)
+  - `publish.yml`: PyPI publication via trusted publishers (gated by the maintainer)
   - `ruff.yml`: Linting and formatting checks
 
 - **Dynamic versioning**: All five packages version-locked to `0.1.0` via `domain_errors/config/_version.py`, with hatch dynamic resolution in unified `pyproject.toml`.

@@ -55,7 +55,7 @@ try:
     authenticate("alice", "secret_password_123")
 except AuthError as err:
     # err.context == {'username': 'alice', 'password': 'secret_password_123'}
-    # This dict flows into logging → exposing the plaintext secret.
+    # This dict flows into logging -> exposing the plaintext secret.
     logger.error("Auth failed", extra=err.to_log_extra())
 ```
 
@@ -73,8 +73,8 @@ The risk is real but **mitigatable and explicitly documented**. The library prov
 
 **Verification (test runs):**
 ```
-✓ test_capture_false_empty_context: capture=False yields {} context
-✓ test_capture_false_sync_with_defaults_still_empty: defaults NOT included when capture=False
+PASS: test_capture_false_empty_context: capture=False yields {} context
+PASS: test_capture_false_sync_with_defaults_still_empty: defaults NOT included when capture=False
 ```
 
 ### Never-Swallow Behavior
@@ -96,8 +96,8 @@ The `catch` parameter is typed as `tuple[type[Exception], ...]` (line 23, wrap_e
 
 Verification (negative control):
 ```
-✓ KeyboardInterrupt + catch=(Exception,) → propagates raw (not wrapped)
-✓ SystemExit + catch=(Exception,) → propagates raw (not wrapped)
+PASS: KeyboardInterrupt + catch=(Exception,) -> propagates raw (not wrapped)
+PASS: SystemExit + catch=(Exception,) -> propagates raw (not wrapped)
 ```
 
 ### Traceback Preservation
@@ -108,8 +108,8 @@ The `raise ... from error` syntax (lines 51, 62) explicitly chains the original 
 
 Verification:
 ```
-✓ Wrapped DomainError.__cause__ is the original exception (ZeroDivisionError)
-✓ Original traceback preserved: e.__cause__.__traceback__ is not None
+PASS: Wrapped DomainError.__cause__ is the original exception (ZeroDivisionError)
+PASS: Original traceback preserved: e.__cause__.__traceback__ is not None
 ```
 
 ### DomainError Pass-Through
@@ -183,10 +183,10 @@ No code-level security defects. The @wrap_errors decorator is well-designed with
 
 ## Verification Contract Fulfilled
 
-- ✅ **catch type confirmed:** `catch: tuple[type[Exception], ...]` (not BaseException)
-- ✅ **capture=False test passing:** `test_capture_false_empty_context` confirms empty dict when disabled
-- ✅ **Full test suite passing:** 45 tests, all green
-- ✅ **BaseException safety:** KeyboardInterrupt and SystemExit propagate raw (negative control passed)
-- ✅ **Never-swallow confirmed:** All exception paths re-raise with `raise ... from error`
-- ✅ **Code-execution test:** Dangerous arg names and formula strings captured as literals, no eval/exec
-- ✅ **Traceback preservation:** Original exception's `__traceback__` preserved via `__cause__`
+- PASS: **catch type confirmed:** `catch: tuple[type[Exception], ...]` (not BaseException)
+- PASS: **capture=False test passing:** `test_capture_false_empty_context` confirms empty dict when disabled
+- PASS: **Full test suite passing:** 45 tests, all green
+- PASS: **BaseException safety:** KeyboardInterrupt and SystemExit propagate raw (negative control passed)
+- PASS: **Never-swallow confirmed:** All exception paths re-raise with `raise ... from error`
+- PASS: **Code-execution test:** Dangerous arg names and formula strings captured as literals, no eval/exec
+- PASS: **Traceback preservation:** Original exception's `__traceback__` preserved via `__cause__`

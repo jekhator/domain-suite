@@ -43,7 +43,7 @@ None. All standards dimensions conform. Exception hierarchy properly extends Dom
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (exception hierarchy from domain-errors package, standard library exception handling). Error classification and default messages follow generic security domain conventions. No proprietary IP references, no internal routine/phase language, no AI-attribution trailers. Exception codes (authz_denied, tenant_boundary_violation, secret_access_failed) are descriptive and reusable.
+This feature uses only public patterns (exception hierarchy from domain-errors package, standard library exception handling). Error classification and default messages follow generic security domain conventions. No proprietary IP references, no internal project-management language, no AI-attribution trailers. Exception codes (authz_denied, tenant_boundary_violation, secret_access_failed) are descriptive and reusable.
 
 ## Verdict
 

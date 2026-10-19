@@ -6,7 +6,7 @@ A vendor-neutral wrapper around retrieval calls that emits a
 `RetrievalProvenance` event per call to a `ProvenanceSink`: a success event
 carrying the query, chunk ids and source document ids when the call returns,
 or a failure event when it raises. The call's own result or exception is
-returned or re-raised unchanged. Sync and async callables keep their dispatch.
+returned or re-raised unchanged. Sync and async callables keep their handling.
 
 ## Entry Unit
 
@@ -115,5 +115,5 @@ REAL OUTPUT (success and failure):
 - A successful call whose provenance cannot be recorded raises the sink error, so a missing audit record is visible.
 - The wrapped call's result is never changed by tracing.
 - Principal and session ids are required at declaration time for the audit trail.
-- The sink protocol is vendor-neutral; adapters (OpenTelemetry, LangSmith, etc.) implement `ProvenanceSink`.
+- The sink protocol is vendor-neutral; adapters (observability platforms) implement `ProvenanceSink`.
 - Class decoration covers functions and method descriptors defined on the class itself. Inherited methods are not wrapped; an override is.

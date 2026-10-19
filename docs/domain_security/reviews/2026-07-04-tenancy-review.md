@@ -44,7 +44,7 @@ None. All standards dimensions conform.
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (standard library exception handling, context management). No proprietary IP references, no internal routine/phase language, no AI-attribution trailers. Tenant boundary enforcement follows generic security principles.
+This feature uses only public patterns (standard library exception handling, context management). No proprietary IP references, no internal project-management language, no AI-attribution trailers. Tenant boundary enforcement follows generic security principles.
 
 ## Verdict
 

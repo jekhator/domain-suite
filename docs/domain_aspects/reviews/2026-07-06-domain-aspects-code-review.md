@@ -19,7 +19,7 @@ Code review of domain-aspects package v0.1.0: structure, patterns, test coverage
 - **DTO discipline**: All entries are frozen+slots dataclasses with `__post_init__` validation.
 - **No facade**: Service class methods (flatten, validate, sort) are private; public interface is `__call__`.
 - **Lazy imports**: Optional dependencies imported in entry.build(), not at module load.
-- **Canonical ordering**: ASPECT_ORDER tuple enforces application order.
+- **Fixed ordering**: ASPECT_ORDER tuple enforces application order.
 - **Error messages**: Extracted to constants/aspects.py and errors/constants/aspects.py per standards.
 
 ## Test Coverage

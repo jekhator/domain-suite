@@ -18,13 +18,13 @@
 
 ## Standards Dimensions Checked (derived from source-of-truth)
 
-1. **Frozen dataclass with slots=True, no repr=False** - All value objects (RateLimit, TierRate, ThrottlePolicy) use canonical form `@dataclass(frozen=True, slots=True)`.
+1. **Frozen dataclass with slots=True, no repr=False** - All value objects (RateLimit, TierRate, ThrottlePolicy) use standard form `@dataclass(frozen=True, slots=True)`.
 2. **Facade ban (no module-level domain functions)** - PolicyRegistry encodes domain knowledge in methods, not module-level; Period enum follows vocabulary pattern.
 3. **objects/client split with "as objs" aliasing** - policy_client.py imports `policy_objects as objs` and uses it in type hints (ThrottlePolicy, etc.); re-exported in policy/__init__.py.
 4. **Absolute imports (no relative dots)** - All imports use absolute paths; no relative imports detected.
 5. **__all__ + combined re-export idiom** - policy/__init__.py combines imports by source module in correct order (future, stdlib, first-party); single-line __all__ sorted alphabetically.
 6. **One-line docstrings on every method, factory, property, validator** - RateLimit: from_rate() factory, period_seconds property, as_rate() method all have one-line docstrings. ThrottlePolicy: rate_for() and has_tiers property have one-line docstrings. PolicyRegistry: policy_of() and collect() have one-line docstrings. Class docstrings present for all value objects and registry.
-7. **No inline # comments (only ⚠ SENSITIVE + noqa)** - No inline comments found.
+7. **No inline # comments (only WARNING SENSITIVE + noqa)** - No inline comments found.
 8. **Intuitive variable names, no single-letter TypeVars** - No TypeVars in policy feature.
 9. **Signature stacking (3+ params after self/cls)** - No methods exceed 2 params after self; no stacking required.
 10. **Constants module with Final + docstring dividers** - constants/policy.py has docstring dividers separating THROTTLE_POLICY_ATTR (line 7) and error messages (line 12); all constants use Final type hint; module docstring "Imported as const." present.
@@ -50,4 +50,4 @@ This review attests that domain-api-limiter (policy feature) conforms to publish
 
 **SHIP**
 
-The policy feature meets all standards dimensions derived from canonical source-of-truth documentation. No regressions detected. Ready for integration.
+The policy feature meets all standards dimensions derived from standard source-of-truth documentation. No regressions detected. Ready for integration.

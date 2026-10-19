@@ -6,7 +6,7 @@ Automatic metric emission through the `@monitored` decorator. The decorator
 wraps a callable, or every public method defined on a class, and emits one
 `MetricEvent` per call to a `MetricSink`: a success event when the call returns,
 or a failure event when it raises. The call's own result or exception is
-returned or re-raised unchanged. Sync and async callables keep their dispatch.
+returned or re-raised unchanged. Sync and async callables keep their handling.
 
 ## Entry Unit
 
