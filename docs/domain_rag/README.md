@@ -1,59 +1,59 @@
 # domain-rag
 
-Vendor-neutral wrapper for RAG retrieval provenance tracking with HIPAA-auditable audit trails.
+Vendor-neutral wrapper for RAG retrieval provenance tracking with audit-ready records.
 
 ## Overview
 
 `domain-rag` provides:
 
-- **Retrieval provenance tracking**: Capture query, chunks, and sources for every retrieval
-- **HIPAA-auditable events**: Record principal_id, session_id, timestamps, and outcomes
-- **Pluggable sinks**: Emit provenance to external systems (OpenTelemetry, LangSmith, Langfuse, etc.)
-- **Decorator-based**: Apply tracing with `@traced_retrieval` decorator
-- **Never-swallow exceptions**: Exceptions propagate; provenance records before re-raising
+- **Retrieval provenance tracking**: Capture the query, chunk ids and source document ids for each retrieval
+- **Audit fields**: Each event carries principal_id, session_id, timestamps and outcome
+- **Pluggable sinks**: Emit provenance to any system that implements `record(event)`
+- **Decorator-based**: Apply tracing with the `@traced_retrieval` decorator
+- **Result-preserving**: Tracing never changes what the wrapped call returns or raises
 
 ## Quick Start
 
 ```python
-from domain_rag import traced_retrieval, CollectingProvenanceSink, ProvenanceRegistry
+from domain_rag import CollectingProvenanceSink, ProvenanceRegistry, traced_retrieval
 
-# Create a sink and set as default
 sink = CollectingProvenanceSink()
 ProvenanceRegistry.set_default_sink(sink)
 
-# Apply tracing to a retrieval function
-@traced_retrieval(principal_id="user_123", session_id="sess_456")
-def retrieve_documents(query: str):
-    results = {
-        "chunk_ids": ["chunk_1", "chunk_2"],
-        "source_document_ids": ["doc_abc"],
-    }
-    return results
 
-# The decorator automatically tracks:
-# - Query input
-# - Retrieved chunk IDs and source document IDs
-# - Success/failure outcomes
-# - Latency (milliseconds)
-# - Principal and session for audit trail
+@traced_retrieval("usr_123", "sess_456")
+def retrieve(query: str):
+    return {"chunk_ids": ["chunk_1", "chunk_2"], "source_document_ids": ["doc_abc"]}
+
+
+result = retrieve("what is RAG?")
+event = sink.events[0]
+print(result)
+print(event.query, event.chunk_ids, event.source_document_ids, event.outcome)
+```
+
+**Output (Python 3.12, domain-suite==0.7.0):**
+```
+{'chunk_ids': ['chunk_1', 'chunk_2'], 'source_document_ids': ['doc_abc']}
+what is RAG? ('chunk_1', 'chunk_2') ('doc_abc',) success
 ```
 
 ## Public API
 
-- **`traced_retrieval`**: Decorator to track retrieval calls with provenance emission
-- **`ProvenanceRegistry`**: Central registry for provenance sinks
-- **`RetrievalProvenance`**: Immutable event with query, chunks, principal, session, outcome, timestamp
-- **`ProvenanceSink`**: Abstract sink interface for provenance events
-- **`CollectingProvenanceSink`**: In-memory collector for testing
+- **`traced_retrieval`**: Decorator that records a provenance event for each call
+- **`ProvenanceRegistry`**: Global registry for the default sink
+- **`RetrievalProvenance`**: Immutable event with query, chunk ids, source ids, principal, session, outcome and timing
+- **`ProvenanceSink`**: Protocol for sinks (`record(event) -> None`)
+- **`CollectingProvenanceSink`**: In-memory collector for tests and development
 - **`NullProvenanceSink`**: No-op sink (default)
-- **`ProvenanceOutcome`**: Success/failure outcome enum
+- **`ProvenanceOutcome`**: `SUCCESS` or `FAILURE`
 - Retrieval error classes: `RetrievalError`, `RetrievalDeclarationError`
 
 ## Features
 
 ### Per-Feature Documentation
 
-- **[architecture/flow-trace.md](architecture/flow-trace.md)**: Complete flow diagram and runtime behavior
+- **[architecture/flow-trace.md](architecture/flow-trace.md)**: Flow and runtime behaviour
 - **Security audits**: [audits/](audits/)
 - **Code reviews**: [reviews/](reviews/)
 
@@ -91,7 +91,7 @@ for event in sink.events:
     print(f"Outcome: {event.outcome}")
 ```
 
-**Output (Python 3.12, domain-suite==0.1.1):**
+**Output (Python 3.12, domain-suite==0.7.0):**
 ```
 Query: what is accessibility?
 Chunks: ('chunk_a', 'chunk_b')
@@ -101,35 +101,43 @@ Outcome: success
 
 ### Custom Sink Implementation
 
-Implement the `ProvenanceSink` protocol to emit to your observability platform:
+Implement the `ProvenanceSink` protocol to forward events to your own system:
 
 ```python
-from domain_rag import traced_retrieval, ProvenanceSink, RetrievalProvenance
+from domain_rag import ProvenanceSink, RetrievalProvenance, traced_retrieval
 
-class OpenTelemetrySink:
+
+class ListSink:
+    """Keep the outcome and query of each event."""
+
+    def __init__(self) -> None:
+        self.rows: list[tuple[str, str]] = []
+
     def record(self, event: RetrievalProvenance) -> None:
-        span = get_current_span()
-        span.set_attribute("rag.query", event.query)
-        span.set_attribute("rag.chunk_ids", event.chunk_ids)
-        span.set_attribute("rag.principal_id", event.principal_id)
-        span.set_attribute("rag.session_id", event.session_id)
-        span.set_attribute("rag.outcome", event.outcome)
+        self.rows.append((event.query, event.outcome.value))
 
-# Use with decorator
-sink = OpenTelemetrySink()
+
+sink: ProvenanceSink = ListSink()
+
 
 @traced_retrieval(principal_id="user_123", session_id="sess_456", sink=sink)
 def retrieve(query: str):
     return {"chunk_ids": ["c1"], "source_document_ids": ["d1"]}
+
+
+retrieve("policy")
+print(sink.rows)
 ```
 
 ### Class Decoration
 
-Apply tracing to all public methods:
+Apply tracing to all public methods defined on the class:
 
 ```python
-from domain_rag import traced_retrieval
 from dataclasses import dataclass
+
+from domain_rag import CollectingProvenanceSink, traced_retrieval
+
 
 @traced_retrieval(principal_id="user_123", session_id="sess_456")
 @dataclass(frozen=True, slots=True)
@@ -145,6 +153,7 @@ class RAGService:
     def rerank(self, docs):
         return sorted(docs)
 
+
 service = RAGService(index_name="my_index")
 results = service.search("query")
 ```
@@ -155,7 +164,9 @@ Tracing works with async functions:
 
 ```python
 import asyncio
+
 from domain_rag import traced_retrieval
+
 
 @traced_retrieval(principal_id="user_123", session_id="sess_456")
 async def async_retrieve(query: str):
@@ -165,16 +176,25 @@ async def async_retrieve(query: str):
         "source_document_ids": ["doc_1"],
     }
 
+
 result = asyncio.run(async_retrieve("query"))
 ```
+
+### Failures and Sink Errors
+
+A failing call is recorded with its query text, and the original exception is
+raised unchanged. If the sink also fails on that path, its error is
+added to the exception as a note. A successful call whose sink fails raises the
+sink error, so a missing audit record is never silent.
 
 ## Integration with domain-aspects
 
 Compose with other aspects:
 
 ```python
-from domain_aspects import aspects, Logged
+from domain_aspects import Logged, aspects
 from domain_rag import traced_retrieval
+
 
 @aspects(
     Logged(event="rag.retrieve"),
@@ -187,5 +207,5 @@ def retrieve(query: str):
 ## Next Steps
 
 - Read the [main domain-suite README](../../README.md) for installation and examples
-- Explore [architecture/flow-trace.md](architecture/flow-trace.md) for detailed flow diagrams
-- Implement custom sinks for your observability platform
+- Explore [architecture/flow-trace.md](architecture/flow-trace.md) for the runtime sequence
+- Implement a sink for your audit or observability system
