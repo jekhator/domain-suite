@@ -13,7 +13,7 @@ from domain_rag.services.provenance.provenance_objects import (
 __all__ = [
     "CollectingProvenanceSink",
     "NullProvenanceSink",
-    "ProvenanceSink",
     "ProvenanceOutcome",
+    "ProvenanceSink",
     "RetrievalProvenance",
 ]
