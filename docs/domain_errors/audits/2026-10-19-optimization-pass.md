@@ -136,3 +136,40 @@ Commands were run from the worktree of the pass branch.
 - `strict-module loc-cap` over the six package roots: within the 300 LOC cap.
 - Markdown dash grep: no matches.
 - Attribution grep over the commits of this pass: no matches.
+
+## Repository-level closing
+
+The optimization pass covers six per-root documents, one for each import root,
+and this repository-level section. Each per-root document has its own per-file
+review table, behavior changes, deferred candidates and gate results.
+
+- [domain_errors](2026-10-19-optimization-pass.md) (this document)
+- [domain_security](../../domain_security/audits/2026-10-19-optimization-pass.md)
+- [domain_api_limiter](../../domain_api_limiter/audits/2026-10-19-optimization-pass.md)
+- [domain_aspects](../../domain_aspects/audits/2026-10-19-optimization-pass.md)
+- [domain_monitoring](../../domain_monitoring/audits/2026-10-19-optimization-pass.md)
+- [domain_rag](../../domain_rag/audits/2026-10-19-optimization-pass.md)
+
+Repository-root files reviewed in the last leg:
+
+| path | findings | changed | note |
+| --- | --- | --- | --- |
+| conftest.py | 1: autouse fixtures had no remaining users once the version test moved | yes (removed) | removed after a run without it passed |
+| test_version_consistency.py | 2: hard-coded version literal; module-level imports moved into the test body | yes (moved) | moved to domain_errors/tests/test_version_consistency.py; compares every root with the distribution version |
+
+Whole-suite gate results at the end of the pass:
+
+- `uv run --python 3.12 pytest -v --cov --cov-fail-under=100`: 756 passed;
+  coverage 100.00 percent. Base before the last leg: 738 passed.
+- `uv run --python 3.14 pytest -v --cov --cov-fail-under=100`: 756 passed;
+  coverage 100.00 percent.
+- `uv run mypy domain_aspects/ domain_rag/`: Success: no issues found in 63
+  source files.
+- `uvx ruff@0.15.14 check .`: All checks passed!
+- `uvx ruff@0.15.14 format --check .`: 248 files already formatted, with no
+  exclude.
+- `strict-module` at strict-suite 0.4.0 over the six roots: exit 0 for each root.
+- `strict-module loc-cap` over the six roots: within the 300 LOC cap.
+- `uv lock --check`: exit 0.
+- Markdown dash grep and markdown hygiene greps: no matches.
+- Attribution grep over the commits of the pass: no matches.
