@@ -65,6 +65,17 @@ Context parameters:
 - `tenant_id: str` (the target tenant_id)
 - `context_tenant_id: str` (optional, the bound context's tenant_id if available)
 
+### SecurityDeclarationError
+
+```python
+class SecurityDeclarationError(SecurityError):
+    code = "security_declaration_failed"
+    http_status = 500
+    default_message = "Security decorator declaration failed."
+```
+
+Decorator declaration-time validation failure. Raised when @tenant_scoped is applied to a class that has a public method lacking the named tenant parameter. Context parameters: `method_name: str`, `param_name: str`.
+
 ### SecretError
 
 ```python
@@ -99,6 +110,7 @@ Security errors use message templates from their respective concern modules:
 
 **Tenant-scoped decorator (tenant_scoped):**
 - `ERR_TENANT_SCOPED_UNBOUND_SELF = "self.tenant_id requires a bound method call"`
+- `ERR_TENANT_SCOPED_NULL_TENANT = "tenant argument resolved to None"`
 - `ERR_TENANT_SCOPED_PARAM_MISSING = "tenant parameter missing from call"`
 
 See the respective concern modules for imports.
@@ -120,7 +132,7 @@ Retryable: No. Authorization checks are deterministic; re-running will fail the 
 Raised when:
 - The ambient context has no tenant_id bound (None).
 - The context's tenant_id differs from the target tenant_id.
-- The tenant parameter cannot be extracted (missing parameter, unbound self).
+- The tenant parameter cannot be extracted (missing parameter, unbound self) or resolves to None.
 
 HTTP status: 403 Forbidden.
 

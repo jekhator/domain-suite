@@ -41,6 +41,7 @@ The decorator parameter specifies the source of the tenant_id:
 - `SELF_TENANT_ID = "self.tenant_id"` (sentinel for self.tenant_id binding)
 - `ERR_TENANT_SCOPED_UNBOUND_SELF = "self.tenant_id requires a bound method call"` (raised when self.tenant_id is used on an unbound function)
 - `ERR_TENANT_SCOPED_PARAM_MISSING = "tenant parameter missing from call"` (raised when the named parameter is not present)
+- `ERR_TENANT_SCOPED_NULL_TENANT = "tenant argument resolved to None"` (raised when the extracted tenant value is None)
 
 See `domain_security/decorators/constants/tenant_scoped.py`.
 
@@ -50,6 +51,7 @@ The @tenant_scoped decorator raises TenancyError if:
 - The ambient context has no tenant_id bound (None).
 - The ambient context's tenant_id does not match the extracted tenant_id.
 - The extraction fails (missing parameter or unbound self).
+- The extracted tenant value is None.
 
 See [Error Types](security_errors.md) for TenancyError details.
 
@@ -173,12 +175,12 @@ with manager.bind(principal=principal, tenant_id="acme"):
 from domain_security import tenant_scoped, Principal, SecurityContextManager
 
 class DocumentServiceFactory:
-    def __init__(self, default_tenant_id: str):
-        self.default_tenant_id = default_tenant_id
-    
-    @tenant_scoped("self.default_tenant_id")
+    def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
+
+    @tenant_scoped("self.tenant_id")
     def get_service(self) -> "DocumentService":
-        return DocumentService(self.default_tenant_id)
+        return DocumentService(self.tenant_id)
 
 class DocumentService:
     def __init__(self, tenant_id: str):
