@@ -25,7 +25,7 @@ from domain_security import requires
 def my_method(arg1: str, arg2: int) -> str:
     return f"Result for {arg1}"
 
-# The decorator is factory-free; permission is passed as a string argument.
+# The decorator is applied as `@requires("permission_name")`; the permission is a string argument to the module-level instance.
 # Raises AuthzError before the method runs if the check fails.
 ```
 
@@ -67,12 +67,16 @@ with manager.bind(principal=principal, tenant_id="tenant1"):
 # Failure case: principal lacks the scope
 principal_limited = Principal(
     id="user2",
-    scopes=frozenset(["documents:read"])  # No write scope
+    scopes=frozenset(["documents:read"])  # Holds only the scope get_document needs
 )
 
 with manager.bind(principal=principal_limited, tenant_id="tenant1"):
+    doc = get_document("doc2")  # Succeeds: get_document requires documents:read
+    print(f"Retrieved: {doc}")
+
+with manager.bind(principal=Principal(id="user3"), tenant_id="tenant1"):
     try:
-        get_document("doc2")  # Still works, only needs read
+        get_document("doc3")  # No scopes at all: denied
     except AuthzError as e:
         print(f"Denied: {e.message}")
 ```

@@ -75,7 +75,7 @@ On each call to a decorated function:
    - If it is a `DomainError` (or subclass), **re-raise it immediately, unchanged.** No wrapping, no new `__cause__`.
    - If it matches an exception type in `catch`, **wrap it**: call `ErrorChain.wrap(error, as_=..., message=..., **captured_args)`, then `raise <domain_error> from error` (chaining via `__cause__`).
    - Otherwise, **propagate raw.** The exception is not caught by the decorator.
-3. **Argument capture.** When `capture=True`, `inspect.signature(func).bind(*args, **kwargs).apply_defaults()` extracts all bound parameters (including defaults) as a `dict[str, Any]`, which is passed to `ErrorChain.wrap()` as context kwargs. When `capture=False`, an empty dict is passed (no context).
+3. **Argument capture.** When `capture=True`, `inspect.signature(func).bind(*args, **kwargs).apply_defaults()` extracts all bound parameters (including defaults) as a `dict[str, Any]`, which is passed to `ErrorChain.wrap()` as context kwargs. When `capture=False`, an empty dict is passed (no context). If the call's arguments do not match the function signature, binding fails; the wrapper then passes an empty context and still raises the `DomainError` from the original `TypeError`.
 
 ### Async Support
 
@@ -201,8 +201,8 @@ class DataError(DomainError):
 def parse_record(data: dict, key: str) -> int:
     # Only ValueError and KeyError are caught and wrapped.
     # A TypeError, for example, propagates raw.
-    value = data[key]  # KeyError → wrapped as DataError
-    return int(value)  # ValueError if value is not numeric → wrapped as DataError
+    value = data[key]  # KeyError -> wrapped as DataError
+    return int(value)  # ValueError if value is not numeric -> wrapped as DataError
 
 try:
     parse_record({}, "missing_key")
@@ -291,7 +291,7 @@ with pytest.raises(PaymentError):
 
 **Class-level behavior:**
 - Decorating a class fans out the decorator over all public callables in `cls.__dict__`.
-- Sync methods get the sync wrapper; async methods get the async wrapper (dispatch preserved per method).
+- Sync methods get the sync wrapper; async methods get the async wrapper (handling preserved per method).
 - Private methods (prefixed with `_`), dunder methods (e.g., `__init__`), properties, and nested classes are skipped.
 - Classmethod and staticmethod are unwrapped, decorated, and rewrapped to preserve their semantics.
 - Methods already decorated with `@wrap_errors` (marked with `__wrap_errors_applied__`) are left untouched (override detection).
@@ -330,9 +330,9 @@ except ServiceError as err:
     # Get crossings (domain boundary hops)
     crossings = ErrorChain.crossings(err, classifiers=(python,))
     for crossing in crossings:
-        print(f"{crossing.cause.domain} → {crossing.effect.domain}")
+        print(f"{crossing.cause.domain} -> {crossing.effect.domain}")
         # Output:
-        # python → service
+        # python -> service
 ```
 
 ## Design Notes

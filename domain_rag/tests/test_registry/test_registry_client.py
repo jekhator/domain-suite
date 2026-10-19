@@ -43,3 +43,20 @@ class TestProvenanceRegistry:
         retrieved_sink = ProvenanceRegistry.get_default_sink()
 
         assert retrieved_sink is collecting_sink
+
+    def test_falsy_sink_is_kept(self) -> None:
+        """A bound sink that evaluates as falsy is returned, not replaced by the null sink."""
+
+        class EmptySink:
+            """Sink that reports itself as empty."""
+
+            def __len__(self) -> int:
+                return 0
+
+            def record(self, event: object) -> None:
+                """Discard the event."""
+
+        falsy_sink = EmptySink()
+        ProvenanceRegistry.set_default_sink(falsy_sink)  # type: ignore[arg-type]
+
+        assert ProvenanceRegistry.get_default_sink() is falsy_sink

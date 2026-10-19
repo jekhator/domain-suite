@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
+from dataclasses import dataclass
 from typing import Any
 
 import pytest
 
 import domain_aspects
 from domain_aspects.errors.aspects_errors import AspectDeclarationError
+from domain_aspects.errors.constants import aspects as errors_const
 from domain_aspects.services.aspects import (
     aspects_client as client_module,
     aspects_objects as objs,
@@ -108,22 +111,24 @@ class TestAspectsValidate:
         aspects_svc = client_module.Aspects()
         with pytest.raises(
             AspectDeclarationError,
-            match=const.ERR_ASPECTS_EMPTY_DECLARATION,
+            match=re.escape(errors_const.ERR_ASPECTS_EMPTY_DECLARATION),
         ):
             aspects_svc._validate([])
 
     def test_validate_duplicate_kind_raises(self) -> None:
         """Validate duplicate kinds raises AspectDeclarationError."""
         aspects_svc = client_module.Aspects()
-        entries = [
+        entries: list[objs.AspectEntry] = [
             objs.Logged(event="test1"),
             objs.Logged(event="test2"),
-        ]  # type: ignore[arg-type]
+        ]
         with pytest.raises(
             AspectDeclarationError,
-            match="Duplicate aspect kind",
+            match=re.escape(
+                errors_const.ERR_ASPECTS_DUPLICATE_KIND.format(kind="LOGGED")
+            ),
         ):
-            aspects_svc._validate(entries)  # type: ignore[arg-type]
+            aspects_svc._validate(entries)
 
     def test_validate_unknown_type_raises(self) -> None:
         """Validate unknown entry type raises AspectDeclarationError."""
@@ -134,7 +139,9 @@ class TestAspectsValidate:
         ]
         with pytest.raises(
             AspectDeclarationError,
-            match="Unknown aspect entry type",
+            match=re.escape(
+                errors_const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(entry_type="str")
+            ),
         ):
             aspects_svc._validate(entries)
 
@@ -246,8 +253,6 @@ class TestAspectsCall:
 
     def test_decorator_on_dataclass(self) -> None:
         """Decorator works on a dataclass."""
-        from dataclasses import dataclass
-
         aspects_svc = client_module.Aspects()
 
         @dataclass(frozen=True, slots=True)
@@ -290,10 +295,10 @@ class TestAspectsIntegration:
     """Integration tests for aspect composition."""
 
     def test_all_entries_can_compose_together(self) -> None:
-        """All six entry types can be composed in one Aspects call."""
+        """All five entry types of the bundled set can be composed in one Aspects call."""
         aspects_svc = client_module.Aspects()
 
-        # Verify that all six entries can be passed to aspects()
+        # Verify that all five entries can be passed to aspects()
         # without raising at composition time (import/build happens later).
         decorator = aspects_svc(
             objs.Logged(event="test"),
@@ -304,20 +309,8 @@ class TestAspectsIntegration:
         )
         assert callable(decorator)
 
-    def test_all_six_kinds_can_be_in_one_decoration(self) -> None:
-        """All six aspect kinds can be declared together."""
-        aspects_svc = client_module.Aspects()
-        decorator = aspects_svc(
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-            objs.TenantScoped(param_name="tenant_id"),
-            objs.Throttled(scope="api", rate="100/hour"),
-            objs.WrapErrors(as_=ValueError),
-        )
-        assert callable(decorator)
-
     def test_frozenset_with_all_kinds(self) -> None:
-        """Frozenset can contain all six aspect kinds."""
+        """Frozenset can contain all five entry kinds of the bundled set."""
         all_aspects = frozenset(
             {
                 objs.Logged(event="test"),

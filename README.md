@@ -9,13 +9,14 @@ Consolidated domain packages for Python services: typed errors, security context
 
 ## Overview
 
-**domain-suite** brings together five complementary domain packages into a single distribution:
+**domain-suite** brings together six complementary domain packages into a single distribution:
 
 - **domain-errors**: Typed domain error hierarchy with wrapping and chaining
 - **domain-security**: Security context management and authorization checks
 - **domain-api-limiter**: Request rate limiting and quota enforcement
 - **domain-monitoring**: Event monitoring and telemetry
 - **domain-aspects**: Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking
+- **domain-rag**: Vendor-neutral retrieval provenance tracking for RAG pipelines
 
 Each package maintains its namespace and API; the consolidation is organizational (single distribution, unified testing).
 
@@ -40,7 +41,7 @@ pip install domain-suite
 pip install "domain-suite[all]"
 ```
 
-Requires Python 3.11+.
+Requires Python 3.12+.
 
 ## Packages
 
@@ -72,7 +73,7 @@ except DatabaseError as e:
     print(f"Error domain: {e.domain}, code: {e.code}, http_status: {e.http_status}, retryable: {e.retryable}")
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.12+, domain-suite==0.7.0):**
 ```
 Error domain: database, code: db_connection_failed, http_status: 503, retryable: True
 ```
@@ -107,7 +108,7 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.12+, domain-suite==0.7.0):**
 ```
 Admin access granted
 ```
@@ -134,7 +135,7 @@ result = create_document("My Document")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.12+, domain-suite==0.7.0):**
 ```
 {'id': 'doc_123', 'title': 'My Document'}
 ```
@@ -161,12 +162,47 @@ result = process_document("doc_123")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.12+, domain-suite==0.7.0):**
 ```
 {'status': 'success'}
 ```
 
 See `docs/domain_monitoring/` for full documentation.
+
+### domain-rag
+
+Vendor-neutral retrieval provenance tracking for RAG pipelines.
+
+**Public API:**
+`traced_retrieval`, `ProvenanceRegistry`, `RetrievalProvenance`, `ProvenanceOutcome`, `ProvenanceSink`, `CollectingProvenanceSink`, `NullProvenanceSink`, retrieval error classes.
+
+**Example:**
+
+```python
+from domain_rag import CollectingProvenanceSink, ProvenanceRegistry, traced_retrieval
+
+sink = CollectingProvenanceSink()
+ProvenanceRegistry.set_default_sink(sink)
+
+
+@traced_retrieval("usr_123", "sess_456")
+def retrieve(query: str):
+    return {"chunk_ids": ["chunk_1", "chunk_2"], "source_document_ids": ["doc_abc"]}
+
+
+result = retrieve("what is RAG?")
+event = sink.events[0]
+print(result)
+print(event.query, event.chunk_ids, event.source_document_ids, event.outcome)
+```
+
+**Output (Python 3.12+, domain-suite==0.7.0):**
+```
+{'chunk_ids': ['chunk_1', 'chunk_2'], 'source_document_ids': ['doc_abc']}
+what is RAG? ('chunk_1', 'chunk_2') ('doc_abc',) success
+```
+
+See `docs/domain_rag/` for full documentation.
 
 ### domain-aspects
 
@@ -198,7 +234,7 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.12+, domain-suite==0.7.0):**
 ```
 {'id': 'doc_123', 'title': 'My Doc'}
 ```
@@ -207,15 +243,16 @@ See `docs/domain_aspects/` for full documentation.
 
 ## Consolidated From
 
-This distribution consolidates five independent domain packages (originally `domain-errors`, `domain-security`, `domain-api-limiter`, `domain-monitoring`, and `domain-aspects`) into a single unified distribution to simplify dependency management and testing.
+This distribution consolidates six domain packages (`domain-errors`, `domain-security`, `domain-api-limiter`, `domain-monitoring`, `domain-aspects` and `domain-rag`) into a single unified distribution to simplify dependency management and testing.
 
 Each package retains its original public API and namespace. Internal dependencies between packages within the suite are resolved locally (no external package re-imports required).
 
 ## Optional Extras
 
-- **`[logging]`**: Integrates with `mixin-suite>=0.5.0` for structured event logging adapters.
-- **`[sensitivity]`**: Integrates with `mixin-suite>=0.5.0` for automatic PII/PHI field masking.
-- **`[all]`**: Includes both mixin-suite packages.
+- **`[logging]`**: Integrates with `mixin-suite>=0.6.0` for structured event logging adapters.
+- **`[sensitivity]`**: Integrates with `mixin-suite>=0.6.0` for automatic PII/PHI field masking.
+- **`[cloudwatch]`**: Adds `boto3>=1.28.0` for the CloudWatch metric sink.
+- **`[all]`**: Includes both mixin-suite packages and boto3.
 
 Future versions may introduce new extras or migrate integrations (e.g., `mixin-suite` packages if they consolidate similarly).
 
@@ -233,12 +270,12 @@ Run tests:
 uv run pytest
 ```
 
-Run linting and type checking:
+Run linting, formatting and type checking (the same commands CI runs):
 
 ```bash
-ruff check .
-ruff format --check .
-mypy
+uvx ruff@0.15.14 check .
+uvx ruff@0.15.14 format --check .
+uv run mypy domain_aspects/ domain_rag/
 ```
 
 ## License

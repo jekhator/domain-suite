@@ -2,138 +2,85 @@
 
 ## Overview
 
-Cross-cutting aspect composition service for stacking decorators in canonical order. Entry types (`Logged`, `Requires`, `TenantScoped`, `Throttled`, `Monitored`, `WrapErrors`, `Sensitive`) are frozen value objects that lazily import their underlying decorators and apply them innermost-first (reverse sort by `ASPECT_ORDER`). Validates duplicate kinds and empty declarations.
+Cross-cutting aspect composition service for stacking decorators in a fixed order. Entry types (`Logged`, `Requires`, `TenantScoped`, `Throttled`, `Monitored`, `WrapErrors`, `Retried`, `RequireMixins`) are frozen value objects. Each one lazily imports its underlying decorator inside `build()` and applies it. Composition validates duplicate kinds and empty declarations, then applies entries innermost-first (reverse of `ASPECT_ORDER`).
 
 ## Entry Unit
 
-`aspects(...)` ── `Aspects.__call__(*entries)` ──▶ factory decorator.
+`aspects(...)` calls `Aspects.__call__(*entries)`, which returns a decorator factory.
 
-## Flow-Trace Diagram
+## Flow-Trace
 
 ```
-① CONSTRUCT Aspect Entries [FROZEN,slots each]
-   Logged(event="fetch.user")  ← from mixin_logging
-   Requires(permission="data:read")  ← from domain_security
-   TenantScoped(param_name="tenant_id")  ← from domain_security
-   Throttled(scope="api:fetch", rate="100/hour", tiers=())  ← from domain_api_limiter
-   Monitored(event="fetch", sink=None)  ← from domain_monitoring
-   WrapErrors(as_=ValidationError, catch=(Exception,))  ← from domain_errors
-   Sensitive()  ← from mixin_sensitivity
+(1) CONSTRUCT entries [frozen, slots]
+    Logged(event="fetch.user")                     needs mixin-logging
+    Requires(permission="data:read")               needs domain-security
+    TenantScoped(param_name="tenant_id")           needs domain-security
+    Throttled(scope="api:fetch", rate="100/hour")  needs domain-api-limiter
+    Monitored(event="fetch")                       needs domain-monitoring
+    WrapErrors(as_=ValidationError)                needs domain-errors
+    Retried(policy=RetryPolicy(...))               needs mixin-retry
+    RequireMixins(bases=(MixinA,))                 validation only
 
-   AspectKind ← StrEnum: LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, SENSITIVE
+    AspectKind: StrEnum, one value per entry type
 
-② COMPOSE aspects(...)
-   @aspects(
-       Logged(...),
-       Requires(...),
-       Monitored(...),
-       WrapErrors(...),
-   )
-   ──▶ Aspects.__call__(*entries)
-      ├─ _flatten(entries)  ← handle frozenset[AspectEntry] and single entries
-      ├─ _validate(flattened)
-      │  ├─ if not entries  ──▶ raise AspectDeclarationError(ERR_ASPECTS_EMPTY_DECLARATION)
-      │  ├─ for entry in entries
-      │  │  ├─ isinstance(entry, (Logged, Requires, ...))  ← type check
-      │  │  │  └─ if False  ──▶ raise AspectDeclarationError(ERR_ASPECTS_UNKNOWN_ENTRY_TYPE)
-      │  │  ├─ kind = entry.kind  ← AspectKind enum value
-      │  │  ├─ if kind in seen_kinds  ──▶ raise AspectDeclarationError(ERR_ASPECTS_DUPLICATE_KIND)
-      │  │  └─ seen_kinds.add(kind)
-      │  └─ validated
-      ├─ _sort(flattened)  ← sort by ASPECT_ORDER
-      │  ├─ order_map = {"LOGGED": 0, "REQUIRES": 1, ..., "WRAP_ERRORS": 6}
-      │  └─ sorted(entries, key=lambda e: order_map.get(e.kind, 999))
-      └─ returns decorator factory
+(2) COMPOSE aspects(...)
+    Aspects.__call__(*entries)
+      |- _flatten(entries)        frozensets and single entries become one list
+      |- _validate(flattened)
+      |    |- empty            -> AspectDeclarationError(ERR_ASPECTS_EMPTY_DECLARATION)
+      |    |- unknown type     -> AspectDeclarationError(ERR_ASPECTS_UNKNOWN_ENTRY_TYPE)
+      |    |- duplicate kind   -> AspectDeclarationError(ERR_ASPECTS_DUPLICATE_KIND)
+      |- _sort(flattened)          by ASPECT_ORDER; unknown kinds sort last
+      `- returns decorator(target)
 
-③ DECORATE (decorator applies in reverse order = innermost-to-outermost)
-   def decorator(target):
-       result = target
-       for entry in reversed(sorted_entries):  ← WRAP_ERRORS (6) -> ... -> LOGGED (0)
-           decorator_fn = entry.build()  ← lazy import + instantiate
-           result = decorator_fn(result)  ← wrap result
-       return result
+(3) DECORATE (innermost first)
+    result = target
+    for entry in reversed(sorted_entries):
+        result = entry.build()(result)
+    return result
 
-   WRAPPING ORDER (innermost to outermost):
-   ├─ WRAP_ERRORS innermost  ← wraps original target
-   │  └─ @wrap_errors(as_=ValidationError, catch=(Exception,))
-   ├─ SENSITIVE
-   │  └─ @sensitive  ← from mixin_sensitivity
-   ├─ MONITORED
-   │  └─ @monitored(event="...", sink=...)  ← MetricSink.emit() on success/failure
-   ├─ THROTTLED
-   │  └─ @throttled(scope="...", rate="...", tiers=...)  ← declarative, reads at middleware
-   ├─ TENANT_SCOPED
-   │  └─ @tenant_scoped(param_name="tenant_id")  ← from domain_security
-   ├─ REQUIRES
-   │  └─ @requires(permission="...")  ← AuthzError if denied
-   └─ LOGGED outermost  ← @logged(event="...")  ← from mixin_logging
+    Wrapping order, innermost to outermost:
+      RETRIED         RetryExecutor wrapper; sees raw exceptions
+      WRAP_ERRORS     @wrap_errors(as_=..., catch=...)
+      MONITORED       @monitored(event=..., sink=...)
+      THROTTLED       @throttled(scope=..., rate=..., tiers=...)
+      TENANT_SCOPED   @tenant_scoped(param_name=...)
+      REQUIRES        @requires(permission=...)
+      LOGGED          start/end/error events, outermost
 
-④ RUNTIME CALL ──▶ decorated_function(...)
-   Flow executes outer-to-inner (LOGGED outermost first):
-   ├─ LOGGED layer
-   │  └─ emit entry event
-   ├─ REQUIRES layer
-   │  └─ SecurityContextManager().get() ──▶ check permission ──▶ raise AuthzError | continue
-   ├─ TENANT_SCOPED layer
-   │  └─ extract tenant_id from args, bind SecurityContext(principal, tenant_id)
-   ├─ THROTTLED layer
-   │  └─ policy declared but not enforced here (middleware/integration checks at call time)
-   ├─ MONITORED layer
-   │  └─ start_time, try/except, emit MetricEvent.for_success/for_failure, raise on exception
-   ├─ SENSITIVE layer
-   │  └─ mask sensitive fields on logged values
-   └─ WRAP_ERRORS innermost
-      ├─ try: return original_function(...)
-      ├─ except DomainError: raise (pass-through)
-      └─ except (Exception, ...): raise classified error from original exception
+    Class targets: LOGGED, RETRIED and the security decorators fan out over
+    public methods declared on the class. RequireMixins checks bases only.
 
-   Returns: result | raises exception
-
-⑤ EXAMPLE BUILD (per entry)
-   Logged(event="export.run").build()
-      └─ from mixin_logging import logged  ──▶ return logged(event)
-   Requires(permission="data:export").build()
-      └─ from domain_security.decorators.requires import requires  ──▶ return requires(permission)
-   WrapErrors(as_=ValidationError).build()
-      └─ from domain_errors import wrap_errors  ──▶ return wrap_errors(as_=ValidationError, catch=(Exception,))
-   Monitored(event="export.run", sink=sink).build()
-      └─ from domain_monitoring.decorators.monitored import monitored  ──▶ return monitored(event, sink=sink)
-
-REAL OUTPUT (composed call, anonymous):
-   CAUGHT AuthzError (REQUIRES layer): AuthzError
-   ← REQUIRES rejects before MONITORED emits (ordering by ASPECT_ORDER)
-
-REAL OUTPUT (composed call, with permission):
-   SUCCESS: export_completed
-   MONITORED (MONITORED layer): export.run (outcome=success)
-   ← MONITORED emits success event after WRAP_ERRORS catches/translates
+(4) RUNTIME CALL, outermost layer first
+    LOGGED        emit <event>.start
+    REQUIRES      permission check; AuthzError stops the call before MONITORED
+    TENANT_SCOPED tenant check; TenancyError stops the call
+    THROTTLED     quota check
+    MONITORED     time the call; emit success or failure metric
+    WRAP_ERRORS   DomainError passes through; other listed exceptions are wrapped
+    RETRIED       retries the call per policy
+    LOGGED        emit <event>.end, or <event>.error and re-raise
 ```
 
 ## Key Constants
 
-- `ASPECT_ORDER` = ("LOGGED", "REQUIRES", "TENANT_SCOPED", "THROTTLED", "MONITORED", "SENSITIVE", "WRAP_ERRORS")
-  - applies in reverse: WRAP_ERRORS applied first (innermost), LOGGED applied last (outermost)
+- `ASPECT_ORDER` = ("LOGGED", "REQUIRES", "TENANT_SCOPED", "THROTTLED", "MONITORED", "WRAP_ERRORS", "RETRIED")
+- `LOGGED_APPLIED_MARKER` = "__logged_applied__"
+- `RETRIED_APPLIED_MARKER` = "__retried_applied__"
 - `ERR_ASPECTS_EMPTY_DECLARATION` = "Aspect declaration is empty."
 - `ERR_ASPECTS_DUPLICATE_KIND` = "Duplicate aspect kind in declaration: {kind}."
 - `ERR_ASPECTS_UNKNOWN_ENTRY_TYPE` = "Unknown aspect entry type: {entry_type}."
 
 ## Core Classes
 
-- `AspectKind` ← StrEnum; LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, SENSITIVE
-- `Logged` ← frozen slots; event (str); kind property; build() -> logged decorator
-- `Requires` ← frozen slots; permission (str); kind property; build() -> requires decorator
-- `TenantScoped` ← frozen slots; param_name (str, default="tenant_id"); kind property; build() -> tenant_scoped decorator
-- `Throttled` ← frozen slots; scope (str), rate (str), tiers (tuple of tuples); kind property; build() -> throttled decorator
-- `Monitored` ← frozen slots; event (str), sink (MetricSink | None); kind property; build() -> monitored decorator
-- `WrapErrors` ← frozen slots; as_ (exception class), catch (tuple[BaseException, ...], default=(Exception,)); kind property; build() -> wrap_errors decorator
-- `Sensitive` ← frozen slots; kind property; build() -> sensitive decorator
-- `AspectEntry` ← Union type alias for all entry types
-- `Aspects` ← __call__(*entries), _flatten(), _validate(), _sort(); returns decorator factory
-
-## Design Principles
-
-1. **Canonical Ordering** ← ASPECT_ORDER determines nesting depth (innermost-to-outermost)
-2. **Lazy Import** ← entry.build() imports underlying package on first composition (safe if optional)
-3. **Validation** ← duplicate kinds rejected at decoration time, not runtime
-4. **Immutable** ← all entries frozen; no side effects on composition
-5. **Composable** ← entries can mix and match; frozenset[entry] flattens naturally
+- `AspectKind`: StrEnum with LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, RETRIED, REQUIRE_MIXINS
+- `Logged`: frozen slots; event, payload extractors, timed; build() returns a logged wrapper
+- `Requires`: frozen slots; permission; build() returns the requires decorator
+- `TenantScoped`: frozen slots; param_name (default "tenant_id"); build() returns the tenant_scoped decorator
+- `Throttled`: frozen slots; scope, rate, tiers; build() returns the throttled decorator
+- `Monitored`: frozen slots; event, sink, label callbacks; build() returns the monitored decorator
+- `WrapErrors`: frozen slots; as_, catch (default (Exception,)); build() returns the wrap_errors decorator
+- `Retried`: frozen slots; policy or policy_from_request; build() returns a retry decorator
+- `RequireMixins`: frozen slots; bases; build() returns a validation-only decorator
+- `AspectEntry`: union type alias of the entry types
+- `Aspects`: __call__, _flatten, _validate, _sort

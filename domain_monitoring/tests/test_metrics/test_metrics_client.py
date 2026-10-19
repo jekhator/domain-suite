@@ -71,4 +71,4 @@ class TestNullSink:
 
         sink.emit(event)
 
-        assert True
+        assert vars(sink) == {}

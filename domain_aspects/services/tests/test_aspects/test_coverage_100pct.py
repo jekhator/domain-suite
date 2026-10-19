@@ -274,7 +274,7 @@ class TestSyncExceptionPaths:
             wrapped()
 
     def test_logged_sync_exception_with_bad_payload_extractors(self) -> None:
-        """Logged sync exception with multiple failing extractors."""
+        """Logged sync exception with a failing error extractor."""
 
         def extract_exc(exc: BaseException) -> dict:
             raise RuntimeError("extraction error")

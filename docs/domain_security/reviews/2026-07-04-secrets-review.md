@@ -45,7 +45,7 @@ None. All standards dimensions conform. Secret masking in `__repr__` is a well-i
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (dataclasses, typing, functools, standard library). Uses domain-errors @wrap_errors decorator for error handling (public package). No proprietary IP references, no internal routine/phase language, no AI-attribution trailers. Secret resolution follows generic patterns suitable for any secret backend (environment, vault, parameter store, etc.).
+This feature uses only public patterns (dataclasses, typing, functools, standard library). Uses domain-errors @wrap_errors decorator for error handling (public package). No proprietary IP references, no internal project-management language, no AI-attribution trailers. Secret resolution follows generic patterns suitable for any secret backend (environment, vault, parameter store, etc.).
 
 ## Verdict
 

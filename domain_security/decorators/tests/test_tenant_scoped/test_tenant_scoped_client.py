@@ -17,6 +17,7 @@ from domain_security.decorators.tenant_scoped.tenant_scoped_client import (
     tenant_scoped,
 )
 from domain_security.errors.security_errors import TenancyError
+from domain_security.services.tenancy.tenancy_client import TenancyGuard
 
 
 class TestTenantScoped:
@@ -141,6 +142,43 @@ class TestTenantScoped:
             unbound_function()
         assert exc_info.value.message == const.ERR_TENANT_SCOPED_UNBOUND_SELF
 
+    def test_decorator_rejects_none_tenant_argument(self) -> None:
+        """Decorator refuses a None tenant argument even when the context tenant is the string None."""
+        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        manager = SecurityContextManager()
+        manager.set(SecurityContext(principal=principal, tenant_id="None"))
+
+        @tenant_scoped("tenant_id")
+        def scoped_function(tenant_id: str | None) -> str:
+            """Scoped function accepting an optional tenant."""
+            return f"scoped to {tenant_id}"
+
+        with pytest.raises(TenancyError) as exc_info:
+            scoped_function(tenant_id=None)
+        assert exc_info.value.message == const.ERR_TENANT_SCOPED_NULL_TENANT
+
+    def test_decorator_self_tenant_id_none_raises(self) -> None:
+        """Decorator refuses an instance whose tenant_id attribute is None."""
+        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        manager = SecurityContextManager()
+        manager.set(SecurityContext(principal=principal, tenant_id="None"))
+
+        class Entity:
+            """Entity whose tenant is unset."""
+
+            def __init__(self) -> None:
+                """Leave tenant_id unset."""
+                self.tenant_id = None
+
+            @tenant_scoped("self.tenant_id")
+            def get_data(self) -> str:
+                """Get entity data."""
+                return "data"
+
+        with pytest.raises(TenancyError) as exc_info:
+            Entity().get_data()
+        assert exc_info.value.message == const.ERR_TENANT_SCOPED_NULL_TENANT
+
     def test_decorator_missing_tenant_parameter(self) -> None:
         """Decorator raises when function lacks the tenant parameter."""
         principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
@@ -169,8 +207,6 @@ class TestTenantScoped:
 
     def test_decorator_with_custom_guard(self) -> None:
         """TenantScoped can be initialized with custom guard."""
-        from domain_security.services.tenancy.tenancy_client import TenancyGuard
-
         principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))

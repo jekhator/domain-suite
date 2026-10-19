@@ -397,10 +397,9 @@ class TestPolicyRegistry:
                 return []
 
         result = registry.collect(DocumentService)
-        assert len(result) >= 2
-        scopes = [policy.scope for policy in result]
-        assert "docs:validate_name" in scopes
-        assert "docs:list_documents" in scopes
+        assert len(result) == 2
+        assert result[0].scope == "docs:validate_name"
+        assert result[1].scope == "docs:list_documents"
 
     def test_collect_on_mixed_method_decorations(
         self, registry: PolicyRegistry

@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Throttled: rate limiting via domain-api-limiter.
   - WrapErrors: exception wrapping and translation via domain-errors.
   - Sensitive: sensitive field masking via mixin-sensitivity.
-- Aspects service class (stateless): compose and apply aspect decorators in canonical order.
+- Aspects service class (stateless): compose and apply aspect decorators in standard order.
   - Flattens frozensets and single entries.
   - Validates duplicate kinds, unknown entry types, and empty declarations.
   - Sorts by ASPECT_ORDER before applying (innermost-first application).

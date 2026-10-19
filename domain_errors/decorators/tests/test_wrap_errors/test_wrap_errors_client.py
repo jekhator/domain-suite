@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import re
 
 import pytest
 
+from domain_errors.decorators.constants import wrap_errors as const
 from domain_errors.decorators.wrap_errors.wrap_errors_client import (
     WrapErrorsClient,
     wrap_errors,
@@ -75,10 +77,9 @@ class TestWrapErrorsSyncWrap:
         def divide(a: int, b: int) -> float:
             return a / b
 
-        try:
+        with pytest.raises(DemoError) as exc_info:
             divide(10, 0)
-        except DemoError as error:
-            assert isinstance(error.__cause__, ZeroDivisionError)
+        assert isinstance(exc_info.value.__cause__, ZeroDivisionError)
 
     def test_sync_custom_message_passes_through(self) -> None:
         """Custom message parameter is stored in the DomainError."""
@@ -179,10 +180,9 @@ class TestWrapErrorsAsyncWrap:
         async def async_divide(a: int, b: int) -> float:
             return a / b
 
-        try:
+        with pytest.raises(DemoError) as exc_info:
             asyncio.run(async_divide(10, 0))
-        except DemoError as error:
-            assert isinstance(error.__cause__, ZeroDivisionError)
+        assert isinstance(exc_info.value.__cause__, ZeroDivisionError)
 
     def test_async_custom_message_passes_through(self) -> None:
         """Async custom message parameter is stored in the DomainError."""
@@ -483,6 +483,18 @@ class TestWrapErrorsSignatureBinding:
             func()
         assert exc_info.value.context == {}
 
+    def test_call_with_unbindable_arguments_wraps_with_empty_context(self) -> None:
+        """A call that fails on its own arguments still raises the domain error."""
+
+        @wrap_errors(DemoError)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        with pytest.raises(DemoError) as exc_info:
+            add(1)  # type: ignore[call-arg]
+        assert exc_info.value.context == {}
+        assert isinstance(exc_info.value.__cause__, TypeError)
+
 
 class TestWrapErrorsCatchTupleVariations:
     """Tests for various catch tuple configurations."""
@@ -562,10 +574,9 @@ class TestWrapErrorsClassLevel:
         service = ServiceClass()
         assert service.sync_method(5) == 10
 
-        try:
+        with pytest.raises(DemoError) as exc_info:
             service.sync_method(-1)
-        except DemoError as error:
-            assert isinstance(error.__cause__, ValueError)
+        assert isinstance(exc_info.value.__cause__, ValueError)
 
     def test_class_async_method_wrapped(self) -> None:
         """Async methods in a decorated class are wrapped with async wrapper."""
@@ -597,10 +608,8 @@ class TestWrapErrorsClassLevel:
 
         service = ServiceWithPrivate()
 
-        try:
+        with pytest.raises(DemoError):
             service.public_method(1)
-        except DemoError:
-            pass
 
         with pytest.raises(ValueError):
             service._private_method(1)
@@ -878,6 +887,6 @@ class TestWrapErrorsClassLevel:
         client = WrapErrorsClient.for_target(DemoError)
 
         with pytest.raises(
-            TypeError, match=r"@wrap_errors target must be class or callable"
+            TypeError, match=re.escape(const.ERR_WRAP_ERRORS_TARGET_TYPE)
         ):
             client(42)

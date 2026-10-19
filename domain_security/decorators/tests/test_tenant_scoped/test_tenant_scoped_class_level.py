@@ -277,11 +277,11 @@ class TestTenantScopedClassLevel:
                 """Get count."""
                 return 42
 
-            def get_data(self, tenant_id: str) -> dict:
+            def get_data(self, tenant_id: str) -> dict[str, str]:
                 """Get data."""
                 return {"tenant": tenant_id, "status": "ok"}
 
-            def get_items(self, tenant_id: str) -> list:
+            def get_items(self, tenant_id: str) -> list[str]:
                 """Get items."""
                 return [tenant_id, "item1", "item2"]
 
@@ -312,7 +312,7 @@ class TestTenantScopedClassLevel:
                 return f"{tenant_id}:{entity_id}={value}"
 
             def batch_delete(
-                self, tenant_id: str, ids: list, force: bool = False
+                self, tenant_id: str, ids: list[str], force: bool = False
             ) -> str:
                 """Batch delete."""
                 return f"deleted {len(ids)} for {tenant_id} (force={force})"

@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Final
+from typing import ClassVar, Final, get_args
 
 from domain_aspects.errors.aspects_errors import AspectDeclarationError
+from domain_aspects.errors.constants import aspects as errors_const
 from domain_aspects.services.aspects import aspects_objects as objs
 from domain_aspects.services.constants import aspects as const
-
-if TYPE_CHECKING:
-    pass
 
 
 class Aspects:
@@ -18,6 +16,11 @@ class Aspects:
 
     Validates duplicate kinds and unknown entry types at decoration time.
     """
+
+    _ENTRY_TYPES: ClassVar[tuple[type, ...]] = get_args(objs.AspectEntry)
+    _ORDER_INDEX: ClassVar[dict[str, int]] = {
+        kind: index for index, kind in enumerate(const.ASPECT_ORDER)
+    }
 
     def __call__(
         self,
@@ -56,39 +59,32 @@ class Aspects:
     def _validate(self, entries: list[objs.AspectEntry]) -> None:
         """Validate no duplicates, no unknown types, not empty."""
         if not entries:
-            raise AspectDeclarationError(message=const.ERR_ASPECTS_EMPTY_DECLARATION)
+            raise AspectDeclarationError(
+                message=errors_const.ERR_ASPECTS_EMPTY_DECLARATION
+            )
 
         seen_kinds: set[str] = set()
         for entry in entries:
-            if not isinstance(
-                entry,
-                (
-                    objs.Logged,
-                    objs.Requires,
-                    objs.TenantScoped,
-                    objs.Throttled,
-                    objs.Monitored,
-                    objs.WrapErrors,
-                    objs.Retried,
-                    objs.RequireMixins,
-                ),
-            ):
+            if not isinstance(entry, self._ENTRY_TYPES):
                 raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
+                    message=errors_const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
                         entry_type=type(entry).__name__
                     )
                 )
             kind = entry.kind
             if kind in seen_kinds:
                 raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
+                    message=errors_const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
                 )
             seen_kinds.add(kind)
 
     def _sort(self, entries: list[objs.AspectEntry]) -> list[objs.AspectEntry]:
-        """Sort entries by ASPECT_ORDER."""
-        order_map = {kind: i for i, kind in enumerate(const.ASPECT_ORDER)}
-        return sorted(entries, key=lambda e: order_map.get(e.kind, 999))
+        """Sort entries by ASPECT_ORDER; kinds outside the order sort last."""
+        unordered_rank: Final = len(self._ORDER_INDEX)
+        return sorted(
+            entries,
+            key=lambda entry: self._ORDER_INDEX.get(entry.kind, unordered_rank),
+        )
 
 
 aspects: Final = Aspects()

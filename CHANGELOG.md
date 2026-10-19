@@ -7,19 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-18
+
+0.6.0 was recorded in this changelog but never published to PyPI. 0.7.0 is the first release that carries the 0.6.0 changes, together with the optimization pass described below.
+
+### Changed
+
+- **Wrap constants module**: The `@wrap_errors` marker name and its target-type error message now live in a decorator constants module under `domain_errors`. The public names and messages are unchanged.
+- **Policy typing**: Policy collection and public-method selection use concrete element types instead of untyped lists and `Any`.
+- **Declared signatures (domain_security)**: `@tenant_scoped` reads the decorated callable's signature once at decoration time instead of on every call. A callable whose signature cannot be read now fails at decoration time.
+- **Logging guidance (domain_aspects)**: `Logged` raises `ImportError` with the mixin-logging extra guidance when that package is missing, as the other aspect entries already do.
+- **Success-path logging (domain_aspects)**: An exception raised while emitting the end event of a logged call is no longer recorded as an operation error. The operation's own exceptions still emit the error event and propagate unchanged.
+- **Retry guard (domain_aspects)**: The dynamic-policy guard in the retry builder raises `ValueError` instead of relying on `assert`, so it still holds under optimized interpreters.
+- **Feature documentation (domain_aspects, domain_security)**: The aspects and security pages now describe the shipped entry types, aspect order, constants and examples. A leftover merge marker in the aspects feature page was removed.
+- **Monitoring failure recording (domain_monitoring)**: A failing sink or `labels_from_exc` callback no longer replaces the monitored call's exception. The recording error is attached to the exception as a note, and the original exception type and message are kept.
+- **Monitoring success events (domain_monitoring)**: The success event is emitted after the call returns. A sink error on the success path is raised once and is no longer recorded as a failed call.
+- **Monotonic durations (domain_monitoring, domain_rag)**: `duration_ms` is measured with a monotonic clock, so a wall-clock step cannot produce a negative duration.
+- **Class fan-out (domain_monitoring, domain_rag)**: `@monitored` and `@traced_retrieval` on a class wrap the public functions and methods defined on that class. Overridden methods are now wrapped; inherited methods are not wrapped by the class decorator.
+- **Declaration checks (domain_monitoring)**: `@monitored` rejects an empty event name when it is applied.
+- **Declaration checks (domain_rag)**: `@traced_retrieval` rejects an empty `principal_id` or `session_id` when it is applied.
+- **Retrieval result preservation (domain_rag)**: Tracing never changes the wrapped call's result. A call with no query is recorded with the placeholder query `(no query)`. Chunk and source ids that are not lists or tuples are recorded as empty tuples. A sink error on a failed call is attached to the exception as a note; on a successful call it is raised, so a missing provenance record is visible.
+- **Version consistency test**: `test_version_consistency.py` moved from the repository root into `domain_errors/tests/`, where pytest collects it. It compares each root `__version__` with the installed distribution version instead of a hard-coded literal, and the ruff format check no longer excludes it.
+
+### Fixed
+
+- **Argument capture on mismatched calls**: `@wrap_errors` no longer lets a bind-time `TypeError` escape when a decorated call fails because its arguments do not match the function signature. The caller receives the target `DomainError` with an empty context, as for any other caught error.
+- **Superscript digits in rate strings**: A rate whose count is a superscript digit (for example a superscript two followed by `/hour`) is rejected as a `ThrottleDeclarationError` instead of escaping as a raw `ValueError`.
+- **Unset tenant values (domain_security)**: `@tenant_scoped` raises `TenancyError` when the tenant argument, or the instance `tenant_id` used with `self.tenant_id`, is `None`. The value was previously compared as the string `None`, so a context bound to a tenant named `None` admitted a call with no tenant.
+- **Falsy custom authorizer and guard (domain_security)**: `Requires(authorizer=...)` and `TenantScoped(guard=...)` keep the supplied object even when it evaluates as falsy. Only `None` selects the default.
+- **Classmethods on monitored classes (domain_monitoring)**: `@monitored` keeps classmethods and staticmethods as their descriptor type, so calls through an instance bind correctly. Previously the wrapper was bound as an instance method.
+- **Falsy sinks (domain_monitoring, domain_rag)**: A bound sink that evaluates as falsy is used. Only an unset sink selects the registry default.
+- **Zero-argument and empty-query retrieval (domain_rag)**: A traced call with no arguments, or with an empty query, no longer fails inside the tracing step. The wrapped call's result is returned unchanged.
+- **Vacuous retrieval tests (domain_rag)**: The immutability and validation tests asserted nothing when no exception was raised. They now use `pytest.raises` with the constant messages.
+
+- **Typed package marker (domain_rag)**: domain_rag ships its py.typed marker like the other roots.
+
+### Removed
+
+- **Unused constants placeholder**: The empty `domain_errors.services.constants.services` module was never imported and has been removed.
+- **Unused declaration constant (domain_security)**: `ERR_TENANT_SCOPED_MISSING_PARAM` was never referenced and has been removed from the constants module.
+- **Duplicate error constants (domain_aspects)**: The aspects service constants module no longer repeats error messages that the errors constants module owns. The messages are unchanged.
+- **Root conftest (repository)**: The root `conftest.py` is removed; no test needed its autouse fixtures once the version test moved into a tests tree.
+- **Unreachable import guard (domain_monitoring)**: The `ImportError` guard around the CloudWatch sink import in the package root was removed; the sink module imports boto3 only when a sink is created.
+
 ## [0.6.0] - 2026-08-12
 
 ### Added
 
-- **Logged marker timed feature**: Logged aspect now supports `timed=True` to measure operation duration via mixin-suite's LatencyClock, emitting `latency_ms` (rounded to 2 decimals) to end/error payloads. (Item 30 domain leg: Logged rich fields + timing.)
+- **Logged marker timed feature**: Logged aspect now supports `timed=True` to measure operation duration via mixin-suite's LatencyClock, emitting `latency_ms` (rounded to 2 decimals) to end/error payloads.
 - **RequireMixins validation-only marker**: New `RequireMixins` aspect for adoption-guard patterns. Validates class-level mixin composition at runtime; class-target only with loud composition-time error if required bases are missing. Validate-only marker (no wrapper layer, no ASPECT_ORDER slot).
 
 ### Changed
 
 - **Python floor raised to >=3.12**: Dropped 3.11 from CI matrix; floor enables PEP 695 generic type-parameter syntax.
 - **PEP 695 generic type parameters**: All module-level TypeVars converted to class-scoped PEP 695 syntax across all 6 domain roots (7 type-param sites: traced_retrieval_client, aspects_objects, requires_client, tenant_scoped_client, monitored_client, chain_client, wrap_errors_client, throttled_client).
-- **Ruff check widened to whole tree**: CI now lints all 6 domain roots, not domain_aspects alone. Format --check carve: dialect-governed files (`/formatting-test-files/`, `.formatcarve`) excluded from format-check per item-36/41 (P14/P15/P16 semantic grouping vs ruff per-param formatting).
-- **Exception-binding naming canonicalized**: 25 sites renamed `except ... as e/exc` to `except ... as error` per P10 naming canon (qhcg codified).
+- **Ruff check widened to whole tree**: CI now lints all 6 domain roots, not domain_aspects alone. Format --check carve: dialect-governed files (`/formatting-test-files/`, `.formatcarve`) excluded from format-check (semantic grouping differs from ruff's per-parameter formatting).
+- **Exception-binding naming standardized**: 25 sites renamed `except ... as e/exc` to `except ... as error` per the naming convention.
 - **Correlation stamping in domain_monitoring**: Logged events now auto-stamp correlation context when ambient correlation ID exists (correlation_id + domain_correlation_id labels; consumer-supplied labels win; no stamp if ambient ID absent).
 - **Dependency floor**: mixin-suite>=0.6.0 (lockstep pair with Logged.timed feature and RequireMixins).
 - All 6 wheel roots move to 0.6.0.
@@ -55,7 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Optional-dependency extras repoint**: Fixed broken `[logging]`, `[sensitivity]`, and `[all]` extras in pyproject.toml that incorrectly referenced non-existent standalone distributions `mixin-logging>=0.6.0` and `mixin-sensitivity>=0.4.0` (import roots exist only inside mixin-suite). Repointed all extras to `mixin-suite>=0.3.0` for correct PyPI resolution; `[all]` now also includes `boto3>=1.28.0` for cloudwatch sink access.
-- **Constants sweep in domain-monitoring**: Extracted magic strings from `domain_monitoring/services/metrics/cloudwatch_sink.py` into module constants: `DEFAULT_CLOUDWATCH_NAMESPACE` ("domain-monitoring"), `CLOUDWATCH_METRIC_UNIT` ("Milliseconds"), `CLOUDWATCH_DIMENSION_OUTCOME` ("Outcome") in `domain_monitoring/services/constants/metrics.py`. CloudWatchMetricSink now uses named constants instead of inline strings for namespace default and metric field values; AWS API boundary TypedDict keys and put_metric_data kwargs left untouched (API contract).
+- **Constants pass in domain-monitoring**: Extracted magic strings from `domain_monitoring/services/metrics/cloudwatch_sink.py` into module constants: `DEFAULT_CLOUDWATCH_NAMESPACE` ("domain-monitoring"), `CLOUDWATCH_METRIC_UNIT` ("Milliseconds"), `CLOUDWATCH_DIMENSION_OUTCOME` ("Outcome") in `domain_monitoring/services/constants/metrics.py`. CloudWatchMetricSink now uses named constants instead of inline strings for namespace default and metric field values; AWS API boundary TypedDict keys and put_metric_data kwargs left untouched (API contract).
 - **Strict-suite CI pin upgrade to 0.3.0**: Updated `.github/workflows/strict-module.yml` strict-module and loc-cap invocations from `strict-suite==0.2.0` to `strict-suite==0.3.0`; R001-R011 rule set unchanged so no new violations surface; all six domain roots remain fully compliant.
 
 ## [0.3.0] - 2026-07-17
@@ -94,7 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Documentation conformance release: README badges and per-package run-verified examples, docs index, docs tree renamed to full package names, dash and terminology sweeps, and removal of internal artifacts. No code changes.
+- Documentation conformance release: README badges and per-package run-verified examples, docs index, docs tree renamed to full package names, dash and terminology passes, and removal of internal artifacts. No code changes.
 
 ## [0.1.0] - 2026-07-09
 
@@ -114,7 +157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cleanup-guard.yml`: Directory structure validation
   - `strict-module.yml`: Per-package DTO validation and line-count gatekeeping
   - `no-ai-attribution.yml`: Attribution verification (blocks AI-assistant attribution markers in commits and PRs)
-  - `publish.yml`: PyPI publication via trusted publishers (gated by James)
+  - `publish.yml`: PyPI publication via trusted publishers (gated by the maintainer)
   - `ruff.yml`: Linting and formatting checks
 
 - **Dynamic versioning**: All five packages version-locked to `0.1.0` via `domain_errors/config/_version.py`, with hatch dynamic resolution in unified `pyproject.toml`.

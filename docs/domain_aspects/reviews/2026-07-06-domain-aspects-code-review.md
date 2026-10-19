@@ -8,7 +8,7 @@ Code review of domain-aspects package v0.1.0: structure, patterns, test coverage
 
 ## Structure
 
-- **Package layout**: Follows govtech OSS standards (config/_version.py, services/, errors/, tests/).
+- **Package layout**: Follows the project OSS layout (config/_version.py, services/, errors/, tests/).
 - **Entry objects** (aspects_objects.py): Six frozen+slots dataclasses with kind property and build() method.
 - **Service class** (aspects_client.py): Aspects service with flatten/validate/sort/compose flow.
 - **Constants** (services/constants/aspects.py): ASPECT_ORDER tuple and error messages.
@@ -19,7 +19,7 @@ Code review of domain-aspects package v0.1.0: structure, patterns, test coverage
 - **DTO discipline**: All entries are frozen+slots dataclasses with `__post_init__` validation.
 - **No facade**: Service class methods (flatten, validate, sort) are private; public interface is `__call__`.
 - **Lazy imports**: Optional dependencies imported in entry.build(), not at module load.
-- **Canonical ordering**: ASPECT_ORDER tuple enforces application order.
+- **Fixed ordering**: ASPECT_ORDER tuple enforces application order.
 - **Error messages**: Extracted to constants/aspects.py and errors/constants/aspects.py per standards.
 
 ## Test Coverage

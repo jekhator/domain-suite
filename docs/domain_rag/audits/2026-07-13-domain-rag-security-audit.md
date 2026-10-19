@@ -52,7 +52,7 @@
 ### 6. Dependencies (PASS)
 
 - Hard dep: domain-errors>=0.2.0 only
-- Zero vendor imports in library (no LangSmith, Langfuse, OpenTelemetry, etc.)
+- Zero vendor imports in library (no third-party observability SDKs)
 - Test/dev deps: pytest, mypy, ruff
 
 ### 7. Decorator Safety (PASS)

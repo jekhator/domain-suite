@@ -4,58 +4,58 @@
 
 ```
 Security Aspect Layer
-═════════════════════════════════════════════════════════════════════════════════
+=================================================================================
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ SecurityContext Spine                                                       │
-│ ┌────────────────────────────────────────────────────────────────────────┐ │
-│ │ SecurityContext(principal: Principal|None, tenant_id: str|None)        │ │
-│ │ Principal(id: str, roles: frozenset[str], scopes: frozenset[str])     │ │
-│ └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-                            ▲                           ▲
-                            │                           │
++-----------------------------------------------------------------------------+
+| SecurityContext Spine                                                       |
+| +------------------------------------------------------------------------+ |
+| | SecurityContext(principal: Principal|None, tenant_id: str|None)        | |
+| | Principal(id: str, roles: frozenset[str], scopes: frozenset[str])     | |
+| +------------------------------------------------------------------------+ |
++-----------------------------------------------------------------------------+
+                            ^                           ^
+                            |                           |
                     Set/Get/Bind                  Enforcement/Decorators
-                            │                           │
-        ┌───────────────────┼───────────────────┬───────┼──────────────────┐
-        │                   │                   │       │                  │
-        ▼                   ▼                   ▼       ▼                  ▼
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────────┐ ┌──────────────┐
-│ context/     │  │ services/    │  │ services/    │  │ decorators/     │ │ services/    │
-│ security_    │  │ authz/       │  │ tenancy/     │  │ requires/       │ │ secrets/     │
-│ context/     │  │              │  │              │  │ tenant_scoped/  │ │              │
-│              │  │              │  │              │  │                 │ │              │
-│ Manager:     │  │ Authorizer:  │  │ TenancyGuard:│  │ @requires()     │ │ SecretRef:   │
-│ set()        │  │ check()      │  │ check()      │  │ @tenant_scoped()│ │ resolve()    │
-│ get()        │  │ require()    │  │              │  │                 │ │              │
-│ bind()       │  │              │  │              │  │ Module handles: │ │ SecretsBack. │
-│ clear()      │  │ Permission:  │  │              │  │ requires        │ │ fetch()      │
-│              │  │ value: str   │  │              │  │ tenant_scoped   │ │              │
-│ SecurityCtx: │  │              │  │              │  │                 │ │ SecretValue: │
-│ principal    │  │ PolicyDec:   │  │              │  │                 │ │ get()        │
-│ tenant_id    │  │ allowed      │  │              │  │                 │ │ __repr__()   │
-│              │  │ reason       │  │              │  │                 │ │ (<Secret***>)│
-└──────────────┘  └──────────────┘  └──────────────┘  └─────────────────┘ └──────────────┘
-        │                 │                 │                 │                 │
-        └─────────────────┴─────────────────┴─────────────────┴─────────────────┘
-                                         │
-                                         ▼
-                        ┌──────────────────────────────────┐
-                        │ errors/security_errors.py        │
-                        │                                  │
-                        │ SecurityError(DomainError)      │
-                        │ ├─ AuthzError                    │
-                        │ ├─ TenancyError                  │
-                        │ └─ SecretError                   │
-                        │                                  │
-                        │ [All subclass DomainError from   │
-                        │  domain-errors sibling]          │
-                        └──────────────────────────────────┘
+                            |                           |
+        +-------------------+-------------------+-------+------------------+
+        |                   |                   |       |                  |
+        v                   v                   v       v                  v
++--------------+  +--------------+  +--------------+  +-----------------+ +--------------+
+| context/     |  | services/    |  | services/    |  | decorators/     | | services/    |
+| security_    |  | authz/       |  | tenancy/     |  | requires/       | | secrets/     |
+| context/     |  |              |  |              |  | tenant_scoped/  | |              |
+|              |  |              |  |              |  |                 | |              |
+| Manager:     |  | Authorizer:  |  | TenancyGuard:|  | @requires()     | | SecretRef:   |
+| set()        |  | check()      |  | check()      |  | @tenant_scoped()| | resolve()    |
+| get()        |  | require()    |  |              |  |                 | |              |
+| bind()       |  |              |  |              |  | Module handles: | | SecretsBack. |
+| clear()      |  | Permission:  |  |              |  | requires        | | fetch()      |
+|              |  | value: str   |  |              |  | tenant_scoped   | |              |
+| SecurityCtx: |  |              |  |              |  |                 | | SecretValue: |
+| principal    |  | PolicyDec:   |  |              |  |                 | | get()        |
+| tenant_id    |  | allowed      |  |              |  |                 | | __repr__()   |
+|              |  | reason       |  |              |  |                 | | (masked)|
++--------------+  +--------------+  +--------------+  +-----------------+ +--------------+
+        |                 |                 |                 |                 |
+        +-----------------+-----------------+-----------------+-----------------+
+                                         |
+                                         v
+                        +----------------------------------+
+                        | errors/security_errors.py        |
+                        |                                  |
+                        | SecurityError(DomainError)      |
+                        | +- AuthzError                    |
+                        | +- TenancyError                  |
+                        | +- SecretError                   |
+                        |                                  |
+                        | [All subclass DomainError from   |
+                        |  domain-errors sibling]          |
+                        +----------------------------------+
 
 Aspects deliberately out of scope:
-  • Masking, field-level redaction → sensitivity-mixin (sibling)
-  • Rate-limiting, quota enforcement → domain-api-limiter (future)
-  • Logging of security events → domain-errors + logging-mixin (parent layer)
+  - Masking, field-level redaction -> sensitivity-mixin (sibling)
+  - Rate-limiting, quota enforcement -> domain-api-limiter (future)
+  - Logging of security events -> domain-errors + logging-mixin (parent layer)
 ```
 
 ## Implemented Surface
@@ -121,7 +121,7 @@ Files: `requires_client.py` (Requires, client-only pure-behavior feature)
 - `Requires`
   - `__init__(authorizer: Authorizer | None = None)`: optional authorizer
   - `__call__(permission: str) -> Callable[[Callable[Params, Return]], Callable[Params, Return]]`: decorate method
-  - `_current_context() -> SecurityContext`: staticmethod, read ambient context; scope-based deny-by-default with anonymous fallback
+  - `_current_context() -> SecurityContext`: instance method, read ambient context; anonymous fallback when unset
   - Module handle: `requires = Requires()`: ready to use as `@requires("admin:write")`
 
 ### decorators/tenant_scoped/
@@ -130,8 +130,8 @@ Files: `tenant_scoped_client.py` (TenantScoped, client-only pure-behavior featur
 - `TenantScoped`
   - `__init__(guard: TenancyGuard | None = None)`: optional guard
   - `__call__(param_name: str) -> Callable[[Callable[Params, Return]], Callable[Params, Return]]`: decorate method (param_name = tenant-bearing parameter name or 'self.tenant_id')
-  - `_tenant_argument(func: Callable, param_name: str, args: tuple, kwargs: dict) -> str`: staticmethod, extract tenant_id from call args/kwargs
-  - `_current_context() -> SecurityContext`: staticmethod, read ambient context; scope-based deny-by-default with anonymous fallback
+  - `_tenant_argument(signature: inspect.Signature, param_name: str, args: tuple, kwargs: Mapping) -> str`: staticmethod, extract tenant_id from call args/kwargs; None values raise TenancyError
+  - `_current_context() -> SecurityContext`: instance method, read ambient context; anonymous fallback when unset
   - Module handle: `tenant_scoped = TenantScoped()`: ready to use as `@tenant_scoped("tenant_id")`
 
 ### errors/security_errors.py
@@ -141,7 +141,7 @@ Files: `tenant_scoped_client.py` (TenantScoped, client-only pure-behavior featur
 - `SecretError(SecurityError)`: secret access error (code="secret_access_failed", http_status 500 override, wraps backend failures with __cause__)
 
 ### Public API (domain_security/__init__.py)
-Re-exports: `requires`, `tenant_scoped`, `SecurityContext`, `Principal`, `SecurityContextManager`, `Authorizer`, `Permission`, `PolicyDecision`, `SecretRef`, `SecretValue`, `SecurityError`, `AuthzError`, `TenancyError`, `SecretError`, `__version__`
+Re-exports: `requires`, `tenant_scoped`, `SecurityContext`, `Principal`, `SecurityContextManager`, `Authorizer`, `Permission`, `PolicyDecision`, `SecretRef`, `SecretValue`, `SecurityError`, `AuthzError`, `TenancyError`, `SecretError`, `SecurityDeclarationError`, `__version__`
 
 ---
 

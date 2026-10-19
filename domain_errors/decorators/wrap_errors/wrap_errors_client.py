@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import functools
 import inspect
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
+from domain_errors.decorators.constants import wrap_errors as const
 from domain_errors.domains.domain_error.domain_error import DomainError
 from domain_errors.services.chain.chain_client import ErrorChain
-
-WRAP_ERRORS_MARKER = "__wrap_errors_applied__"
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,10 +46,7 @@ class WrapErrorsClient:
             return self._decorate_class(target)
         if callable(target):
             return self._decorate_callable(target)
-        msg = (
-            f"@wrap_errors target must be class or callable, "
-            f"got {type(target).__name__}"
-        )
+        msg = f"{const.ERR_WRAP_ERRORS_TARGET_TYPE} {type(target).__name__}"
         raise TypeError(msg)
 
     def _decorate_callable[**Params, Return](
@@ -69,7 +65,7 @@ class WrapErrorsClient:
                 except self.catch as error:
                     raise self._as_domain(error, func, args, kwargs) from error
 
-            setattr(async_wrapper, WRAP_ERRORS_MARKER, True)
+            setattr(async_wrapper, const.WRAP_ERRORS_MARKER, True)
             return cast("Callable[Params, Return]", async_wrapper)
 
         @functools.wraps(func)
@@ -81,7 +77,7 @@ class WrapErrorsClient:
             except self.catch as error:
                 raise self._as_domain(error, func, args, kwargs) from error
 
-        setattr(wrapper, WRAP_ERRORS_MARKER, True)
+        setattr(wrapper, const.WRAP_ERRORS_MARKER, True)
         return wrapper
 
     def _decorate_class(self, cls: type[Any]) -> type[Any]:
@@ -91,7 +87,7 @@ class WrapErrorsClient:
         - Only callables in cls.__dict__ (not inherited)
         - Skip: _-prefixed, dunders, properties, nested classes
         - Preserve: classmethod/staticmethod via unwrap/rewrap
-        - Override: methods already marked with WRAP_ERRORS_MARKER are left untouched
+        - Override: methods already marked by this decorator are left untouched
         - Config: catch, as_, message, capture applied uniformly to each method
         """
         for name, method in list(cls.__dict__.items()):
@@ -113,7 +109,7 @@ class WrapErrorsClient:
             if not callable(unwrapped):
                 continue
 
-            if hasattr(unwrapped, WRAP_ERRORS_MARKER):
+            if hasattr(unwrapped, const.WRAP_ERRORS_MARKER):
                 continue
 
             decorated = self._decorate_callable(unwrapped)
@@ -130,9 +126,9 @@ class WrapErrorsClient:
     def _as_domain(
         self,
         error: Exception,
-        func: Callable[..., Any],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
+        func: Callable[..., object],
+        args: tuple[object, ...],
+        kwargs: Mapping[str, object],
     ) -> DomainError:
         """Wrap error into target DomainError with captured call context."""
         return ErrorChain.wrap(
@@ -144,14 +140,18 @@ class WrapErrorsClient:
 
     def _capture(
         self,
-        func: Callable[..., Any],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Bind call args to parameter names; empty when capture is off."""
+        func: Callable[..., object],
+        args: tuple[object, ...],
+        kwargs: Mapping[str, object],
+    ) -> dict[str, object]:
+        """Bind call args to names; empty when capture is off or binding fails."""
         if not self.capture:
             return {}
-        bound = inspect.signature(func).bind(*args, **kwargs)
+        try:
+            bound = inspect.signature(func).bind(*args, **kwargs)
+        except TypeError:
+            # The call failed on its own arguments, so there is nothing to bind.
+            return {}
         bound.apply_defaults()
         context = dict(bound.arguments)
         context.pop("self", None)

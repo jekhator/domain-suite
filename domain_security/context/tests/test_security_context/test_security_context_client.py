@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextvars import Token
+
 import pytest
 
 from domain_security.context.security_context.security_context_client import (
@@ -31,7 +33,7 @@ class TestSecurityContextManager:
         """set returns a token that can be used to reset."""
         manager = SecurityContextManager()
         token = manager.set(security_context)
-        assert token is not None
+        assert isinstance(token, Token)
 
     def test_clear_resets_to_previous(
         self, security_context: SecurityContext, anonymous_context: SecurityContext

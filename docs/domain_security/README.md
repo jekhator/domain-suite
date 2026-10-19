@@ -6,42 +6,40 @@ Cross-cutting security concerns: authorization, tenancy, secrets, and context ma
 
 `domain-security` provides:
 
-- **SecurityContext**: Request-scoped context with principal, tenant, and claims
+- **SecurityContext**: Ambient context with a principal (identity, roles, scopes) and a tenant boundary
 - **Authorization checks**: Decorator-based permission enforcement
 - **Tenant isolation**: Tenancy boundary validation
-- **Secret management**: Credential resolution from external sources (environment, vaults, etc.)
+- **Secret management**: Lazy, masked secret resolution through a pluggable backend
 
 ## Quick Start
 
 ```python
-from domain_security import SecurityContext, SecurityContextManager, requires
+from domain_security import Principal, SecurityContextManager, requires
 
-# Set security context (typically from JWT or session)
-ctx = SecurityContext(
-    user_id="usr_123",
-    tenant_id="org_abc",
-    claims={"role": "admin", "scope": "documents.read"}
-)
-SecurityContextManager.set(ctx)
+# Describe the caller and bind the context for the duration of the request
+principal = Principal(id="usr_123", scopes=frozenset(["documents.read"]))
+manager = SecurityContextManager()
 
 # Enforce authorization via decorator
-@requires(permission="documents.read")
-def get_document(doc_id: str):
-    ctx = SecurityContextManager.get()
-    return {"user": ctx.principal.user_id, "doc": doc_id}
+@requires("documents.read")
+def get_document(doc_id: str) -> dict:
+    return {"doc": doc_id, "requested_by": manager.get().principal.id}
+
+with manager.bind(principal=principal, tenant_id="org_abc"):
+    print(get_document("doc_1"))
 ```
 
 ## Public API
 
-- **`SecurityContext`**: Principal identity, tenant, and claims container
-- **`SecurityContextManager`**: ContextVar-based context manager for request scope
-- **`Principal`**: Principal identity details (user_id, tenant_id)
+- **`SecurityContext`**: Immutable pairing of a principal and a tenant id
+- **`SecurityContextManager`**: ContextVar-based set, get, bind and clear of the ambient context
+- **`Principal`**: Identity with `id`, `roles` and `scopes`
 - **`requires`**: Decorator for permission checks
 - **`tenant_scoped`**: Decorator for tenant isolation checks
-- **`Authorizer`**: Authorization policy engine
+- **`Authorizer`**: Scope-based authorization policy engine
 - **`Permission`**, **`PolicyDecision`**: Authorization models
-- **`SecretRef`**, **`SecretValue`**: Secret reference and resolution
-- Security error classes: `AuthzError`, `TenancyError`, `SecretError`, etc.
+- **`SecretRef`**, **`SecretValue`**: Secret reference and masked resolved value
+- Security error classes: `SecurityError`, `AuthzError`, `TenancyError`, `SecretError`, `SecurityDeclarationError`
 
 ## Features
 
@@ -60,6 +58,7 @@ Detailed documentation for each feature:
 ### Architecture & Design
 
 - **[diagrams.md](apps/diagrams.md)**: Visual guides to authorization and context flow
+- **[flow-trace.md](architecture/flow-trace.md)**: Call-level trace of the enforcement path
 - **[CHANGELOG-history.md](CHANGELOG-history.md)**: Version history before domain-suite consolidation
 
 ### Security & Code Quality
@@ -72,38 +71,44 @@ Detailed documentation for each feature:
 ### Request Context Setup (e.g., Django Middleware)
 
 ```python
-from domain_security import SecurityContext, SecurityContextManager
+from domain_security import Principal, SecurityContextManager
+
+manager = SecurityContextManager()
 
 class SecurityContextMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
     def __call__(self, request):
-        # Extract from JWT or session
-        user_id = request.user.id
-        tenant_id = request.tenant.id
-        claims = jwt.decode(request.auth_header)
-        
-        ctx = SecurityContext(
-            user_id=user_id,
-            tenant_id=tenant_id,
-            claims=claims
+        # Extract the identity from the verified token or session
+        principal = Principal(
+            id=request.user.id,
+            roles=frozenset(request.roles),
+            scopes=frozenset(request.scopes),
         )
-        SecurityContextManager.set(ctx)
+        with manager.bind(principal=principal, tenant_id=request.tenant.id):
+            return self.get_response(request)
 ```
 
 ### Multi-Tenant Data Access
 
 ```python
-from domain_security import tenant_scoped
+from domain_security import SecurityContextManager, tenant_scoped
 
-@tenant_scoped(param_name="tenant_id")
-def get_tenant_data(tenant_id: str):
-    ctx = SecurityContextManager.get()
-    # Verify tenant_id matches context
-    return fetch_data_for_tenant(tenant_id)
+manager = SecurityContextManager()
+
+@tenant_scoped("tenant_id")
+def get_tenant_data(tenant_id: str) -> dict:
+    # The decorator has already checked tenant_id against the bound context
+    return {"tenant": tenant_id}
+
+with manager.bind(tenant_id="org_abc"):
+    print(get_tenant_data("org_abc"))
 ```
 
 ## Integration with domain-aspects
 
-Use the `@Requires` or `@TenantScoped` aspects for composable security:
+Use the `Requires` or `TenantScoped` aspects for composable security:
 
 ```python
 from domain_aspects import aspects, Requires, TenantScoped
