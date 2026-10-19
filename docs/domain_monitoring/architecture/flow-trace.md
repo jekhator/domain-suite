@@ -2,118 +2,104 @@
 
 ## Overview
 
-Automatic metric emission via `@monitored` decorator. Wraps callables and classes, emitting `MetricEvent` (success or failure) to a configurable `MetricSink` after each call. Default sink is `NullSink` (no-op); `MonitorRegistry` provides global default-sink binding. Preserves sync/async dispatch.
+Automatic metric emission through the `@monitored` decorator. The decorator
+wraps a callable, or every public method defined on a class, and emits one
+`MetricEvent` per call to a `MetricSink`: a success event when the call returns,
+or a failure event when it raises. The call's own result or exception is
+returned or re-raised unchanged. Sync and async callables keep their dispatch.
 
 ## Entry Unit
 
-`@monitored(event="user.fetch", sink=None)` decorator ──▶ `MetricEvent` emission.
+`@monitored(event="user.fetch", sink=None, labels_from_result=None, labels_from_exc=None)`
+decorator, applied to a callable or a class.
 
 ## Flow-Trace Diagram
 
 ```
-① CONSTRUCT MetricEvent [FROZEN,slots]
-   event: str  ← event name (e.g., "user.fetch")
-   outcome: Outcome  ← Outcome.SUCCESS | Outcome.FAILURE
-   duration_ms: float  ← elapsed time in milliseconds
-   occurred_at: str  ← ISO 8601 timestamp
-   labels: tuple[tuple[str, str], ...] = ()  ← optional key-value pairs
+1. CONSTRUCT MetricEvent [FROZEN, slots]
+   event: str                 event name, for example "user.fetch"
+   outcome: Outcome           Outcome.SUCCESS or Outcome.FAILURE
+   duration_ms: float         elapsed milliseconds (monotonic clock)
+   occurred_at: str           ISO 8601 timestamp of the end of the call
+   labels: tuple[tuple[str, str], ...] = ()
 
-   Outcome ← StrEnum: SUCCESS="success", FAILURE="failure"
-
-② CONSTRUCT MetricSink [PROTOCOL]
-   MetricSink.emit(event: MetricEvent) -> None  ← abstract method
+2. MetricSink [PROTOCOL]
+   emit(event: MetricEvent) -> None
 
    Implementations:
-   ├─ NullSink()  ← no-op, default
-   ├─ CollectingSink()  ← in-memory list for testing/dev
-   └─ custom sinks (e.g., CloudWatch, DataDog)
+   - NullSink()          no-op, used when no sink is bound
+   - CollectingSink()    in-memory list for tests and development
+   - CloudWatchMetricSink()   boto3 put_metric_data (cloudwatch extra)
 
-③ DECORATE @monitored
-   @monitored(event="user.fetch", sink=None)  ──▶ monitored(event, sink)
-      ├─ decorator(target)
-      │  ├─ isclass(target)?
-      │  │  ├─ YES ──▶ _monitor_class(target, event, sink)
-      │  │  │  ├─ _get_public_methods(cls)  ← skip _-prefixed, inherited, special
-      │  │  │  ├─ for method_name in public_methods
-      │  │  │  │  ├─ derived_event = f"{event}.{method_name}"  ← fan-out event
-      │  │  │  │  ├─ monitored_method = _monitor_callable(original_method, derived_event, sink)
-      │  │  │  │  └─ setattr(cls, method_name, monitored_method)
-      │  │  │  └─ returns cls
-      │  │  └─ NO (callable) ──▶ _monitor_callable(target, event, sink)
-      │  │     ├─ asyncio.iscoroutinefunction(fn)?
-      │  │     │  ├─ YES ──▶ _wrap_async(fn, event, sink)
-      │  │     │  └─ NO  ──▶ _wrap_sync(fn, event, sink)
-      │  │     └─ returns wrapped callable
-      └─ returns wrapped target
+3. DECORATE @monitored
+   monitored(event, sink, labels_from_result, labels_from_exc)
+   - empty event name -> MonitoringDeclarationError (at declaration)
+   - decorator(target)
+     - class?      -> _monitor_class: for each public function or method
+                      defined on the class itself, derived event is
+                      "<event>.<method>"; classmethods and staticmethods keep
+                      their descriptor type
+     - callable?   -> _monitor_callable: coroutine function -> async wrapper,
+                      otherwise sync wrapper
+     - anything else -> MonitoringDeclarationError
 
-④ RUNTIME (sync path) ──▶ wrapper(*args, **kwargs)
-      ├─ start_time = datetime.now(timezone.utc)
-      ├─ actual_sink = sink or MonitorRegistry.get_default_sink()  ← resolve sink
-      ├─ try:
-      │  ├─ result = fn(*args, **kwargs)  ← execute
-      │  ├─ end_time = datetime.now(timezone.utc)
-      │  ├─ duration_ms = (end_time - start_time).total_seconds() * 1000
-      │  ├─ metric_event = MetricEvent.for_success(event=event, duration_ms=duration_ms, occurred_at=end_time.isoformat())
-      │  ├─ actual_sink.emit(metric_event)  ← send to sink
-      │  └─ return result
-      └─ except Exception:
-         ├─ end_time = datetime.now(timezone.utc)
-         ├─ duration_ms = (end_time - start_time).total_seconds() * 1000
-         ├─ metric_event = MetricEvent.for_failure(event=event, duration_ms=duration_ms, occurred_at=end_time.isoformat())
-         ├─ actual_sink.emit(metric_event)  ← send to sink
-         └─ raise  ← exception propagates
+4. RUNTIME (sync) wrapper(*args, **kwargs)
+   - started = perf_counter()
+   - actual_sink = sink, or MonitorRegistry.get_default_sink() when sink is None
+   - try:
+       result = fn(*args, **kwargs)
+     except Exception as error:
+       _emit_failure(...)   labels_from_exc and the failure event are built here;
+                            a failure while recording is attached to `error` as a
+                            note, so the original exception is re-raised
+       raise
+   - _emit_success(...)     labels_from_result and the success event are built here;
+                            a sink error propagates to the caller
+   - return result
 
-⑤ RUNTIME (async path) ──▶ async async_wrapper(*args, **kwargs)
-      ├─ start_time = datetime.now(timezone.utc)
-      ├─ actual_sink = sink or MonitorRegistry.get_default_sink()
-      ├─ try:
-      │  ├─ result = await fn(*args, **kwargs)  ← execute async
-      │  ├─ end_time = datetime.now(timezone.utc)
-      │  ├─ duration_ms = (end_time - start_time).total_seconds() * 1000
-      │  ├─ metric_event = MetricEvent.for_success(...)
-      │  ├─ actual_sink.emit(metric_event)
-      │  └─ return result
-      └─ except Exception:
-         ├─ [same as sync failure branch]
-         └─ raise
+5. RUNTIME (async) async_wrapper(*args, **kwargs)
+   - same sequence, with `await fn(*args, **kwargs)` in the try block
 
-⑥ REGISTRY BINDING
-   MonitorRegistry.set_default_sink(sink)  ← global default for @monitored(event, sink=None)
-   MonitorRegistry.get_default_sink()  ← returns _default_sink or NullSink()
-   MonitorRegistry.clear_default_sink()  ← reset
+6. REGISTRY BINDING
+   MonitorRegistry.set_default_sink(sink)   global default for sink=None
+   MonitorRegistry.get_default_sink()       returns the bound sink (identity check),
+                                            or the shared NullSink when unset
+   MonitorRegistry.clear_default_sink()     resets to unset
 
-REAL OUTPUT (success):
+REAL OUTPUT (success and failure):
    EMITTED MetricEvent: user.fetch
      outcome: success
-     duration_ms: 0.0
-     occurred_at: 2026-07-11T19:56:28.141743+00:00
-
-REAL OUTPUT (failure):
+     is_failure: False
+     duration_ms >= 0: True
+     occurred_at: 2026-10-19T03:15:56.760111+00:00
    EMITTED MetricEvent: user.delete
      outcome: failure
      is_failure: True
-     duration_ms: 0.0
+     duration_ms >= 0: True
+     occurred_at: 2026-10-19T03:15:56.760148+00:00
 ```
 
 ## Key Constants
 
 - `Outcome.SUCCESS` = "success"
 - `Outcome.FAILURE` = "failure"
-- `ERR_MONITORING_INVALID_TARGET` = "monitoring target must be callable or class"
-- `ERR_MONITORING_EMPTY_CLASS` = "class has no public methods to monitor"
+- `ERR_MONITORING_INVALID_TARGET` = "Invalid monitoring target: must be a callable or class"
+- `ERR_MONITORING_EMPTY_CLASS` = "Cannot monitor class with no public methods"
+- `ERR_MONITORING_EMPTY_EVENT` = "Monitoring event name must be non-empty"
 
 ## Core Classes
 
-- `MetricEvent` ← frozen slots; event, outcome, duration_ms, occurred_at, labels; __hash__; for_success(), for_failure() classmethods; is_failure property
-- `Outcome` ← StrEnum; SUCCESS, FAILURE
-- `MetricSink` ← Protocol; emit(event: MetricEvent) -> None
-- `NullSink` ← no-op implementation
-- `CollectingSink` ← in-memory list; emit(), events property, clear()
-- `MonitorRegistry` ← static methods; set_default_sink(), get_default_sink(), clear_default_sink()
+- `MetricEvent`: frozen slots dataclass; `for_success()` and `for_failure()` classmethods; `is_failure` property
+- `Outcome`: StrEnum with `SUCCESS` and `FAILURE`
+- `MetricSink`: Protocol with `emit(event)`
+- `NullSink`: no-op implementation
+- `CollectingSink`: in-memory list with `emit()`, an `events` copy property and `clear()`
+- `MonitorRegistry`: class methods `set_default_sink()`, `get_default_sink()`, `clear_default_sink()`
 
 ## Design Notes
 
-- Metrics are emitted even on exception (no swallow; exception propagates after emit)
-- Default NullSink ensures @monitored is safe without explicit sink binding
-- Class decoration fans out: event becomes "event.method_name" for each method
-- Duration includes exception-handling time (start to end, always)
+- Failures are recorded and the original exception propagates unchanged.
+- Duration is measured with a monotonic clock, so a wall-clock change cannot produce a negative duration.
+- Default NullSink keeps `@monitored` safe without an explicit sink binding.
+- Class decoration covers functions and method descriptors defined on the class itself. Inherited methods are not wrapped; an override is.
+- Correlation labels from the ambient correlation id are added unless the callback supplies the same key.
