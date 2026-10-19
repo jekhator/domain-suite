@@ -483,6 +483,18 @@ class TestWrapErrorsSignatureBinding:
             func()
         assert exc_info.value.context == {}
 
+    def test_call_with_unbindable_arguments_wraps_with_empty_context(self) -> None:
+        """A call that fails on its own arguments still raises the domain error."""
+
+        @wrap_errors(DemoError)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        with pytest.raises(DemoError) as exc_info:
+            add(1)  # type: ignore[call-arg]
+        assert exc_info.value.context == {}
+        assert isinstance(exc_info.value.__cause__, TypeError)
+
 
 class TestWrapErrorsCatchTupleVariations:
     """Tests for various catch tuple configurations."""
