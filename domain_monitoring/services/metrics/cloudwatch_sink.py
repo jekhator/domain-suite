@@ -36,7 +36,7 @@ class CloudWatchMetricSink:
         """
         try:
             import boto3
-        except ImportError as error:  # pragma: no cover
+        except ImportError as error:
             raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
 
         self.namespace = namespace
