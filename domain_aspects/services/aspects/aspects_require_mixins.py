@@ -6,6 +6,7 @@ import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from domain_aspects.services.aspects.aspects_kind import AspectKind
 from domain_aspects.services.constants import aspects as const
 
 
@@ -24,9 +25,7 @@ class RequireMixins:
             raise ValueError(const.ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID)
 
     @property
-    def kind(self) -> str:
-        from domain_aspects.services.aspects.aspects_objects import AspectKind
-
+    def kind(self) -> AspectKind:
         return AspectKind.REQUIRE_MIXINS
 
     def build(self) -> Callable:
