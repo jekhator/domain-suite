@@ -75,7 +75,7 @@ On each call to a decorated function:
    - If it is a `DomainError` (or subclass), **re-raise it immediately, unchanged.** No wrapping, no new `__cause__`.
    - If it matches an exception type in `catch`, **wrap it**: call `ErrorChain.wrap(error, as_=..., message=..., **captured_args)`, then `raise <domain_error> from error` (chaining via `__cause__`).
    - Otherwise, **propagate raw.** The exception is not caught by the decorator.
-3. **Argument capture.** When `capture=True`, `inspect.signature(func).bind(*args, **kwargs).apply_defaults()` extracts all bound parameters (including defaults) as a `dict[str, Any]`, which is passed to `ErrorChain.wrap()` as context kwargs. When `capture=False`, an empty dict is passed (no context).
+3. **Argument capture.** When `capture=True`, `inspect.signature(func).bind(*args, **kwargs).apply_defaults()` extracts all bound parameters (including defaults) as a `dict[str, Any]`, which is passed to `ErrorChain.wrap()` as context kwargs. When `capture=False`, an empty dict is passed (no context). If the call's arguments do not match the function signature, binding fails; the wrapper then passes an empty context and still raises the `DomainError` from the original `TypeError`.
 
 ### Async Support
 

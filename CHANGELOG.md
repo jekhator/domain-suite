@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Wrap constants module**: The `@wrap_errors` marker name and its target-type error message now live in a decorator constants module under `domain_errors`. The public names and messages are unchanged.
+- **Policy typing**: Policy collection and public-method selection use concrete element types instead of untyped lists and `Any`.
+
+### Fixed
+
+- **Argument capture on mismatched calls**: `@wrap_errors` no longer lets a bind-time `TypeError` escape when a decorated call fails because its arguments do not match the function signature. The caller receives the target `DomainError` with an empty context, as for any other caught error.
+- **Superscript digits in rate strings**: A rate whose count is a superscript digit (for example a superscript two followed by `/hour`) is rejected as a `ThrottleDeclarationError` instead of escaping as a raw `ValueError`.
+
+### Removed
+
+- **Unused constants placeholder**: The empty `domain_errors.services.constants.services` module was never imported and has been removed.
+
 ## [0.6.0] - 2026-08-12
 
 ### Added
