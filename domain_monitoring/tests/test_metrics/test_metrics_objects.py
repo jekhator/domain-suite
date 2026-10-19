@@ -2,6 +2,7 @@
 
 import pytest
 
+from domain_monitoring.services.constants import metrics as const
 from domain_monitoring.services.metrics.metrics_objects import MetricEvent, Outcome
 
 
@@ -46,7 +47,7 @@ class TestMetricEvent:
 
     def test_validation_empty_event_name(self) -> None:
         """Empty event name raises ValueError."""
-        with pytest.raises(ValueError, match="event must be non-empty"):
+        with pytest.raises(ValueError, match=const.ERR_METRIC_EVENT_EMPTY):
             MetricEvent(
                 event="",
                 outcome=Outcome.SUCCESS,
@@ -56,7 +57,7 @@ class TestMetricEvent:
 
     def test_validation_negative_duration(self) -> None:
         """Negative duration raises ValueError."""
-        with pytest.raises(ValueError, match="duration_ms must be non-negative"):
+        with pytest.raises(ValueError, match=const.ERR_METRIC_DURATION_NEGATIVE):
             MetricEvent(
                 event="test.method",
                 outcome=Outcome.SUCCESS,
@@ -66,7 +67,7 @@ class TestMetricEvent:
 
     def test_validation_empty_occurred_at(self) -> None:
         """Empty occurred_at raises ValueError."""
-        with pytest.raises(ValueError, match="occurred_at must be non-empty"):
+        with pytest.raises(ValueError, match=const.ERR_METRIC_OCCURRED_AT_EMPTY):
             MetricEvent(
                 event="test.method",
                 outcome=Outcome.SUCCESS,
@@ -98,8 +99,8 @@ class TestMetricEvent:
         assert event.duration_ms == 75.0
         assert event.is_failure
 
-    def test_labels_tuple_immutable(self) -> None:
-        """Labels are stored as tuple for hashability."""
+    def test_labels_stored_as_tuple(self) -> None:
+        """Labels are stored as a tuple for hashability."""
         labels = (("tenant_id", "123"), ("user_id", "456"))
         event = MetricEvent(
             event="test.method",

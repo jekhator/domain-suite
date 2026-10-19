@@ -7,7 +7,9 @@ import pytest
 from mixin_logging import clear_correlation_id, set_correlation_id
 
 from domain_monitoring.decorators.monitored.monitored_client import monitored
+from domain_monitoring.errors.constants import monitoring as const
 from domain_monitoring.errors.monitoring_errors import MonitoringDeclarationError
+from domain_monitoring.services.constants import metrics as metrics_const
 from domain_monitoring.services.metrics.metrics_client import CollectingSink
 from domain_monitoring.services.metrics.metrics_objects import Outcome
 from domain_monitoring.services.registry.registry_client import MonitorRegistry
@@ -537,3 +539,116 @@ class TestCorrelationStamping:
             assert sink.events[0].outcome == Outcome.FAILURE
         finally:
             clear_correlation_id()
+
+
+class _RaisingSink:
+    """Sink whose emit always fails."""
+
+    def emit(self, event: object) -> None:
+        """Raise to simulate a failing metrics backend."""
+        raise RuntimeError("sink unavailable")
+
+
+class TestMonitoredRecordingBehaviour:
+    """Recording failures and declaration checks never replace the call's own outcome."""
+
+    def setup_method(self) -> None:
+        """Clear registry before each test."""
+        MonitorRegistry.clear_default_sink()
+
+    def test_empty_event_name_raises(self) -> None:
+        """@monitored with an empty event name is rejected at declaration time."""
+        with pytest.raises(
+            MonitoringDeclarationError, match=const.ERR_MONITORING_EMPTY_EVENT
+        ):
+            monitored("")
+
+    def test_sink_failure_keeps_original_exception(self) -> None:
+        """A failing sink adds a note to the call's exception and keeps its type."""
+
+        @monitored("test.failing_sink", sink=_RaisingSink())
+        def fn_fails() -> None:
+            raise ValueError("operation error")
+
+        with pytest.raises(ValueError, match="operation error") as caught:
+            fn_fails()
+
+        assert any(
+            metrics_const.NOTE_RECORDING_FAILED in note
+            for note in caught.value.__notes__
+        )
+
+    def test_failing_labels_callback_keeps_original_exception(self) -> None:
+        """A labels_from_exc callback that raises does not replace the call's exception."""
+
+        def broken_labels(exc: BaseException) -> tuple[tuple[str, str], ...]:
+            raise KeyError("missing")
+
+        @monitored(
+            "test.broken_labels",
+            sink=CollectingSink(),
+            labels_from_exc=broken_labels,
+        )
+        def fn_fails() -> None:
+            raise ValueError("operation error")
+
+        with pytest.raises(ValueError, match="operation error") as caught:
+            fn_fails()
+
+        assert any(
+            metrics_const.NOTE_RECORDING_FAILED in note
+            for note in caught.value.__notes__
+        )
+
+    def test_success_sink_failure_propagates_once(self) -> None:
+        """A sink failure after a successful call surfaces once and is not recorded as a failure."""
+
+        @monitored("test.success_sink", sink=_RaisingSink())
+        def fn_ok() -> str:
+            return "ok"
+
+        with pytest.raises(RuntimeError, match="sink unavailable"):
+            fn_ok()
+
+    def test_classmethod_stays_callable_on_instances(self) -> None:
+        """@monitored keeps classmethods as classmethods so instance calls still bind the class."""
+        sink = CollectingSink()
+
+        @monitored("factory", sink=sink)
+        class Factory:
+            """Factory with a classmethod."""
+
+            label = "made"
+
+            @classmethod
+            def build(cls) -> str:
+                """Return the class label."""
+                return cls.label
+
+        assert Factory().build() == "made"
+        assert len(sink.events) == 1
+
+    def test_inherited_methods_are_not_wrapped(self) -> None:
+        """Only methods defined on the decorated class are monitored, including overrides."""
+        sink = CollectingSink()
+
+        class Base:
+            """Base with one method."""
+
+            def shared(self) -> str:
+                """Return a value."""
+                return "base"
+
+        @monitored("child", sink=sink)
+        class Child(Base):
+            """Child that overrides the base method."""
+
+            def shared(self) -> str:
+                """Return a value."""
+                return "child"
+
+        assert Child().shared() == "child"
+        assert len(sink.events) == 1
+        assert sink.events[0].event == "child.shared"
+        assert Base().shared() == "base"
+        assert len(sink.events) == 1

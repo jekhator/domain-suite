@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from domain_monitoring.errors.constants import monitoring as const
+from domain_monitoring.services.constants import metrics as metrics_const
 from domain_monitoring.services.metrics.metrics_objects import MetricEvent
 
 
@@ -43,10 +46,10 @@ class TestCloudWatchMetricSink:
             metric = call_args.kwargs["MetricData"][0]
             assert metric["MetricName"] == "test.operation"
             assert metric["Value"] == 123.45
-            assert metric["Unit"] == "Milliseconds"
+            assert metric["Unit"] == metrics_const.CLOUDWATCH_METRIC_UNIT
             assert metric["Timestamp"] == now
             dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
-            assert dimensions["Outcome"] == "success"
+            assert dimensions[metrics_const.CLOUDWATCH_DIMENSION_OUTCOME] == "success"
             assert dimensions["env"] == "test"
             assert dimensions["version"] == "1.0"
 
@@ -77,7 +80,7 @@ class TestCloudWatchMetricSink:
             assert metric["MetricName"] == "test.failed_operation"
             assert metric["Value"] == 456.78
             dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
-            assert dimensions["Outcome"] == "failure"
+            assert dimensions[metrics_const.CLOUDWATCH_DIMENSION_OUTCOME] == "failure"
             assert dimensions["error_type"] == "ValueError"
 
     def test_cloudwatch_sink_no_labels(self) -> None:
@@ -104,27 +107,17 @@ class TestCloudWatchMetricSink:
             call_args = mock_cw.put_metric_data.call_args
             metric = call_args.kwargs["MetricData"][0]
             dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
-            assert "Outcome" in dimensions
+            assert metrics_const.CLOUDWATCH_DIMENSION_OUTCOME in dimensions
             assert len(dimensions) == 1
 
     def test_cloudwatch_sink_missing_boto3(self) -> None:
-        """CloudWatchMetricSink raises clear error when boto3 missing."""
+        """CloudWatchMetricSink raises the guidance error when boto3 cannot be imported."""
         from domain_monitoring.services.metrics.cloudwatch_sink import (
             CloudWatchMetricSink,
         )
 
-        def init_no_boto3(self, namespace: str = "domain-monitoring") -> None:
-            try:
-                raise ImportError("No module named 'boto3'")
-            except ImportError as error:
-                from domain_monitoring.errors.constants import (
-                    monitoring as const,
-                )
-
-                raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
-
-        with patch.object(CloudWatchMetricSink, "__init__", init_no_boto3):
-            with pytest.raises(ImportError, match="CloudWatch sink requires boto3"):
+        with patch.dict(sys.modules, {"boto3": None}):
+            with pytest.raises(ImportError, match=re.escape(const.ERR_MONITORING_BOTO3_MISSING)):
                 CloudWatchMetricSink()
 
     def test_cloudwatch_sink_default_namespace(self) -> None:
@@ -139,4 +132,4 @@ class TestCloudWatchMetricSink:
             )
 
             sink = CloudWatchMetricSink()
-            assert sink.namespace == "domain-monitoring"
+            assert sink.namespace == metrics_const.DEFAULT_CLOUDWATCH_NAMESPACE
