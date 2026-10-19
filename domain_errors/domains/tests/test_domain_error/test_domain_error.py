@@ -131,17 +131,16 @@ class TestDomainErrorChainingBehavior:
     def test_can_be_raised_with_cause(self) -> None:
         """DomainError can be raised with a cause (from X)."""
         original = ValueError("original")
-        try:
+        with pytest.raises(DomainError) as exc_info:
             raise DomainError(message="wrapped") from original
-        except DomainError as error:
-            assert error.__cause__ is original
+        assert exc_info.value.__cause__ is original
 
 
 class TestDomainErrorContextPropagation:
-    """Tests for context propagation (Phase 16 DTO-ify change)."""
+    """Tests for context propagation into chain links."""
 
     def test_context_propagates_into_chain_links(self) -> None:
-        """context stored on DomainError propagates into ChainLink.context (Phase 16)."""
+        """context stored on DomainError propagates into ChainLink.context."""
         from domain_errors.services.chain.chain_client import ErrorChain
 
         err = DomainError(message="error", user_id=42, request_id="xyz")

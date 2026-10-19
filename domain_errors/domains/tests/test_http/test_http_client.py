@@ -106,7 +106,7 @@ class TestHttpClassifierRequests:
         assert result == const.HTTP
 
     def test_requests_invalidurl_returns_http(self) -> None:
-        """requests.exceptions.InvalidURL is classified as http (__module__ is requests.exceptions → top-level requests)."""
+        """requests.exceptions.InvalidURL is classified as http (__module__ is requests.exceptions, top-level requests)."""
         from requests.exceptions import InvalidURL
 
         err = InvalidURL("test")
@@ -118,7 +118,7 @@ class TestHttpClassifierAiohttp:
     """Tests for HttpClassifier coverage of aiohttp library exceptions."""
 
     def test_aiohttp_clienterror_returns_http(self) -> None:
-        """aiohttp.ClientError is classified as http (__module__ is aiohttp.client_exceptions → top-level aiohttp)."""
+        """aiohttp.ClientError is classified as http (__module__ is aiohttp.client_exceptions, top-level aiohttp)."""
         import aiohttp
 
         err = aiohttp.ClientError("test")
