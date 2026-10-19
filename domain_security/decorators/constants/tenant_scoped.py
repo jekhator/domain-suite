@@ -13,6 +13,7 @@ SELF_TENANT_ID: Final = "self.tenant_id"
 
 ERR_TENANT_SCOPED_UNBOUND_SELF: Final = "self.tenant_id requires a bound method call"
 ERR_TENANT_SCOPED_PARAM_MISSING: Final = "tenant parameter missing from call"
+ERR_TENANT_SCOPED_NULL_TENANT: Final = "tenant argument resolved to None"
 
 
 """Decorator declaration validation messages."""
