@@ -117,7 +117,9 @@ class TestCloudWatchMetricSink:
         )
 
         with patch.dict(sys.modules, {"boto3": None}):
-            with pytest.raises(ImportError, match=re.escape(const.ERR_MONITORING_BOTO3_MISSING)):
+            with pytest.raises(
+                ImportError, match=re.escape(const.ERR_MONITORING_BOTO3_MISSING)
+            ):
                 CloudWatchMetricSink()
 
     def test_cloudwatch_sink_default_namespace(self) -> None:
