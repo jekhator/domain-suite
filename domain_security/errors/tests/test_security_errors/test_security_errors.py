@@ -7,6 +7,7 @@ from domain_security.errors.constants import security_errors as const
 from domain_security.errors.security_errors import (
     AuthzError,
     SecretError,
+    SecurityDeclarationError,
     SecurityError,
     TenancyError,
 )
@@ -171,6 +172,29 @@ class TestSecretError:
         """SecretError can store secret name in context."""
         error = SecretError(message="test", secret_name="db_password")
         assert error.context["secret_name"] == "db_password"
+
+
+class TestSecurityDeclarationError:
+    """SecurityDeclarationError decorator declaration failure."""
+
+    def test_declaration_error_is_security_error(self) -> None:
+        """SecurityDeclarationError inherits from SecurityError."""
+        assert issubclass(SecurityDeclarationError, SecurityError)
+
+    def test_declaration_error_code(self) -> None:
+        """SecurityDeclarationError has code 'security_declaration_failed'."""
+        error = SecurityDeclarationError(message="test")
+        assert error.code == "security_declaration_failed"
+
+    def test_declaration_error_http_status(self) -> None:
+        """SecurityDeclarationError has http_status 500 (not 403)."""
+        error = SecurityDeclarationError(message="test")
+        assert error.http_status == 500
+
+    def test_declaration_error_default_message(self) -> None:
+        """SecurityDeclarationError has default message."""
+        error = SecurityDeclarationError()
+        assert error.message == const.ERR_SECURITY_DECLARATION_FAILED
 
 
 class TestErrorHierarchy:

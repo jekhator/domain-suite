@@ -83,14 +83,11 @@ class TestSecretRef:
         assert isinstance(cause, KeyError)
         assert "nonexistent" in str(cause)
 
-    def test_resolve_with_special_secret_names(self, fake_backend) -> None:
-        """resolve handles special characters in secret names."""
-        ref1 = SecretRef(name="db_password")
-        ref2 = SecretRef(name="api_key")
-        secret1 = ref1.resolve(backend=fake_backend)
-        secret2 = ref2.resolve(backend=fake_backend)
-        assert secret1.get()
-        assert secret2.get()
+    def test_resolve_with_punctuated_secret_names(self, fake_backend) -> None:
+        """resolve passes secret names containing slashes, dashes and dots to the backend unchanged."""
+        ref = SecretRef(name="app/db-password.v2")
+        secret = ref.resolve(backend=fake_backend)
+        assert secret.get() == "punctuated_456"
 
     def test_resolve_error_message_includes_secret_name(self) -> None:
         """resolve error includes the requested secret name."""

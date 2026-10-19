@@ -13,6 +13,7 @@ from domain_security.context.security_context.security_context_objects import (
 )
 from domain_security.decorators.requires.requires_client import Requires, requires
 from domain_security.errors.security_errors import AuthzError
+from domain_security.services.authz.authz_client import Authorizer
 
 
 class TestRequiresClassLevel:
@@ -209,7 +210,7 @@ class TestRequiresClassLevel:
             service.admin_op()
 
     def test_class_decorator_with_custom_authorizer(
-        self, always_allow_authorizer
+        self, always_allow_authorizer: Authorizer
     ) -> None:
         """Class decorator with custom authorizer allows operation."""
 
@@ -266,11 +267,11 @@ class TestRequiresClassLevel:
                 """Get integer."""
                 return 42
 
-            def get_dict(self) -> dict:
+            def get_dict(self) -> dict[str, str]:
                 """Get dictionary."""
                 return {"key": "value"}
 
-            def get_list(self) -> list:
+            def get_list(self) -> list[int]:
                 """Get list."""
                 return [1, 2, 3]
 

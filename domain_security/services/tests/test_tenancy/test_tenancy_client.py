@@ -83,8 +83,8 @@ class TestTenancyGuard:
         ctx = SecurityContext(principal=None, tenant_id="tenant:acme")
         guard.check(ctx, "tenant:acme")
 
-    def test_check_multiline_tenant_ids(self, principal: Principal) -> None:
-        """check handles complex tenant identifiers."""
+    def test_check_colon_delimited_tenant_ids(self, principal: Principal) -> None:
+        """check accepts colon-delimited multi-part tenant identifiers."""
         guard = TenancyGuard()
         complex_tenant = "tenant:multi:part:identifier"
         ctx = SecurityContext(principal=principal, tenant_id=complex_tenant)
