@@ -39,9 +39,8 @@ class Throttled:
         def declare(target: Decorated | type) -> Decorated | type:
             if isclass(target):
                 return self._decorate_class(target, policy)
-            else:
-                setattr(target, const.THROTTLE_POLICY_ATTR, policy)
-                return target
+            setattr(target, const.THROTTLE_POLICY_ATTR, policy)
+            return target
 
         return declare
 
@@ -73,13 +72,15 @@ class Throttled:
 
         return cls
 
-    def _select_public_methods(self, cls: type) -> list[tuple[str, Any]]:
+    def _select_public_methods(
+        self, cls: type
+    ) -> list[tuple[str, Callable[..., object]]]:
         """Select callable members eligible for policy fanning.
 
         Returns (name, callable) pairs from cls.__dict__, skipping:
         _-prefixed names, dunders, nested classes, properties, and descriptors.
         """
-        methods = []
+        methods: list[tuple[str, Callable[..., object]]] = []
         for name, member in cls.__dict__.items():
             if name.startswith("_"):
                 continue

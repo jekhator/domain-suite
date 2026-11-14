@@ -57,7 +57,7 @@ All 17 core standards dimensions derived from STANDARDS.md and cohesive-cleanup.
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (dataclasses, typing, standard library exception handling). No proprietary IP references, no internal routine/phase language, no AI-attribution trailers. Code follows generic authorization patterns.
+This feature uses only public patterns (dataclasses, typing, standard library exception handling). No proprietary IP references, no internal project-management language, no AI-attribution trailers. Code follows generic authorization patterns.
 
 ## Verdict
 

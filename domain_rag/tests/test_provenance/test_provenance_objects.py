@@ -1,5 +1,10 @@
 """Tests for RetrievalProvenance DTO."""
 
+import dataclasses
+
+import pytest
+
+from domain_rag.services.constants import provenance as const
 from domain_rag.services.provenance.provenance_objects import (
     ProvenanceOutcome,
     RetrievalProvenance,
@@ -56,96 +61,37 @@ class TestRetrievalProvenanceCreation:
             occurred_at="2026-07-07T12:00:00Z",
         )
 
-        try:
-            provenance.query = "modified"  # type: ignore
-            assert False, "Should not allow modification"
-        except (AttributeError, Exception):
-            pass
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            provenance.query = "modified"  # type: ignore[misc]
 
-    def test_empty_query_raises(self) -> None:
-        """Empty query raises ValueError."""
-        try:
-            RetrievalProvenance(
-                query="",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="p1",
-                session_id="s1",
-                outcome=ProvenanceOutcome.SUCCESS,
-                duration_ms=10.0,
-                occurred_at="2026-07-07T12:00:00Z",
-            )
-            assert False, "Should raise ValueError"
-        except ValueError as error:
-            assert "query must be non-empty" in str(error)
+    @pytest.mark.parametrize(
+        ("overrides", "message"),
+        [
+            ({"query": ""}, const.ERR_PROVENANCE_QUERY_EMPTY),
+            ({"principal_id": ""}, const.ERR_PROVENANCE_PRINCIPAL_ID_EMPTY),
+            ({"session_id": ""}, const.ERR_PROVENANCE_SESSION_ID_EMPTY),
+            ({"duration_ms": -5.0}, const.ERR_PROVENANCE_DURATION_NEGATIVE),
+            ({"occurred_at": ""}, const.ERR_PROVENANCE_OCCURRED_AT_EMPTY),
+        ],
+    )
+    def test_invalid_field_raises(
+        self, overrides: dict[str, object], message: str
+    ) -> None:
+        """Each invalid field raises ValueError with its constant message."""
+        fields: dict[str, object] = {
+            "query": "query",
+            "chunk_ids": (),
+            "source_document_ids": (),
+            "principal_id": "p1",
+            "session_id": "s1",
+            "outcome": ProvenanceOutcome.SUCCESS,
+            "duration_ms": 10.0,
+            "occurred_at": "2026-07-07T12:00:00Z",
+            **overrides,
+        }
 
-    def test_empty_principal_id_raises(self) -> None:
-        """Empty principal_id raises ValueError."""
-        try:
-            RetrievalProvenance(
-                query="query",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="",
-                session_id="s1",
-                outcome=ProvenanceOutcome.SUCCESS,
-                duration_ms=10.0,
-                occurred_at="2026-07-07T12:00:00Z",
-            )
-            assert False, "Should raise ValueError"
-        except ValueError as error:
-            assert "principal_id must be non-empty" in str(error)
-
-    def test_empty_session_id_raises(self) -> None:
-        """Empty session_id raises ValueError."""
-        try:
-            RetrievalProvenance(
-                query="query",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="p1",
-                session_id="",
-                outcome=ProvenanceOutcome.SUCCESS,
-                duration_ms=10.0,
-                occurred_at="2026-07-07T12:00:00Z",
-            )
-            assert False, "Should raise ValueError"
-        except ValueError as error:
-            assert "session_id must be non-empty" in str(error)
-
-    def test_negative_duration_raises(self) -> None:
-        """Negative duration_ms raises ValueError."""
-        try:
-            RetrievalProvenance(
-                query="query",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="p1",
-                session_id="s1",
-                outcome=ProvenanceOutcome.SUCCESS,
-                duration_ms=-5.0,
-                occurred_at="2026-07-07T12:00:00Z",
-            )
-            assert False, "Should raise ValueError"
-        except ValueError as error:
-            assert "duration_ms must be non-negative" in str(error)
-
-    def test_empty_occurred_at_raises(self) -> None:
-        """Empty occurred_at raises ValueError."""
-        try:
-            RetrievalProvenance(
-                query="query",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="p1",
-                session_id="s1",
-                outcome=ProvenanceOutcome.SUCCESS,
-                duration_ms=10.0,
-                occurred_at="",
-            )
-            assert False, "Should raise ValueError"
-        except ValueError as error:
-            assert "occurred_at must be non-empty" in str(error)
+        with pytest.raises(ValueError, match=message):
+            RetrievalProvenance(**fields)  # type: ignore[arg-type]
 
 
 class TestRetrievalProvenanceFactories:

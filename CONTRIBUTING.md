@@ -33,17 +33,29 @@ Execute the full test suite:
 uv run pytest
 ```
 
-For coverage report:
+Run the suite with the coverage gate used in CI (100 percent statement coverage):
 ```bash
-uv run pytest --cov=domain_api_limiter,domain_aspects,domain_errors,domain_monitoring,domain_security
+uv run pytest --cov --cov-fail-under=100
+```
+
+## Type Checking
+
+```bash
+uv run mypy domain_aspects/ domain_rag/
 ```
 
 ## Linting and Code Style
 
-Format and lint your code before committing:
+CI pins Ruff 0.15.14. Check and format with the same version:
 ```bash
-uv run ruff check --fix .
-uv run ruff format .
+uvx ruff@0.15.14 check .
+uvx ruff@0.15.14 format --check .
+```
+
+Apply fixes before committing:
+```bash
+uvx ruff@0.15.14 check --fix .
+uvx ruff@0.15.14 format .
 ```
 
 ## Submitting Changes
@@ -52,7 +64,7 @@ uv run ruff format .
 2. Make your changes with clear, focused commits
 3. Add tests for new functionality
 4. Ensure all tests pass: `uv run pytest`
-5. Ensure linting passes: `uv run ruff check .`
+5. Ensure linting passes: `uvx ruff@0.15.14 check .`
 6. Push your branch and open a pull request against `main`
 
 ## Pull Request Requirements

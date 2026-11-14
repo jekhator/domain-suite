@@ -39,4 +39,3 @@ class NullProvenanceSink:
 
     def record(self, event: RetrievalProvenance) -> None:
         """No-op record."""
-        pass

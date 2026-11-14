@@ -9,10 +9,8 @@ from typing import Final
 
 __all__ = [
     "ASPECT_ORDER",
-    "ERR_ASPECTS_DUPLICATE_KIND",
-    "ERR_ASPECTS_UNKNOWN_ENTRY_TYPE",
-    "ERR_ASPECTS_EMPTY_DECLARATION",
-    "ERR_ASPECTS_DECLARATION_FAILED",
+    "LOGGED_APPLIED_MARKER",
+    "RETRIED_APPLIED_MARKER",
     "ERR_ASPECT_LOGGED_EVENT_EMPTY",
     "ERR_ASPECT_REQUIRES_PERMISSION_EMPTY",
     "ERR_ASPECT_TENANT_SCOPED_PARAM_EMPTY",
@@ -37,7 +35,7 @@ __all__ = [
 ]
 
 
-"""Aspect application order (outermost to innermost: LOGGED → REQUIRES → TENANT_SCOPED → THROTTLED → MONITORED → WRAP_ERRORS → RETRIED innermost).
+"""Aspect application order, outermost first: LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, RETRIED.
 
 RETRIED is placed innermost so retries see raw exceptions for predicate matching, before WRAP_ERRORS converts them.
 Sensitivity is adopted client-side via mixin_sensitivity.SensitiveRepr (not a wrapper concern).
@@ -54,15 +52,11 @@ ASPECT_ORDER: Final = (
 )
 
 
-"""Aspect declaration validation error messages."""
+"""Marker attributes set on wrappers so class-level fan-out skips methods already decorated."""
 
-ERR_ASPECTS_DUPLICATE_KIND: Final = "Duplicate aspect kind in declaration: {kind}."
+LOGGED_APPLIED_MARKER: Final = "__logged_applied__"
 
-ERR_ASPECTS_UNKNOWN_ENTRY_TYPE: Final = "Unknown aspect entry type: {entry_type}."
-
-ERR_ASPECTS_EMPTY_DECLARATION: Final = "Aspect declaration is empty."
-
-ERR_ASPECTS_DECLARATION_FAILED: Final = "Aspect declaration failed."
+RETRIED_APPLIED_MARKER: Final = "__retried_applied__"
 
 
 """Aspect entry validation error messages."""

@@ -10,9 +10,9 @@ The error hierarchy in domain-api-limiter provides typed, recoverable errors for
 
 ```
 DomainError
-  └── ThrottleError
-        ├── RateLimitExceeded
-        └── ThrottleDeclarationError
+  `-- ThrottleError
+        |-- RateLimitExceeded
+        `-- ThrottleDeclarationError
 ```
 
 All errors are instances of `DomainError` from domain-errors, which means:

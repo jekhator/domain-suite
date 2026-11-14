@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **@wrap_errors class-level decoration:** Decorator can now be applied to classes. Fans out over all public callables in `cls.__dict__`, preserving sync/async dispatch per method. Skips private methods, dunder methods, properties, nested classes, and already-decorated methods. Unwraps and rewraps classmethod/staticmethod to preserve semantics. Config (catch, as_, message, capture) applies uniformly to all fanned methods.
+- **@wrap_errors class-level decoration:** Decorator can now be applied to classes. Fans out over all public callables in `cls.__dict__`, preserving sync/async handling per method. Skips private methods, dunder methods, properties, nested classes, and already-decorated methods. Unwraps and rewraps classmethod/staticmethod to preserve semantics. Config (catch, as_, message, capture) applies uniformly to all fanned methods.
 
 ## [0.1.0] - 2026-06-15
 

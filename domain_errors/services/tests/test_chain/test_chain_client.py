@@ -1,8 +1,11 @@
 """Tests for ErrorChain client operations."""
 
+import pytest
+
 from domain_errors.domains.domain_error.domain_error import DomainError
 from domain_errors.services.chain.chain_client import ErrorChain
 from domain_errors.services.chain.chain_objects import ChainVia
+from domain_errors.services.constants import chain as const
 from domain_errors.services.tests.test_chain.conftest import FakeDomainClassifier
 
 
@@ -60,10 +63,9 @@ class TestErrorChainWrap:
         """wrap() returns an object ready to be raised with 'from err'."""
         original = ValueError("bad")
         wrapped = ErrorChain.wrap(original, as_=CustomDomainError, message="wrapped")
-        try:
+        with pytest.raises(CustomDomainError) as exc_info:
             raise wrapped from original
-        except CustomDomainError as error:
-            assert error.__cause__ is original
+        assert exc_info.value.__cause__ is original
 
 
 class TestErrorChainHistory:
@@ -183,7 +185,7 @@ class TestErrorChainHistory:
         """history() falls back to 'python' when no classifier matches."""
         err = KeyError("key")
         links = ErrorChain.history(err)
-        assert links[0].domain == "python"
+        assert links[0].domain == const.DEFAULT_DOMAIN
 
     def test_code_attribute_extracted(self) -> None:
         """history() extracts code attribute from DomainError."""
@@ -301,7 +303,7 @@ class TestErrorChainDomainOf:
         classifier = FakeDomainClassifier()
         err = KeyError("test")
         domain = ErrorChain._domain_of(err, classifiers=(classifier,))
-        assert domain == "python"
+        assert domain == const.DEFAULT_DOMAIN
 
     def test_domain_ignores_non_string_attribute(self) -> None:
         """_domain_of ignores a domain attribute that is not a string."""

@@ -23,7 +23,7 @@ class PolicyRegistry:
         Preserves definition order. Handles instance methods, classmethod,
         and staticmethod decorators.
         """
-        policies = []
+        policies: list[objs.ThrottlePolicy] = []
         for member in vars(container).values():
             if isinstance(member, (classmethod, staticmethod)):
                 policy = self.policy_of(member.__func__)

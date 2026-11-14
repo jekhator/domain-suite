@@ -44,3 +44,20 @@ class TestMonitorRegistry:
 
         sink = MonitorRegistry.get_default_sink()
         assert sink is sink2
+
+    def test_falsy_sink_is_kept(self) -> None:
+        """A bound sink that evaluates as falsy is returned, not replaced by NullSink."""
+
+        class EmptySink:
+            """Sink that reports itself as empty."""
+
+            def __len__(self) -> int:
+                return 0
+
+            def emit(self, event: object) -> None:
+                """Discard the event."""
+
+        falsy_sink = EmptySink()
+        MonitorRegistry.set_default_sink(falsy_sink)  # type: ignore[arg-type]
+
+        assert MonitorRegistry.get_default_sink() is falsy_sink

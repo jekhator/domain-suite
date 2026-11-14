@@ -88,4 +88,4 @@ One blocking finding: errors/__init__.py must re-export error classes with __all
 
 ---
 
-**Head-agent reconciliation (2026-07-05): verdict SHIP.** (1) errors/__init__.py re-export + __all__ NOT applied: domain-security's `errors/__init__.py` is docstring-only with the error classes re-exported from the ROOT `__init__` (identical structure here); matching the exemplar keeps the suite uniform. Logged as a suite-wide question for the refactor round. (2) dto-strict test-path exclusion warning is moot: dto-strict 0.4.0 already exempts test files and runs clean on this package (verified, zero R004). No change.
+**Review reconciliation (2026-07-05): verdict SHIP.** (1) errors/__init__.py re-export + __all__ NOT applied: domain-security's `errors/__init__.py` is docstring-only with the error classes re-exported from the ROOT `__init__` (identical structure here); matching the exemplar keeps the suite uniform. Logged as a suite-wide question for the refactor round. (2) dto-strict test-path exclusion warning is moot: dto-strict 0.4.0 already exempts test files and runs clean on this package (verified, zero R004). No change.

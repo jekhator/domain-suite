@@ -66,7 +66,7 @@ See `domain_security/context/constants/security_context.py`.
 
 ## Error Semantics
 
-SecurityContextManager does not raise errors. The context is immutable after creation; mutation attempts fail at type-check time. Caller code that inspects `manager.get()` must handle None (no bound context).
+SecurityContextManager does not raise errors. The context objects are frozen dataclasses; assigning to a field raises `FrozenInstanceError` at runtime. Caller code that inspects `manager.get()` must handle None (no bound context).
 
 ## Example Usage
 

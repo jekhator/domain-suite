@@ -44,7 +44,7 @@ None. All standards dimensions conform. Decorator uses inspect.signature and fun
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (functools, inspect, collections.abc, typing, standard library). Decorator composition and argument binding follow generic Python best practices. No proprietary IP references, no internal routine/phase language, no AI-attribution trailers.
+This feature uses only public patterns (functools, inspect, collections.abc, typing, standard library). Decorator composition and argument binding follow generic Python best practices. No proprietary IP references, no internal project-management language, no AI-attribution trailers.
 
 ## Verdict
 

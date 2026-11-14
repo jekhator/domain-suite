@@ -38,7 +38,7 @@ class RateLimit:
     def from_rate(cls, rate: str) -> Self:
         """Parse an N/period rate string into a RateLimit."""
         head, separator, tail = rate.partition("/")
-        if not separator or not head.isdigit():
+        if not separator or not head.isdecimal():
             raise ThrottleDeclarationError(
                 message=const.ERR_POLICY_RATE_FORMAT,
                 rate=rate,

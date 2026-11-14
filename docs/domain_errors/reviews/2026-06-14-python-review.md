@@ -2,13 +2,13 @@
 
 **Date:** 2026-06-14  
 **Feature:** python (domains/python)  
-**Scope:** Stdlib exception-family classification, tuple-based family ordering, isinstance dispatch
+**Scope:** Stdlib exception-family classification, tuple-based family ordering, isinstance handling
 
 ## Findings
 
 ### Classification Correctness
 
-**Sound.** PythonClassifier uses a tuple-of-tuples, _FAMILIES, where each pair maps exception types → domain string. The classify() method iterates _FAMILIES in order and returns the domain of the first matching type via isinstance(). This approach is correct for stdlib exceptions because some families have subtype relationships: ConnectionError and TimeoutError are both subclasses of OSError. Ordering them **BEFORE** OSError in the tuple ensures they match first. Reversing the order would cause ConnectionError to match OSError first, collapsing them into the OS domain: a correctness failure. The tuple structure correctly encodes that order is load-bearing.
+**Sound.** PythonClassifier uses a tuple-of-tuples, _FAMILIES, where each pair maps exception types -> domain string. The classify() method iterates _FAMILIES in order and returns the domain of the first matching type via isinstance(). This approach is correct for stdlib exceptions because some families have subtype relationships: ConnectionError and TimeoutError are both subclasses of OSError. Ordering them **BEFORE** OSError in the tuple ensures they match first. Reversing the order would cause ConnectionError to match OSError first, collapsing them into the OS domain: a correctness failure. The tuple structure correctly encodes that order is load-bearing.
 
 ### Frozenset vs. Tuple Rationale
 
@@ -42,4 +42,4 @@
 
 ## Verdict
 
-Python classifier is correct, standards-conformant, and ready. Exception family ordering is sound; tuple-based dispatch is the right choice; test coverage is complete. No defects or divergences.
+Python classifier is correct, standards-conformant, and ready. Exception family ordering is sound; tuple-based handling is the right choice; test coverage is complete. No defects or divergences.

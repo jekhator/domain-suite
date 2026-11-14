@@ -1,6 +1,6 @@
 """Global provenance registry for sink resolution."""
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from domain_rag.services.provenance.provenance_client import (
     NullProvenanceSink,
@@ -11,7 +11,8 @@ from domain_rag.services.provenance.provenance_client import (
 class ProvenanceRegistry:
     """Global registry for provenance sink binding."""
 
-    _default_sink: Optional[ProvenanceSink] = None
+    _default_sink: ClassVar[Optional[ProvenanceSink]] = None
+    _fallback_sink: ClassVar[ProvenanceSink] = NullProvenanceSink()
 
     @classmethod
     def set_default_sink(cls, sink: ProvenanceSink) -> None:
@@ -21,7 +22,9 @@ class ProvenanceRegistry:
     @classmethod
     def get_default_sink(cls) -> ProvenanceSink:
         """Get the current default sink, or NullProvenanceSink if unset."""
-        return cls._default_sink or NullProvenanceSink()
+        if cls._default_sink is None:
+            return cls._fallback_sink
+        return cls._default_sink
 
     @classmethod
     def clear_default_sink(cls) -> None:

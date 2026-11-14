@@ -8,7 +8,7 @@
 
 ### Classification Correctness
 
-**Sound.** CloudClassifier classifies exceptions originating from AWS SDK libraries (botocore, boto3) using module-origin dispatch. The classify() method extracts the top-level package name (`type(err).__module__.split(".")[0]`) and tests membership in CLOUD_LIBRARIES. This approach is correct for AWS SDK exceptions, which span multiple exception types across diverse base classes (ClientError, BotoCoreError, Boto3Error subclass different parent types). Origin-based classification handles all of them uniformly: if the exception came from botocore or boto3, it's CLOUD. The method correctly handles exceptions with no module or unrecognized libraries by returning None.
+**Sound.** CloudClassifier classifies exceptions originating from AWS SDK libraries (botocore, boto3) using module-origin handling. The classify() method extracts the top-level package name (`type(err).__module__.split(".")[0]`) and tests membership in CLOUD_LIBRARIES. This approach is correct for AWS SDK exceptions, which span multiple exception types across diverse base classes (ClientError, BotoCoreError, Boto3Error subclass different parent types). Origin-based classification handles all of them uniformly: if the exception came from botocore or boto3, it's CLOUD. The method correctly handles exceptions with no module or unrecognized libraries by returning None.
 
 ### Frozenset vs. Tuple Rationale
 

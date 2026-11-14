@@ -2,9 +2,33 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import mixin_logging
 import pytest
 
 from domain_aspects.services.aspects import aspects_objects as objs
+
+
+@pytest.fixture
+def captured_logs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[str, str, dict[str, Any]]]:
+    """Record ambient log_info and log_error calls as (level, event, fields) tuples.
+
+    Used by TestLoggedWrapperSync, TestLoggedWrapperAsync and TestLoggedWrapperTimed.
+    """
+    records: list[tuple[str, str, dict[str, Any]]] = []
+
+    def record_info(event: str, **fields: Any) -> None:
+        records.append(("info", event, fields))
+
+    def record_error(event: str, **fields: Any) -> None:
+        records.append(("error", event, fields))
+
+    monkeypatch.setattr(mixin_logging, "log_info", record_info)
+    monkeypatch.setattr(mixin_logging, "log_error", record_error)
+    return records
 
 
 @pytest.fixture

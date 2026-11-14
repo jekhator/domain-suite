@@ -6,6 +6,7 @@ from domain_monitoring.errors.monitoring_errors import (
     MonitoringDeclarationError,
     MonitoringError,
 )
+from domain_monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 from domain_monitoring.services.metrics.metrics_client import (
     CollectingSink,
     MetricSink,
@@ -13,11 +14,6 @@ from domain_monitoring.services.metrics.metrics_client import (
 )
 from domain_monitoring.services.metrics.metrics_objects import MetricEvent, Outcome
 from domain_monitoring.services.registry.registry_client import MonitorRegistry
-
-try:
-    from domain_monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
-except ImportError:  # pragma: no cover
-    CloudWatchMetricSink = None  # type: ignore
 
 __all__ = [
     "__version__",

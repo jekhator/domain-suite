@@ -124,8 +124,8 @@ class TestChainLink:
         # Equal objects should have equal hash
         assert hash(link1) == hash(link2)
         # Can be placed in a set
-        s = {link1, link2}
-        assert len(s) == 1
+        unique_links = {link1, link2}
+        assert len(unique_links) == 1
 
     def test_repr(self) -> None:
         """ChainLink has a repr string."""
@@ -136,9 +136,9 @@ class TestChainLink:
             domain="val",
             via=ChainVia.CAUSE,
         )
-        r = repr(link)
-        assert "ChainLink" in r
-        assert "ValueError" in r
+        rendered = repr(link)
+        assert "ChainLink" in rendered
+        assert "ValueError" in rendered
 
     def test_to_log_extra_with_code(self) -> None:
         """to_log_extra returns a dict with all fields, code as string."""
@@ -256,8 +256,8 @@ class TestDomainCrossing:
         crossing1 = DomainCrossing(cause=cause, effect=effect)
         crossing2 = DomainCrossing(cause=cause, effect=effect)
         assert hash(crossing1) == hash(crossing2)
-        s = {crossing1, crossing2}
-        assert len(s) == 1
+        unique_crossings = {crossing1, crossing2}
+        assert len(unique_crossings) == 1
 
     def test_to_log_extra(self) -> None:
         """to_log_extra returns cause and effect domain info."""

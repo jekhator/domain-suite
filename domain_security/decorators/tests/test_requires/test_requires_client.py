@@ -13,6 +13,8 @@ from domain_security.context.security_context.security_context_objects import (
 )
 from domain_security.decorators.requires.requires_client import Requires, requires
 from domain_security.errors.security_errors import AuthzError
+from domain_security.services.authz.authz_client import Authorizer
+from domain_security.services.authz.authz_objects import Permission, PolicyDecision
 
 
 class TestRequires:
@@ -93,7 +95,9 @@ class TestRequires:
         result = protected_function()
         assert result == "result"
 
-    def test_decorator_with_custom_authorizer(self, always_allow_authorizer) -> None:
+    def test_decorator_with_custom_authorizer(
+        self, always_allow_authorizer: Authorizer
+    ) -> None:
         """Requires can be initialized with custom authorizer."""
 
         @Requires(authorizer=always_allow_authorizer)("read")
@@ -104,7 +108,9 @@ class TestRequires:
         result = protected_function()
         assert result == "result"
 
-    def test_decorator_rejects_denied_permission(self, always_deny_authorizer) -> None:
+    def test_decorator_rejects_denied_permission(
+        self, always_deny_authorizer: Authorizer
+    ) -> None:
         """Requires with custom authorizer respects deny decision."""
         principal = Principal(
             id="user:test", roles=frozenset(), scopes=frozenset(["read"])
@@ -119,6 +125,27 @@ class TestRequires:
 
         with pytest.raises(AuthzError):
             protected_function()
+
+    def test_decorator_keeps_falsy_custom_authorizer(self) -> None:
+        """Requires keeps a custom authorizer even when it evaluates as falsy."""
+
+        class FalsyAllowAuthorizer(Authorizer):
+            """Authorizer that allows everything and evaluates as False."""
+
+            def __bool__(self) -> bool:
+                """Report the authorizer as falsy."""
+                return False
+
+            def check(self, ctx, permission: Permission) -> PolicyDecision:
+                """Always allow access."""
+                return PolicyDecision(allowed=True)
+
+        @Requires(authorizer=FalsyAllowAuthorizer())("read")
+        def protected_function() -> str:
+            """Do something protected."""
+            return "result"
+
+        assert protected_function() == "result"
 
     def test_module_handle_requires(self) -> None:
         """Module-level requires handle exists and works."""

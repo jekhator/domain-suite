@@ -45,4 +45,4 @@ Aspects decorator is target-polymorphic: works on functions and classes. Underly
 
 ## Conclusion
 
-No security concerns identified. Aspects service correctly enforces declaration-time validation, lazy-loads optional dependencies, and composes decorators in canonical order.
+No security concerns identified. Aspects service correctly enforces declaration-time validation, lazy-loads optional dependencies, and composes decorators in standard order.

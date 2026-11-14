@@ -14,7 +14,7 @@ ERR_ASYNC_RETRIED_NO_RETRY = "async.retried.none.policy"
 
 
 class TestAsyncRetriedNonePolicy:
-    """Test async Retried selector returning None (line 258)."""
+    """Test async Retried selector returning None."""
 
     def test_async_retried_dynamic_none_policy_no_retry(self) -> None:
         """Async retried with None policy returns immediately without retry."""
@@ -66,7 +66,7 @@ class TestAsyncRetriedNonePolicy:
 
 
 class TestAmbientLoggingAsync:
-    """Test Logged aspect on non-LoggingMixin async targets (lines 295, 309, 327, 346)."""
+    """Test Logged aspect on non-LoggingMixin async targets."""
 
     def test_logged_async_ambient_start_end_success(self) -> None:
         """Logged async on plain function uses ambient log_info for start/end."""
@@ -104,7 +104,7 @@ class TestAmbientLoggingAsync:
 
 
 class TestAmbientLoggingSync:
-    """Test Logged aspect on non-LoggingMixin sync targets (lines 358, 372, 390, 409)."""
+    """Test Logged aspect on non-LoggingMixin sync targets."""
 
     def test_logged_sync_ambient_start_end_success(self) -> None:
         """Logged sync on plain function uses ambient log_info for start/end."""
@@ -172,10 +172,10 @@ class TestAmbientLoggingSync:
 
 
 class TestSyncExtractionFailures:
-    """Test sync wrapper extraction failure paths (lines 382-387, 390, 409)."""
+    """Test sync wrapper extraction failure paths."""
 
     def test_logged_sync_result_extraction_failure_continues(self) -> None:
-        """Sync logged handles payload_from_result exception and continues (lines 382-387)."""
+        """Sync logged handles payload_from_result exception and continues."""
 
         def bad_result_extractor(result) -> dict:
             raise RuntimeError("extraction failure")
@@ -195,7 +195,7 @@ class TestSyncExtractionFailures:
         assert result == 84
 
     def test_logged_sync_result_extraction_failure_end_logged_ambient(self) -> None:
-        """Sync logged .end emitted even when payload_from_result fails (line 390 ambient)."""
+        """Sync logged .end emitted even when payload_from_result fails."""
 
         def bad_extractor(result) -> dict:
             raise RuntimeError("extraction error")
@@ -215,7 +215,7 @@ class TestSyncExtractionFailures:
         assert result == 84
 
     def test_logged_sync_error_extraction_failure_ambient(self) -> None:
-        """Sync logged .error emitted even when payload_from_exc fails (line 409 ambient)."""
+        """Sync logged .error emitted even when payload_from_exc fails."""
 
         def bad_error_extractor(exc: BaseException) -> dict:
             raise RuntimeError("error extraction error")
@@ -239,7 +239,7 @@ class TestLoggedWithMixinInstance:
     """Test Logged aspect on LoggingMixin instances for logger.log_* paths."""
 
     def test_logged_sync_with_mixin_instance(self) -> None:
-        """Logged sync on mixin instance calls logger.log_info (lines 372, 390, 409)."""
+        """Logged sync on mixin instance calls logger.log_info."""
 
         service = LoggingMixin()
 
@@ -274,7 +274,7 @@ class TestLoggedWithMixinInstance:
         asyncio.run(run())
 
     def test_logged_sync_mixin_error_path_logger_error(self) -> None:
-        """Logged sync mixin error path calls logger.log_error (line 409)."""
+        """Logged sync mixin error path calls logger.log_error."""
 
         service = LoggingMixin()
 
@@ -290,7 +290,7 @@ class TestLoggedWithMixinInstance:
             wrapped(service, 5)
 
     def test_logged_async_mixin_error_path_logger_error(self) -> None:
-        """Logged async mixin error path calls logger.log_error (line 346)."""
+        """Logged async mixin error path calls logger.log_error."""
 
         service = LoggingMixin()
 
@@ -314,7 +314,7 @@ class TestAsyncExtractionFailures:
     """Test async wrapper extraction failure paths."""
 
     def test_logged_async_result_extraction_failure(self) -> None:
-        """Async logged handles payload_from_result exception (lines 316-324)."""
+        """Async logged handles payload_from_result exception."""
 
         def bad_result_extractor(result) -> dict:
             raise RuntimeError("result extraction failed")

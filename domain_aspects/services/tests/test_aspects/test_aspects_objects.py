@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
+from mixin_retry import RetryPolicy
 
 from domain_aspects.services.aspects import aspects_objects as objs
+from domain_aspects.services.constants import aspects as const
 
 
 class TestLogged:
@@ -18,12 +22,16 @@ class TestLogged:
 
     def test_logged_empty_event_raises(self) -> None:
         """Logged with empty event raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_LOGGED_EVENT_EMPTY)
+        ):
             objs.Logged(event="")
 
     def test_logged_non_string_event_raises(self) -> None:
         """Logged with non-string event raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_LOGGED_EVENT_EMPTY)
+        ):
             objs.Logged(event=None)  # type: ignore
 
     def test_logged_is_frozen(self) -> None:
@@ -52,7 +60,9 @@ class TestRequires:
 
     def test_requires_empty_permission_raises(self) -> None:
         """Requires with empty permission raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_REQUIRES_PERMISSION_EMPTY)
+        ):
             objs.Requires(permission="")
 
     def test_requires_hashable(self) -> None:
@@ -78,7 +88,9 @@ class TestTenantScoped:
 
     def test_tenant_scoped_empty_param_name_raises(self) -> None:
         """TenantScoped with empty param_name raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_TENANT_SCOPED_PARAM_EMPTY)
+        ):
             objs.TenantScoped(param_name="")
 
     def test_tenant_scoped_hashable(self) -> None:
@@ -109,17 +121,23 @@ class TestThrottled:
 
     def test_throttled_empty_scope_raises(self) -> None:
         """Throttled with empty scope raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_THROTTLED_SCOPE_EMPTY)
+        ):
             objs.Throttled(scope="", rate="100/hour")
 
     def test_throttled_empty_rate_raises(self) -> None:
         """Throttled with empty rate raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_THROTTLED_RATE_EMPTY)
+        ):
             objs.Throttled(scope="api.documents", rate="")
 
     def test_throttled_non_tuple_tiers_raises(self) -> None:
         """Throttled with non-tuple tiers raises ValueError."""
-        with pytest.raises(ValueError, match="tuple"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_THROTTLED_TIERS_NOT_TUPLE)
+        ):
             objs.Throttled(scope="api", rate="100/hour", tiers={"free": "10/hour"})  # type: ignore
 
     def test_throttled_hashable(self) -> None:
@@ -148,12 +166,16 @@ class TestMonitored:
 
     def test_monitored_empty_event_raises(self) -> None:
         """Monitored with empty event raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_MONITORED_EVENT_EMPTY)
+        ):
             objs.Monitored(event="")
 
     def test_monitored_non_string_event_raises(self) -> None:
         """Monitored with non-string event raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty string"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_MONITORED_EVENT_EMPTY)
+        ):
             objs.Monitored(event=None)  # type: ignore
 
     def test_monitored_is_frozen(self) -> None:
@@ -191,12 +213,16 @@ class TestWrapErrors:
 
     def test_wrap_errors_non_type_as_raises(self) -> None:
         """WrapErrors with non-type as_ raises ValueError."""
-        with pytest.raises(ValueError, match="exception class"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_WRAP_ERRORS_AS_NOT_CLASS)
+        ):
             objs.WrapErrors(as_="not_a_type", catch=(Exception,))  # type: ignore
 
     def test_wrap_errors_empty_catch_raises(self) -> None:
         """WrapErrors with empty catch tuple raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty tuple"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_WRAP_ERRORS_CATCH_INVALID)
+        ):
             objs.WrapErrors(as_=ValueError, catch=())  # type: ignore
 
     def test_wrap_errors_hashable(self) -> None:
@@ -260,8 +286,6 @@ class TestRetried:
 
     def test_retried_with_static_policy(self) -> None:
         """Create Retried with static retry policy."""
-        from mixin_retry import RetryPolicy
-
         policy = RetryPolicy(
             max_attempts=3,
             backoff_base_seconds=0.1,
@@ -276,7 +300,6 @@ class TestRetried:
 
     def test_retried_with_dynamic_policy_selector(self) -> None:
         """Create Retried with dynamic policy selector."""
-        from mixin_retry import RetryPolicy
 
         def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
             return None
@@ -288,13 +311,13 @@ class TestRetried:
 
     def test_retried_neither_policy_raises(self) -> None:
         """Retried with neither policy raises ValueError."""
-        with pytest.raises(ValueError, match="exactly one"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_RETRIED_POLICY_REQUIRED)
+        ):
             objs.Retried()
 
     def test_retried_both_policies_raises(self) -> None:
         """Retried with both policy and selector raises ValueError."""
-        from mixin_retry import RetryPolicy
-
         policy = RetryPolicy(
             max_attempts=3,
             backoff_base_seconds=0.1,
@@ -306,13 +329,13 @@ class TestRetried:
         def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
             return None
 
-        with pytest.raises(ValueError, match="both"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED)
+        ):
             objs.Retried(policy=policy, policy_from_request=selector)
 
     def test_retried_is_frozen(self) -> None:
         """Retried is frozen dataclass."""
-        from mixin_retry import RetryPolicy
-
         policy = RetryPolicy(
             max_attempts=3,
             backoff_base_seconds=0.1,
@@ -326,8 +349,6 @@ class TestRetried:
 
     def test_retried_hashable(self) -> None:
         """Retried is hashable for frozenset membership."""
-        from mixin_retry import RetryPolicy
-
         policy = RetryPolicy(
             max_attempts=3,
             backoff_base_seconds=0.1,
@@ -358,7 +379,9 @@ class TestRequireMixins:
 
     def test_require_mixins_empty_bases_raises(self) -> None:
         """RequireMixins with empty bases raises ValueError."""
-        with pytest.raises(ValueError, match="non-empty tuple"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID)
+        ):
             objs.RequireMixins(bases=())
 
     def test_require_mixins_non_tuple_bases_raises(self) -> None:
@@ -367,7 +390,9 @@ class TestRequireMixins:
         class MixinA:
             pass
 
-        with pytest.raises(ValueError, match="non-empty tuple"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID)
+        ):
             objs.RequireMixins(bases=[MixinA])  # type: ignore
 
     def test_require_mixins_is_frozen(self) -> None:
@@ -438,7 +463,9 @@ class TestRequireMixins:
 
         entry = objs.RequireMixins(bases=(MixinA,))
         decorator = entry.build()
-        with pytest.raises(ValueError, match="class-only marker"):
+        with pytest.raises(
+            ValueError, match=re.escape(const.ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET)
+        ):
             decorator(some_function)
 
     def test_require_mixins_build_enumerates_all_missing_bases(self) -> None:

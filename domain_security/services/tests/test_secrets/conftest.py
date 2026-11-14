@@ -23,7 +23,11 @@ class FakeSecretsBackend:
 def fake_backend() -> FakeSecretsBackend:  # noqa: R004
     """Create a fake secrets backend."""
     return FakeSecretsBackend(
-        {"db_password": "super_secret_123", "api_key": "key_abc_xyz"}
+        {
+            "db_password": "super_secret_123",
+            "api_key": "key_abc_xyz",
+            "app/db-password.v2": "punctuated_456",
+        }
     )
 
 

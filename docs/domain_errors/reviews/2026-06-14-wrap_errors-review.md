@@ -63,7 +63,7 @@ The `message` parameter is passed to `ErrorChain.wrap()` (line 77), and tests ve
 
 **Standards: conformant.**
 
-The class is declared `@dataclass(frozen=True, slots=True)` (line 18), matching the canonical DTO shape. Fields are:
+The class is declared `@dataclass(frozen=True, slots=True)` (line 18), matching the standard DTO shape. Fields are:
 - `as_: type[DomainError]` : target error class (required)
 - `catch: tuple[type[Exception], ...]` : exception tuple to catch
 - `message: str | None` : optional message override
@@ -122,11 +122,11 @@ All tests use class-based organization (no module-level test functions). Tests a
 
 Read docs/apps/wrap_errors.md (lines 1-283):
 
-- **Example 1 (lines 86-109):** Sync function with FileNotFoundError → wrapped as StorageError, context includes `path`. Behavior matches implementation.
+- **Example 1 (lines 86-109):** Sync function with FileNotFoundError -> wrapped as StorageError, context includes `path`. Behavior matches implementation.
 - **Example 2 (lines 111-140):** Async function with ConnectionError, default timeout included in context. Behavior matches implementation.
 - **Example 3 (lines 142-171):** DomainError pass-through : ChargeLimitError raised directly, not wrapped, __cause__ is None. Matches test lines 213-227.
 - **Example 4 (lines 173-205):** Narrowing catch to (ValueError, KeyError), TypeError propagates raw. Matches test lines 116-125.
-- **Example 5 (lines 207-229):** capture=False → empty context. Matches test lines 249-258.
+- **Example 5 (lines 207-229):** capture=False -> empty context. Matches test lines 249-258.
 
 All examples execute as documented; no discrepancies.
 
@@ -144,13 +144,13 @@ All examples execute as documented; no discrepancies.
 **Verification:**
 
 ```
-cd /home/jamesekhator/domain-errors && uv run ruff check domain_errors/decorators/wrap_errors/ && uv run mypy domain_errors/decorators/wrap_errors/
+uv run ruff check domain_errors/decorators/wrap_errors/ && uv run mypy domain_errors/decorators/wrap_errors/
 All checks passed!
 Success: no issues found in 2 source files
 ```
 
 ```
-cd /home/jamesekhator/domain-errors && uv run pytest domain_errors/decorators/tests/test_wrap_errors/ -q
+uv run pytest domain_errors/decorators/tests/test_wrap_errors/ -q
 .............................................                            [100%]
 45 passed in 0.14s
 ```

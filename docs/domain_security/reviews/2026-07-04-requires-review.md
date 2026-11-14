@@ -43,7 +43,7 @@ None. All standards dimensions conform. Decorator pattern with functools.wraps a
 
 ## OBA Compliance Attestation
 
-This feature uses only public patterns (functools, collections.abc, typing, standard library). Decorator composition follows generic Python best practices. No proprietary IP references, no internal routine/phase language, no AI-attribution trailers.
+This feature uses only public patterns (functools, collections.abc, typing, standard library). Decorator composition follows generic Python best practices. No proprietary IP references, no internal project-management language, no AI-attribution trailers.
 
 ## Verdict
 

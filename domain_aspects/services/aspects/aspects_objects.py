@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from enum import StrEnum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
+from domain_aspects.services.aspects.aspects_kind import AspectKind
 from domain_aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
 from domain_aspects.services.aspects.aspects_require_mixins import RequireMixins
 from domain_aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
@@ -19,19 +19,6 @@ if TYPE_CHECKING:
     from domain_monitoring.services.metrics.metrics_client import MetricSink
 
 
-class AspectKind(StrEnum):
-    """Aspect classification kinds."""
-
-    LOGGED = "LOGGED"
-    REQUIRES = "REQUIRES"
-    TENANT_SCOPED = "TENANT_SCOPED"
-    THROTTLED = "THROTTLED"
-    MONITORED = "MONITORED"
-    WRAP_ERRORS = "WRAP_ERRORS"
-    RETRIED = "RETRIED"
-    REQUIRE_MIXINS = "REQUIRE_MIXINS"
-
-
 @dataclass(frozen=True, slots=True)
 class Logged:
     """Native event logging with entry/exit/error emissions and optional timing.
@@ -40,9 +27,11 @@ class Logged:
     """
 
     event: str
-    payload_from_request: Optional[Callable[..., dict]] = None
-    payload_from_result: Optional[Callable[[object], dict]] = None
-    payload_from_exc: Optional[Callable[[BaseException], dict]] = None
+    payload_from_request: Callable[..., Mapping[str, object] | None] | None = None
+    payload_from_result: Callable[[object], Mapping[str, object] | None] | None = None
+    payload_from_exc: Callable[[BaseException], Mapping[str, object] | None] | None = (
+        None
+    )
     timed: bool = False
 
     def __post_init__(self) -> None:
@@ -190,11 +179,11 @@ class Monitored:
     """Metric emission via domain-monitoring."""
 
     event: str
-    sink: Optional[MetricSink] = None
-    labels_from_result: Optional[Callable[[object], tuple[tuple[str, str], ...]]] = None
-    labels_from_exc: Optional[
-        Callable[[BaseException], tuple[tuple[str, str], ...]]
-    ] = None
+    sink: MetricSink | None = None
+    labels_from_result: Callable[[object], tuple[tuple[str, str], ...]] | None = None
+    labels_from_exc: Callable[[BaseException], tuple[tuple[str, str], ...]] | None = (
+        None
+    )
 
     def __post_init__(self) -> None:
         if not self.event or not isinstance(self.event, str):
@@ -210,7 +199,7 @@ class Monitored:
             from domain_monitoring.decorators.monitored.monitored_client import (
                 monitored,
             )
-        except ImportError as error:  # pragma: no cover
+        except ImportError as error:
             raise ImportError(const.ERR_ASPECT_MONITORED_IMPORT_MISSING) from error
         return monitored(
             self.event,
@@ -228,8 +217,8 @@ class Retried:
     Retries see raw exceptions for predicate matching before WRAP_ERRORS converts them.
     """
 
-    policy: Optional[RetryPolicy] = None
-    policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]] = None
+    policy: RetryPolicy | None = None
+    policy_from_request: Callable[..., RetryPolicy | None] | None = None
 
     def __post_init__(self) -> None:
         has_policy = self.policy is not None

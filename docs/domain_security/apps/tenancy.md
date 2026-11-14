@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TenancyGuard enforces tenant boundaries, ensuring that operations stay within the tenant isolate by comparing the ambient SecurityContext's tenant_id against the tenant_id of the operation being performed. Multi-tenant services use this to prevent cross-tenant data access.
+TenancyGuard enforces tenant boundaries, ensuring that operations stay within the tenant boundary by comparing the ambient SecurityContext's tenant_id against the tenant_id of the operation being performed. Multi-tenant services use this to prevent cross-tenant data access.
 
 The @tenant_scoped decorator applies tenant checks declaratively to service methods, reading the ambient SecurityContext and enforcing that the context's tenant_id matches the operation's tenant_id before the method runs.
 

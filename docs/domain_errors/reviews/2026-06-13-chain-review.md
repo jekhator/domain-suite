@@ -18,13 +18,13 @@ Domain resolution (chain_client.py:78-90) is correct: it checks the error's own 
 
 **Standards: fully conformant.**
 
-ChainLink (chain_objects.py:50-72) and DomainCrossing (chain_objects.py:75-91) are frozen+slots with no repr=False, matching the canonical DTO shape. LinkLogExtra and CrossingLogExtra are transient value objects (not persisted); their structure is shaped for asdict() serialization, and both correctly use StrEnum.value to convert ChainVia enum to string before logging. The to_log_extra() methods correctly project the ChainLink into the shaped LinkLogExtra before serialization: the indirection avoids serializing the compare=False context field, keeping log payloads lean.
+ChainLink (chain_objects.py:50-72) and DomainCrossing (chain_objects.py:75-91) are frozen+slots with no repr=False, matching the standard DTO shape. LinkLogExtra and CrossingLogExtra are transient value objects (not persisted); their structure is shaped for asdict() serialization, and both correctly use StrEnum.value to convert ChainVia enum to string before logging. The to_log_extra() methods correctly project the ChainLink into the shaped LinkLogExtra before serialization: the indirection avoids serializing the compare=False context field, keeping log payloads lean.
 
 ### ChainVia and DomainClassifier Contract
 
 **Design: clean.**
 
-ChainVia as StrEnum (root / cause / context) is self-documenting. The DomainClassifier protocol is minimal and typed: classify(err) → str | None. This contract is clear enough for consumers to implement (http, botocore, python classifiers can satisfy it).
+ChainVia as StrEnum (root / cause / context) is self-documenting. The DomainClassifier protocol is minimal and typed: classify(err) -> str | None. This contract is clear enough for consumers to implement (http, botocore, python classifiers can satisfy it).
 
 ### Constants and Imports
 

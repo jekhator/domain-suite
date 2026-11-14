@@ -1,18 +1,61 @@
 """Integration tests for aspect composition with real dependencies.
 
-Tests all six aspects with REAL packages from [all] extra. Verifies aspects compose
+Tests all bundled aspects with REAL packages from the [all] extra. Verifies aspects compose
 correctly on function and class targets, catching the bug that existed in 0.1.0
 (WrapErrors.build() passing catch incorrectly).
 """
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
+from mixin_logging import LoggingMixin
+from mixin_retry import RetryPolicy
 
 from domain_aspects import aspects
 from domain_aspects.services.aspects import aspects_objects as objs
+from domain_errors import DomainError
+from domain_monitoring.services.metrics.metrics_objects import MetricEvent
+from domain_security.errors.security_errors import AuthzError, TenancyError
+
+
+class ServiceFailure(DomainError):
+    """Typed failure used as the WrapErrors target in the composition tests."""
+
+    domain = "test"
+    code = "service_failure"
+    http_status = 500
+
+
+class CollectingSink:
+    """Metric sink that records every emitted event."""
+
+    def __init__(self) -> None:
+        """Start with no recorded events."""
+        self.events: list[MetricEvent] = []
+
+    def emit(self, event: MetricEvent) -> None:
+        """Record the event."""
+        self.events.append(event)
+
+
+def _retry_policy(
+    max_attempts: int, *, retry_on_value_error: bool = True
+) -> RetryPolicy:
+    """Build a zero-backoff retry policy that retries ValueError by default."""
+    return RetryPolicy(
+        max_attempts=max_attempts,
+        backoff_base_seconds=0.0,
+        backoff_multiplier=1.0,
+        backoff_max_seconds=0.0,
+        jitter=False,
+        should_retry=(lambda e: isinstance(e, ValueError))
+        if retry_on_value_error
+        else (lambda e: False),
+    )
 
 
 class TestRealDepsIntegration:
@@ -20,27 +63,20 @@ class TestRealDepsIntegration:
 
     def test_wrap_errors_real_sig_fixed(self) -> None:
         """WrapErrors now calls wrap_errors with correct keyword-only catch arg."""
-        from domain_errors import DomainError
 
-        class TestError(DomainError):
-            domain = "test"
-            code = "error"
-            http_status = 500
-
-        @aspects(objs.WrapErrors(as_=TestError, catch=(ValueError,)))
+        @aspects(objs.WrapErrors(as_=ServiceFailure, catch=(ValueError,)))
         @dataclass(frozen=True, slots=True)
         class Service:
             def process(self) -> None:
                 raise ValueError("inner")
 
         service = Service()
-        with pytest.raises(TestError) as exc_info:
+        with pytest.raises(ServiceFailure) as exc_info:
             service.process()
         assert isinstance(exc_info.value.__cause__, ValueError)
 
     def test_logged_real_sig(self) -> None:
         """Logged calls logged(event) correctly via lazy import."""
-        from mixin_logging import LoggingMixin
 
         @aspects(objs.Logged(event="test.event"))
         @dataclass(frozen=True, slots=True)
@@ -67,21 +103,13 @@ class TestRealDepsIntegration:
 
     def test_compose_multiple_aspects_no_conflict(self) -> None:
         """Multiple aspects (WrapErrors, Logged, Throttled) compose without conflict."""
-        from mixin_logging import LoggingMixin
-
-        from domain_errors import DomainError
-
-        class TestError(DomainError):
-            domain = "test"
-            code = "error"
-            http_status = 500
 
         @aspects(
             frozenset(
                 {
                     objs.Logged(event="multi.test"),
                     objs.Throttled(scope="multi", rate="50/hour"),
-                    objs.WrapErrors(as_=TestError),
+                    objs.WrapErrors(as_=ServiceFailure),
                 }
             )
         )
@@ -96,21 +124,15 @@ class TestRealDepsIntegration:
 
     def test_wrap_errors_error_chain_preserved(self) -> None:
         """Composed WrapErrors preserves error chain with __cause__."""
-        from domain_errors import DomainError
 
-        class TestError(DomainError):
-            domain = "test"
-            code = "error"
-            http_status = 500
-
-        @aspects(objs.WrapErrors(as_=TestError))
+        @aspects(objs.WrapErrors(as_=ServiceFailure))
         @dataclass(frozen=True, slots=True)
         class Service:
             def fail(self) -> None:
                 raise RuntimeError("root cause")
 
         service = Service()
-        with pytest.raises(TestError) as exc_info:
+        with pytest.raises(ServiceFailure) as exc_info:
             service.fail()
 
         assert exc_info.value.__cause__ is not None
@@ -119,7 +141,6 @@ class TestRealDepsIntegration:
 
     def test_requires_real_sig(self) -> None:
         """Requires calls requires(permission) correctly."""
-        from domain_security.errors.security_errors import AuthzError
 
         @aspects(objs.Requires(permission="admin"))
         @dataclass(frozen=True, slots=True)
@@ -133,7 +154,6 @@ class TestRealDepsIntegration:
 
     def test_tenant_scoped_real_sig(self) -> None:
         """TenantScoped calls tenant_scoped(param_name) correctly."""
-        from domain_security.errors.security_errors import TenancyError
 
         @aspects(objs.TenantScoped(param_name="tenant_id"))
         @dataclass(frozen=True, slots=True)
@@ -160,7 +180,6 @@ class TestRealDepsIntegration:
 
     def test_monitored_with_logged_composition(self) -> None:
         """Monitored and Logged compose together without conflict."""
-        from mixin_logging import LoggingMixin
 
         @aspects(
             objs.Logged(event="test.event"),
@@ -177,18 +196,12 @@ class TestRealDepsIntegration:
 
     def test_monitored_aspect_labels_from_result(self) -> None:
         """Monitored aspect-path supports labels_from_result parity with decorator."""
-        from domain_monitoring.services.metrics.metrics_objects import MetricEvent
-
-        collected_events: list[MetricEvent] = []
-
-        class CollectingSink:
-            def emit(self, event: MetricEvent) -> None:
-                collected_events.append(event)
+        sink = CollectingSink()
 
         @aspects(
             objs.Monitored(
                 event="test.result_labels",
-                sink=CollectingSink(),
+                sink=sink,  # type: ignore[arg-type]
                 labels_from_result=lambda r: (("tokens", str(r)),),
             )
         )
@@ -200,24 +213,17 @@ class TestRealDepsIntegration:
         service = Service()
         result = service.process()
         assert result == "result_value"
-        assert len(collected_events) == 1
-        event = collected_events[0]
-        assert event.labels == (("tokens", "result_value"),)
+        assert len(sink.events) == 1
+        assert sink.events[0].labels == (("tokens", "result_value"),)
 
     def test_monitored_aspect_labels_from_exc(self) -> None:
         """Monitored aspect-path supports labels_from_exc parity with decorator."""
-        from domain_monitoring.services.metrics.metrics_objects import MetricEvent
-
-        collected_events: list[MetricEvent] = []
-
-        class CollectingSink:
-            def emit(self, event: MetricEvent) -> None:
-                collected_events.append(event)
+        sink = CollectingSink()
 
         @aspects(
             objs.Monitored(
                 event="test.exc_labels",
-                sink=CollectingSink(),
+                sink=sink,  # type: ignore[arg-type]
                 labels_from_exc=lambda e: (("error_type", type(e).__name__),),
             )
         )
@@ -229,21 +235,14 @@ class TestRealDepsIntegration:
         service = Service()
         with pytest.raises(ValueError):
             service.process()
-        assert len(collected_events) == 1
-        event = collected_events[0]
-        assert event.labels == (("error_type", "ValueError"),)
+        assert len(sink.events) == 1
+        assert sink.events[0].labels == (("error_type", "ValueError"),)
 
     def test_monitored_aspect_no_callbacks_empty_labels(self) -> None:
         """Monitored aspect without callbacks produces empty labels tuple."""
-        from domain_monitoring.services.metrics.metrics_objects import MetricEvent
+        sink = CollectingSink()
 
-        collected_events: list[MetricEvent] = []
-
-        class CollectingSink:
-            def emit(self, event: MetricEvent) -> None:
-                collected_events.append(event)
-
-        @aspects(objs.Monitored(event="test.no_labels", sink=CollectingSink()))
+        @aspects(objs.Monitored(event="test.no_labels", sink=sink))  # type: ignore[arg-type]
         @dataclass(frozen=True, slots=True)
         class Service:
             def process(self) -> str:
@@ -252,9 +251,8 @@ class TestRealDepsIntegration:
         service = Service()
         result = service.process()
         assert result == "value"
-        assert len(collected_events) == 1
-        event = collected_events[0]
-        assert event.labels == ()
+        assert len(sink.events) == 1
+        assert sink.events[0].labels == ()
 
     def test_stacked_retried_wrap_errors_plain_class(self) -> None:
         """Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
@@ -264,29 +262,12 @@ class TestRealDepsIntegration:
         WrapErrors sits outside and would convert final exception to DomainError if
         retries exhausted.
         """
-        from mixin_retry import RetryPolicy
-
-        from domain_errors import DomainError
-
-        class TestError(DomainError):
-            domain = "test"
-            code = "retried_fail"
-            http_status = 500
-
-        policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
-        )
         calls = {"n": 0}
 
         @aspects(
             objs.Logged("test_retried"),
-            objs.Retried(policy=policy),
-            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
+            objs.Retried(policy=_retry_policy(3)),
+            objs.WrapErrors(as_=ServiceFailure, catch=(ValueError,)),
         )
         class Service:
             def flaky(self) -> str:
@@ -302,28 +283,11 @@ class TestRealDepsIntegration:
 
     def test_stacked_retried_wrap_errors_exhaustion(self) -> None:
         """Stacked Retried+WrapErrors: retries exhausted -> ValueError wrapped to DomainError."""
-        from mixin_retry import RetryPolicy
-
-        from domain_errors import DomainError
-
-        class TestError(DomainError):
-            domain = "test"
-            code = "retried_exhaust"
-            http_status = 500
-
-        policy = RetryPolicy(
-            max_attempts=2,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
-        )
         calls = {"n": 0}
 
         @aspects(
-            objs.Retried(policy=policy),
-            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
+            objs.Retried(policy=_retry_policy(2)),
+            objs.WrapErrors(as_=ServiceFailure, catch=(ValueError,)),
         )
         class Service:
             def always_fails(self) -> str:
@@ -331,31 +295,18 @@ class TestRealDepsIntegration:
                 raise ValueError("permanent")
 
         service = Service()
-        with pytest.raises(TestError) as exc_info:
+        with pytest.raises(ServiceFailure) as exc_info:
             service.always_fails()
         assert isinstance(exc_info.value.__cause__, ValueError)
         assert calls["n"] == 2
 
     def test_stacked_logged_retried_async(self) -> None:
         """Stacked Logged+Retried on async class method."""
-        import asyncio
-
-        from mixin_logging import LoggingMixin
-        from mixin_retry import RetryPolicy
-
-        policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
-        )
         calls = {"n": 0}
 
         @aspects(
             objs.Logged("async_test"),
-            objs.Retried(policy=policy),
+            objs.Retried(policy=_retry_policy(3)),
         )
         class Service(LoggingMixin):
             async def flaky_async(self) -> str:
@@ -390,7 +341,6 @@ class TestRealDepsIntegration:
 
     def test_logged_class_skips_privates_properties_nested(self) -> None:
         """Logged on class: skips _-prefixed methods, properties, nested classes."""
-        from mixin_logging import LoggingMixin
 
         @aspects(objs.Logged(event="test.skips"))
         class Service(LoggingMixin):
@@ -433,18 +383,8 @@ class TestRealDepsIntegration:
 
     def test_retried_class_skips_privates_properties_nested(self) -> None:
         """Retried on class: skips _-prefixed methods, properties, nested classes."""
-        from mixin_retry import RetryPolicy
 
-        policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
-        )
-
-        @aspects(objs.Retried(policy=policy))
+        @aspects(objs.Retried(policy=_retry_policy(1, retry_on_value_error=False)))
         class Service:
             public_value = 42
 
@@ -469,18 +409,8 @@ class TestRealDepsIntegration:
 
     def test_retried_class_preserves_classmethod_staticmethod(self) -> None:
         """Retried on class: preserves classmethod/staticmethod wrappers."""
-        from mixin_retry import RetryPolicy
 
-        policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
-        )
-
-        @aspects(objs.Retried(policy=policy))
+        @aspects(objs.Retried(policy=_retry_policy(1, retry_on_value_error=False)))
         class Service:
             @classmethod
             def class_method(cls) -> str:
@@ -494,8 +424,7 @@ class TestRealDepsIntegration:
         assert Service.static_method() == "staticmethod"
 
     def test_logged_skips_already_marked_methods(self) -> None:
-        """Logged on class: skips methods already marked with LOGGED_MARKER."""
-        from mixin_logging import LoggingMixin
+        """Logged on class: skips methods already marked with LOGGED_APPLIED_MARKER."""
 
         @aspects(objs.Logged(event="test.second"))
         @aspects(objs.Logged(event="test.first"))
@@ -508,17 +437,8 @@ class TestRealDepsIntegration:
         assert result == "ok"
 
     def test_retried_skips_already_marked_methods(self) -> None:
-        """Retried on class: skips methods already marked with RETRIED_MARKER."""
-        from mixin_retry import RetryPolicy
-
-        policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
-        )
+        """Retried on class: skips methods already marked with RETRIED_APPLIED_MARKER."""
+        policy: Any = _retry_policy(1, retry_on_value_error=False)
 
         @aspects(objs.Retried(policy=policy))
         @aspects(objs.Retried(policy=policy))

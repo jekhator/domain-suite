@@ -72,7 +72,7 @@
 
 - **stdlib**: functools, typing, collections.abc.
 - **domain_security internals**: SecurityContextManager, SecurityContext, Authorizer, Permission.
-- **Single decorator instance**: Module exports `requires = Requires()` (line 54), providing canonical usage.
+- **Single decorator instance**: Module exports `requires = Requires()` (line 54), providing standard usage.
 
 ## Verdict
 

@@ -14,7 +14,7 @@
 
 `ErrorChain` provides three static methods:
 
-### `wrap(err, as_=SomeError, message=None, **context) → SomeError`
+### `wrap(err, as_=SomeError, message=None, **context) -> SomeError`
 
 Construct a typed domain error for the caller to raise with `from err`.
 
@@ -63,7 +63,7 @@ except psycopg2.OperationalError as e:
 
 **Behavior:** Returns an instance of `as_` initialized with the provided `message` and `context`. Does not modify the exception chain; the caller must use `raise ... from e` to link it.
 
-### `history(err, classifiers=()) → tuple[ChainLink, ...]`
+### `history(err, classifiers=()) -> tuple[ChainLink, ...]`
 
 Walk the full exception cascade into a sequence of links.
 
@@ -103,7 +103,7 @@ except Exception as e:
 - For each link, resolves the domain from the exception's `domain` attribute (if a DomainError), or the first matching classifier, or falls back to `"python"`.
 - Records the `via` tag (ROOT, CAUSE, or CONTEXT) for each link.
 
-### `crossings(err, classifiers=()) → tuple[DomainCrossing, ...]`
+### `crossings(err, classifiers=()) -> tuple[DomainCrossing, ...]`
 
 Identify causation hops where the cascade crossed domains.
 
@@ -133,10 +133,10 @@ except Exception as e:
     for crossing in crossings:
         print(
             f"{crossing.cause.type_name} ({crossing.cause.domain}) "
-            f"→ {crossing.effect.type_name} ({crossing.effect.domain})"
+            f"-> {crossing.effect.type_name} ({crossing.effect.domain})"
         )
         # Output:
-        # TimeoutError (python) → APITimeoutError (api)
+        # TimeoutError (python) -> APITimeoutError (api)
 ```
 
 **Behavior:**
@@ -172,7 +172,7 @@ class ChainLink:
 ```
 
 **Methods:**
-- `to_log_extra() → dict[str, object]`: Convert to a JSON-ready dict for logger `extra` parameter.
+- `to_log_extra() -> dict[str, object]`: Convert to a JSON-ready dict for logger `extra` parameter.
 
 ### `DomainCrossing`
 
@@ -186,7 +186,7 @@ class DomainCrossing:
 ```
 
 **Methods:**
-- `to_log_extra() → dict[str, object]`: Convert to a JSON-ready dict for logger `extra` parameter.
+- `to_log_extra() -> dict[str, object]`: Convert to a JSON-ready dict for logger `extra` parameter.
 
 ### `DomainClassifier` (Protocol)
 
@@ -382,7 +382,7 @@ def handle_request(request):
 
 - **Cycle detection:** If the same exception object appears twice in the chain, the walk stops to prevent infinite loops.
 - **Context preservation:** Each DomainError's context is preserved as-is in its link; no context merging or flattening.
-- **Domain resolution cascade:** For each exception, domains are resolved in order: classvar → first matching classifier → fallback to `"python"`.
+- **Domain resolution cascade:** For each exception, domains are resolved in order: classvar -> first matching classifier -> fallback to `"python"`.
 - **Immutable logging:** `LinkLogExtra` and `CrossingLogExtra` are frozen dataclasses, suitable for JSON serialization and immutable audit trails.
 
 ## See Also

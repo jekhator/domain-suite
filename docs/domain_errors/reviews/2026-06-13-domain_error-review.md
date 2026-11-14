@@ -10,7 +10,7 @@
 
 **Correctness: sound.**
 
-DomainError declares six classvars (code, domain, http_status, default_message, retryable) with sensible const-sourced defaults from domains/constants/domain_error.py. Subclasses override these classvars to define their specific behavior. The contract is clear: each error type declares what it means (code, domain), how it maps to HTTP (http_status), what to say if no message is provided (default_message), and whether retries are safe (retryable). This is the canonical typed-error pattern.
+DomainError declares six classvars (code, domain, http_status, default_message, retryable) with sensible const-sourced defaults from domains/constants/domain_error.py. Subclasses override these classvars to define their specific behavior. The contract is clear: each error type declares what it means (code, domain), how it maps to HTTP (http_status), what to say if no message is provided (default_message), and whether retries are safe (retryable). This is the standard typed-error pattern.
 
 ### Message and Context Storage
 

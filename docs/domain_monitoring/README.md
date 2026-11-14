@@ -6,49 +6,50 @@ Event monitoring and telemetry for cross-cutting concerns.
 
 `domain-monitoring` provides:
 
-- **Event registry**: Central registry for domain events
-- **Metric collection**: Track events with outcomes and latency
-- **Pluggable sinks**: Output metrics to external systems (CloudWatch, Prometheus, etc.)
-- **Decorator-based**: Apply monitoring with `@monitored` decorator
+- **Metric events**: Each monitored call emits one `MetricEvent` with its outcome, duration and labels
+- **Pluggable sinks**: Any object with an `emit(event)` method can receive events
+- **Decorator-based**: Apply monitoring with the `@monitored` decorator, to functions, methods, or whole classes
+- **Failure-safe recording**: A failing sink never replaces the exception raised by the monitored call
 
 ## Quick Start
 
 ```python
-from domain_monitoring import monitored, MonitorRegistry
+from domain_monitoring import monitored
 
-registry = MonitorRegistry()
-
-# Apply monitoring to functions
+# Apply monitoring to a function; with no sink bound it emits to the null sink
 @monitored(event="document.created")
 def create_document(title: str):
     return {"id": "doc_123", "title": title}
+```
 
-# The decorator automatically tracks:
-# - Success/failure outcomes
-# - Latency (milliseconds)
-# - Event name and metadata
+Bind a sink once for every unbound `@monitored` declaration:
+
+```python
+from domain_monitoring import CollectingSink, MonitorRegistry
+
+MonitorRegistry.set_default_sink(CollectingSink())
 ```
 
 ## Public API
 
-- **`monitored`**: Decorator to track function execution as domain events
-- **`MonitorRegistry`**: Central registry for metrics and sinks
-- **`MetricEvent`**: Domain event with metadata (name, outcome, latency, etc.)
-- **`MetricSink`**: Abstract sink interface for outputting metrics
-- **`CollectingSink`**: In-memory collector for testing
+- **`monitored`**: Decorator that emits a metric event for each call
+- **`MonitorRegistry`**: Global registry for the default sink
+- **`MetricEvent`**: Immutable event with `event`, `outcome`, `duration_ms`, `occurred_at` and `labels`
+- **`MetricSink`**: Protocol for sinks (`emit(event) -> None`)
+- **`CloudWatchMetricSink`**: Sink that writes events to CloudWatch (needs the `cloudwatch` extra)
+- **`CollectingSink`**: In-memory collector for tests and development
 - **`NullSink`**: No-op sink (default)
-- **`Outcome`**: Success/failure/error outcome enum
+- **`Outcome`**: `SUCCESS` or `FAILURE`
 - Monitoring error classes: `MonitoringError`, `MonitoringDeclarationError`
 
 ## Features
 
 ### Per-Feature Documentation
 
-Detailed documentation for event monitoring:
-
+- **[architecture/flow-trace.md](architecture/flow-trace.md)**: Flow and runtime behaviour
 - **[CHANGELOG-history.md](CHANGELOG-history.md)**: Version history before domain-suite consolidation
 
-### Security & Code Quality
+### Audits and Reviews
 
 - **Security audits**: [audits/](audits/)
 - **Code reviews**: [reviews/](reviews/)
@@ -58,57 +59,72 @@ Detailed documentation for event monitoring:
 ### Basic Event Tracking
 
 ```python
-from domain_monitoring import monitored, MonitorRegistry, CollectingSink
+from domain_monitoring import CollectingSink, monitored
 
-registry = MonitorRegistry()
 sink = CollectingSink()
-registry.set_default_sink(sink)
 
-@monitored(event="user.signup")
+@monitored(event="user.signup", sink=sink)
 def signup_user(email: str):
     return {"user_id": "usr_123"}
 
-# Call the function
 signup_user("user@example.com")
 
-# Inspect events
 for event in sink.events:
-    print(f"Event: {event.event_name}, Outcome: {event.outcome}, Latency: {event.latency_ms}ms")
+    print(event.event, event.outcome, round(event.duration_ms, 0) >= 0)
 ```
 
-### Custom Metrics
+**Output (Python 3.12, domain-suite==0.7.0):**
+```
+user.signup success True
+```
+
+### Labels From the Result
+
+`labels_from_result` and `labels_from_exc` return `(key, value)` pairs that are
+added to the event. Correlation labels from the ambient correlation id are added
+automatically; labels supplied by the callback take precedence.
 
 ```python
-from domain_monitoring import MonitorRegistry, MetricEvent, Outcome
+from domain_monitoring import CollectingSink, monitored
 
-registry = MonitorRegistry()
+sink = CollectingSink()
 
-# Manually emit events (lower-level API)
-event = MetricEvent(
-    event_name="document.processed",
-    outcome=Outcome.SUCCESS,
-    latency_ms=125,
-    context={"doc_id": "doc_123", "pages": 50}
+def status_labels(result: object) -> tuple[tuple[str, str], ...]:
+    if isinstance(result, dict):
+        return (("status", str(result["status"])),)
+    return ()
+
+@monitored("document.process", sink=sink, labels_from_result=status_labels)
+def process(doc_id: str) -> dict[str, str]:
+    return {"status": "completed"}
+
+process("doc_1")
+print(sink.events[0].labels)
+```
+
+### Recording Events Directly
+
+```python
+from domain_monitoring import CollectingSink, MetricEvent
+
+sink = CollectingSink()
+event = MetricEvent.for_success(
+    "document.processed",
+    125.0,
+    "2026-10-18T12:00:00+00:00",
+    (("pages", "50"),),
 )
-registry.log_event(event)
+sink.emit(event)
+print(sink.events[0].labels)
 ```
 
 ## Integration with domain-aspects
 
-Use the `@Logged` aspect for composable event logging:
-
-```python
-from domain_aspects import aspects, Logged
-
-@aspects(
-    Logged(event="document.created"),
-)
-def create_document(title: str):
-    pass
-```
+The `Monitored` aspect applies the same behaviour inside `@aspects(...)` and
+accepts the same `labels_from_result` and `labels_from_exc` callbacks.
 
 ## Next Steps
 
 - Read the [main domain-suite README](../../README.md) for installation and examples
-- Check [CHANGELOG-history.md](CHANGELOG-history.md) for version history before consolidation
-- Explore event sink implementations for your observability platform
+- Explore [architecture/flow-trace.md](architecture/flow-trace.md) for the runtime sequence
+- Implement a sink for your metrics backend with an `emit(event)` method

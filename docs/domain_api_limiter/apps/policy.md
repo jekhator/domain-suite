@@ -109,7 +109,7 @@ class RateLimit:
     period: Period
 
     @classmethod
-    def from_rate(cls, rate: str) -> RateLimit:
+    def from_rate(cls, rate: str) -> Self:
         """Parse an N/period rate string into a RateLimit."""
 
     @property

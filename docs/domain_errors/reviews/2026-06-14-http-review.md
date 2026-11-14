@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-14  
 **Feature:** http (domains/http)  
-**Scope:** HTTP-client exception classification by origin, frozenset-based library matching, module-name dispatch
+**Scope:** HTTP-client exception classification by origin, frozenset-based library matching, module-name handling
 
 ## Findings
 

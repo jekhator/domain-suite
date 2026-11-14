@@ -197,7 +197,7 @@ The error module defines a typed hierarchy for rate-limit failures, built on the
 2. **No instance attribute reassignment:** Class definitions show only class-level constants (domain, code, http_status, retryable, default_message). No `__init__` that sets mutable fields.
 
 3. **Context passed to constructor is stored, not modified** (test_api_limiter_errors.py:46-49)
-   - Context dict from `DomainError.context` is the canonical storage; error module does not expose a setter.
+   - Context dict from `DomainError.context` is the standard storage; error module does not expose a setter.
 
 4. **Test confirms immutability behavior** (indirectly, via lack of mutation tests and no instance state tests).
 
