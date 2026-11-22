@@ -12,13 +12,13 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
 
 ```
 ① CONSTRUCT Aspect Entries [FROZEN,slots each]
-   Logged(event="fetch.user")  ← from mixin_logging
+   Logged(event="fetch.user")  ← from logging_suite.logging
    Requires(permission="data:read")  ← from monitoring_suite.security
    TenantScoped(param_name="tenant_id")  ← from monitoring_suite.security
    Throttled(scope="api:fetch", rate="100/hour", tiers=())  ← from monitoring_suite.api_limiter
    Monitored(event="fetch", sink=None)  ← from monitoring_suite.monitoring
    WrapErrors(as_=ValidationError, catch=(Exception,))  ← from monitoring_suite.errors
-   Sensitive()  ← from mixin_sensitivity
+   Sensitive()  ← from logging_suite.sensitivity
 
    AspectKind ← StrEnum: LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, SENSITIVE
 
@@ -57,7 +57,7 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
    ├─ WRAP_ERRORS innermost  ← wraps original target
    │  └─ @wrap_errors(as_=ValidationError, catch=(Exception,))
    ├─ SENSITIVE
-   │  └─ @sensitive  ← from mixin_sensitivity
+   │  └─ @sensitive  ← from logging_suite.sensitivity
    ├─ MONITORED
    │  └─ @monitored(event="...", sink=...)  ← MetricSink.emit() on success/failure
    ├─ THROTTLED
@@ -66,7 +66,7 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
    │  └─ @tenant_scoped(param_name="tenant_id")  ← from monitoring_suite.security
    ├─ REQUIRES
    │  └─ @requires(permission="...")  ← AuthzError if denied
-   └─ LOGGED outermost  ← @logged(event="...")  ← from mixin_logging
+   └─ LOGGED outermost  ← @logged(event="...")  ← from logging_suite.logging
 
 ④ RUNTIME CALL ──▶ decorated_function(...)
    Flow executes outer-to-inner (LOGGED outermost first):
@@ -91,7 +91,7 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
 
 ⑤ EXAMPLE BUILD (per entry)
    Logged(event="export.run").build()
-      └─ from mixin_logging import logged  ──▶ return logged(event)
+      └─ from logging_suite.logging import logged  ──▶ return logged(event)
    Requires(permission="data:export").build()
       └─ from monitoring_suite.security.decorators.requires import requires  ──▶ return requires(permission)
    WrapErrors(as_=ValidationError).build()

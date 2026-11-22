@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from mixin_retry import RetryPolicy
+from logging_suite.retry import RetryPolicy
 
 from monitoring_suite.aspects.services.aspects import aspects_objects as objs
 from monitoring_suite.aspects.services.aspects.aspects_client import Aspects

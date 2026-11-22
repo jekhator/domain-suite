@@ -8,7 +8,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from mixin_retry import RetryPolicy
+    from logging_suite.retry import RetryPolicy
 
 RETRIED_MARKER = "__retried_applied__"
 
@@ -23,7 +23,7 @@ class _RetriedBuilders:
         policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
     ) -> Callable:
         """Build retry wrapper for a single callable with optional dynamic policy."""
-        from mixin_retry import RetryExecutor
+        from logging_suite.retry import RetryExecutor
 
         executor = RetryExecutor()
 

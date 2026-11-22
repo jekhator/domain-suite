@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from mixin_logging import LoggingMixin
-from mixin_retry import RetryPolicy
+from logging_suite.logging import LoggingMixin
+from logging_suite.retry import RetryPolicy
 
 from monitoring_suite.aspects.services.aspects import aspects_objects as objs
 
@@ -238,7 +238,7 @@ class TestSyncExtractionFailures:
 class TestLoggedWithMixinInstance:
     """Test Logged aspect on LoggingMixin instances for logger.log_* paths."""
 
-    def test_logged_sync_with_mixin_instance(self) -> None:
+    def test_logged_sync_with_logging_instance(self) -> None:
         """Logged sync on mixin instance calls logger.log_info (lines 372, 390, 409)."""
 
         service = LoggingMixin()
@@ -253,7 +253,7 @@ class TestLoggedWithMixinInstance:
         result = wrapped(service, 5)
         assert result == 15
 
-    def test_logged_async_with_mixin_instance(self) -> None:
+    def test_logged_async_with_logging_instance(self) -> None:
         """Logged async on mixin instance calls logger.log_info."""
 
         service = LoggingMixin()
@@ -273,7 +273,7 @@ class TestLoggedWithMixinInstance:
 
         asyncio.run(run())
 
-    def test_logged_sync_mixin_error_path_logger_error(self) -> None:
+    def test_logged_sync_logging_error_path_logger_error(self) -> None:
         """Logged sync mixin error path calls logger.log_error (line 409)."""
 
         service = LoggingMixin()
@@ -289,7 +289,7 @@ class TestLoggedWithMixinInstance:
         with pytest.raises(ValueError):
             wrapped(service, 5)
 
-    def test_logged_async_mixin_error_path_logger_error(self) -> None:
+    def test_logged_async_logging_error_path_logger_error(self) -> None:
         """Logged async mixin error path calls logger.log_error (line 346)."""
 
         service = LoggingMixin()

@@ -41,7 +41,7 @@ AspectDeclarationError is raised for validation failures at decoration time, pre
 
 ### Multi-Target Support
 
-Aspects decorator is target-polymorphic: works on functions and classes. Underlying suite decorators (logging-mixin, monitoring_suite.security, monitoring_suite.api_limiter, mixin-sensitivity, monitoring_suite.errors) all support both, so no special fan-out logic needed.
+Aspects decorator is target-polymorphic: works on functions and classes. Underlying suite decorators (logging-mixin, monitoring_suite.security, monitoring_suite.api_limiter, logging-suite, monitoring_suite.errors) all support both, so no special fan-out logic needed.
 
 ## Conclusion
 

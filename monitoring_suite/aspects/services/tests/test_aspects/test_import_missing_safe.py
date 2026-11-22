@@ -12,17 +12,17 @@ from monitoring_suite.aspects.services.aspects import aspects_objects as objs
 class TestImportMissingSafe:
     """Test lazy-import ImportError paths with safe monkeypatch (no __import__ leak)."""
 
-    def test_logged_build_missing_mixin_logging(self, monkeypatch) -> None:
-        """Logged decorator raises when applying to function with mixin_logging missing."""
+    def test_logged_build_missing_logging_suite_logging(self, monkeypatch) -> None:
+        """Logged decorator raises when applying to function with logging_suite.logging missing."""
         entry = objs.Logged(event="test")
         decorator = entry.build()
 
-        monkeypatch.setitem(sys.modules, "mixin_logging", None)
+        monkeypatch.setitem(sys.modules, "logging_suite.logging", None)
 
         def op() -> int:
             return 42
 
-        with pytest.raises(ModuleNotFoundError, match="mixin_logging"):
+        with pytest.raises(ModuleNotFoundError, match="logging_suite.logging"):
             decorator(op)
 
     def test_requires_build_missing_security(self, monkeypatch) -> None:
@@ -101,9 +101,9 @@ class TestImportMissingSafe:
         ):
             entry.build()
 
-    def test_retried_build_missing_mixin_retry(self, monkeypatch) -> None:
-        """Retried decorator raises when applying with mixin_retry missing."""
-        from mixin_retry import RetryPolicy
+    def test_retried_build_missing_logging_suite_retry(self, monkeypatch) -> None:
+        """Retried decorator raises when applying with logging_suite.retry missing."""
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=2,
@@ -115,10 +115,10 @@ class TestImportMissingSafe:
         entry = objs.Retried(policy=policy)
         decorator = entry.build()
 
-        monkeypatch.setitem(sys.modules, "mixin_retry", None)
+        monkeypatch.setitem(sys.modules, "logging_suite.retry", None)
 
         def op() -> int:
             return 42
 
-        with pytest.raises(ModuleNotFoundError, match="mixin_retry"):
+        with pytest.raises(ModuleNotFoundError, match="logging_suite.retry"):
             decorator(op)

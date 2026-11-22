@@ -31,8 +31,8 @@ uv add monitoring-suite
 uv add "monitoring-suite[all]"
 
 # Or select extras
-uv add "monitoring-suite[logging]"    # for mixin-logging support
-uv add "monitoring-suite[sensitivity]" # for mixin-sensitivity support
+uv add "monitoring-suite[logging]"    # for logging-suite support
+uv add "monitoring-suite[sensitivity]" # for logging-suite support
 ```
 
 or with pip:
@@ -182,7 +182,7 @@ Composable decorators for logging, auth, throttling, error wrapping, and sensiti
 ```python
 from monitoring_suite.aspects import aspects, Logged, Throttled
 from monitoring_suite.security import Principal, SecurityContextManager
-from mixin_logging import LoggingMixin
+from logging_suite.logging import LoggingMixin
 
 class DocumentService(LoggingMixin):
     @aspects(
@@ -215,11 +215,11 @@ Each package retains its original public API and namespace. Internal dependencie
 
 ## Optional Extras
 
-- **`[logging]`**: Integrates with `mixin-suite>=0.5.0` for structured event logging adapters.
-- **`[sensitivity]`**: Integrates with `mixin-suite>=0.5.0` for automatic PII/PHI field masking.
-- **`[all]`**: Includes both mixin-suite packages.
+- **`[logging]`**: Integrates with `logging-suite>=0.7.0` for structured event logging adapters.
+- **`[sensitivity]`**: Integrates with `logging-suite>=0.7.0` for automatic PII/PHI field masking.
+- **`[all]`**: Includes logging-suite and boto3.
 
-Future versions may introduce new extras or migrate integrations (e.g., `mixin-suite` packages if they consolidate similarly).
+Future versions may introduce new extras or migrate integrations (e.g., if logging-suite consolidates further).
 
 ## Development
 

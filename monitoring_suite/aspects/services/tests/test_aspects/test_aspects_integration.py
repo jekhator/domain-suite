@@ -40,7 +40,7 @@ class TestRealDepsIntegration:
 
     def test_logged_real_sig(self) -> None:
         """Logged calls logged(event) correctly via lazy import."""
-        from mixin_logging import LoggingMixin
+        from logging_suite.logging import LoggingMixin
 
         @aspects(objs.Logged(event="test.event"))
         @dataclass(frozen=True, slots=True)
@@ -67,7 +67,7 @@ class TestRealDepsIntegration:
 
     def test_compose_multiple_aspects_no_conflict(self) -> None:
         """Multiple aspects (WrapErrors, Logged, Throttled) compose without conflict."""
-        from mixin_logging import LoggingMixin
+        from logging_suite.logging import LoggingMixin
 
         from monitoring_suite.errors import DomainError
 
@@ -160,7 +160,7 @@ class TestRealDepsIntegration:
 
     def test_monitored_with_logged_composition(self) -> None:
         """Monitored and Logged compose together without conflict."""
-        from mixin_logging import LoggingMixin
+        from logging_suite.logging import LoggingMixin
 
         @aspects(
             objs.Logged(event="test.event"),
@@ -270,7 +270,7 @@ class TestRealDepsIntegration:
         WrapErrors sits outside and would convert final exception to DomainError if
         retries exhausted.
         """
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         from monitoring_suite.errors import DomainError
 
@@ -308,7 +308,7 @@ class TestRealDepsIntegration:
 
     def test_stacked_retried_wrap_errors_exhaustion(self) -> None:
         """Stacked Retried+WrapErrors: retries exhausted -> ValueError wrapped to DomainError."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         from monitoring_suite.errors import DomainError
 
@@ -346,8 +346,8 @@ class TestRealDepsIntegration:
         """Stacked Logged+Retried on async class method."""
         import asyncio
 
-        from mixin_logging import LoggingMixin
-        from mixin_retry import RetryPolicy
+        from logging_suite.logging import LoggingMixin
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=3,
@@ -396,7 +396,7 @@ class TestRealDepsIntegration:
 
     def test_logged_class_skips_privates_properties_nested(self) -> None:
         """Logged on class: skips _-prefixed methods, properties, nested classes."""
-        from mixin_logging import LoggingMixin
+        from logging_suite.logging import LoggingMixin
 
         @aspects(objs.Logged(event="test.skips"))
         class Service(LoggingMixin):
@@ -439,7 +439,7 @@ class TestRealDepsIntegration:
 
     def test_retried_class_skips_privates_properties_nested(self) -> None:
         """Retried on class: skips _-prefixed methods, properties, nested classes."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=1,
@@ -475,7 +475,7 @@ class TestRealDepsIntegration:
 
     def test_retried_class_preserves_classmethod_staticmethod(self) -> None:
         """Retried on class: preserves classmethod/staticmethod wrappers."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=1,
@@ -501,7 +501,7 @@ class TestRealDepsIntegration:
 
     def test_logged_skips_already_marked_methods(self) -> None:
         """Logged on class: skips methods already marked with LOGGED_MARKER."""
-        from mixin_logging import LoggingMixin
+        from logging_suite.logging import LoggingMixin
 
         @aspects(objs.Logged(event="test.second"))
         @aspects(objs.Logged(event="test.first"))
@@ -515,7 +515,7 @@ class TestRealDepsIntegration:
 
     def test_retried_skips_already_marked_methods(self) -> None:
         """Retried on class: skips methods already marked with RETRIED_MARKER."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=1,
