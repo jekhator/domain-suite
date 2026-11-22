@@ -17,14 +17,14 @@ jobs:
           echo "Checking that audit and review documentation exists..."
 
           # Monorepo has five packages with per-package documentation
-          PACKAGES=("domain_errors" "domain_security" "domain_api_limiter" "domain_monitoring" "domain_aspects")
+          PACKAGES=("errors" "security" "api_limiter" "monitoring" "aspects")
           TOTAL_AUDITS=0
           TOTAL_REVIEWS=0
           MISSING_DOCS=""
 
           for pkg in "${PACKAGES[@]}"; do
-            AUDITS_DIR="docs/$pkg/audits"
-            REVIEWS_DIR="docs/$pkg/reviews"
+            AUDITS_DIR="docs/monitoring_suite/$pkg/audits"
+            REVIEWS_DIR="docs/monitoring_suite/$pkg/reviews"
 
             # Check that docs/<pkg>/audits/ has at least one .md file
             AUDIT_COUNT=$(find "$AUDITS_DIR" -type f -name "*.md" 2>/dev/null | wc -l)

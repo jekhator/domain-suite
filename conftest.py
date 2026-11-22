@@ -6,8 +6,10 @@ from collections.abc import Generator
 
 import pytest
 
-from domain_monitoring.services.registry.registry_client import MonitorRegistry
-from domain_security.context.security_context.security_context_client import (
+from monitoring_suite.monitoring.services.registry.registry_client import (
+    MonitorRegistry,
+)
+from monitoring_suite.security.context.security_context.security_context_client import (
     SecurityContextManager,
 )
 

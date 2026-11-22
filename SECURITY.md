@@ -2,7 +2,7 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in domain-suite, please report it privately using GitHub's security vulnerability reporting feature.
+If you discover a security vulnerability in monitoring-suite, please report it privately using GitHub's security vulnerability reporting feature.
 
 ### How to Report
 

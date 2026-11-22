@@ -29,21 +29,21 @@ jobs:
         run: uv python install 3.12
       - name: Run strict-module
         run: |
-          echo "=== strict-module: domain_errors ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_errors/ --format github && \
-          echo "=== strict-module: domain_security ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_security/ --format github && \
-          echo "=== strict-module: domain_api_limiter ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_api_limiter/ --format github && \
-          echo "=== strict-module: domain_monitoring ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_monitoring/ --format github && \
-          echo "=== strict-module: domain_aspects ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_aspects/ --format github && \
-          echo "=== strict-module: domain_rag ===" && \
-          uvx --python 3.12 --from strict-suite==0.4.0 strict-module domain_rag/ --format github
+          echo "=== strict-module: monitoring_suite.errors ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/errors/ --format github && \
+          echo "=== strict-module: monitoring_suite.security ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/security/ --format github && \
+          echo "=== strict-module: monitoring_suite.api_limiter ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/api_limiter/ --format github && \
+          echo "=== strict-module: monitoring_suite.monitoring ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/monitoring/ --format github && \
+          echo "=== strict-module: monitoring_suite.aspects ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/aspects/ --format github && \
+          echo "=== strict-module: monitoring_suite.rag ===" && \
+          uvx --python 3.12 --from strict-suite==0.4.0 strict-module monitoring_suite/rag/ --format github
       - name: Check LOC cap
         run: |
-          for dir in domain_errors domain_security domain_api_limiter domain_monitoring domain_aspects domain_rag; do
+          for dir in monitoring_suite/errors monitoring_suite/security monitoring_suite/api_limiter monitoring_suite/monitoring monitoring_suite/aspects monitoring_suite/rag; do
             echo "=== loc-cap: $dir ===" && \
             uvx --python 3.12 --from strict-suite==0.4.0 strict-module loc-cap "$dir"
           done
