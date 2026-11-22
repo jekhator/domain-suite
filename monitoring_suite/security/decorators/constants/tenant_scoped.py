@@ -18,3 +18,9 @@ ERR_TENANT_SCOPED_PARAM_MISSING: Final[str] = "tenant parameter missing from cal
 """Decorator declaration validation messages."""
 
 ERR_TENANT_SCOPED_MISSING_PARAM: Final[str] = "Method lacks required tenant parameter at class-level decoration."
+
+
+"""Decorator markers and member-name conventions."""
+
+TENANT_SCOPED_DECORATED_MARKER: Final[str] = "__tenant_scoped_decorated__"
+PRIVATE_PREFIX: Final[str] = "_"

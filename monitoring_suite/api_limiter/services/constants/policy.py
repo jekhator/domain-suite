@@ -26,3 +26,22 @@ SECONDS_PER_SECOND: Final[int] = 1
 SECONDS_PER_MINUTE: Final[int] = 60
 SECONDS_PER_HOUR: Final[int] = 3600
 SECONDS_PER_DAY: Final[int] = 86400
+
+
+"""Separators and format pieces."""
+
+SCOPE_SEPARATOR: Final[str] = ":"
+RATE_SEPARATOR: Final[str] = "/"
+
+
+"""Decorator markers and member-name conventions."""
+
+PRIVATE_PREFIX: Final[str] = "_"
+
+
+"""Enumeration member values."""
+
+PERIOD_SECOND: Final[str] = "second"
+PERIOD_MINUTE: Final[str] = "minute"
+PERIOD_HOUR: Final[str] = "hour"
+PERIOD_DAY: Final[str] = "day"

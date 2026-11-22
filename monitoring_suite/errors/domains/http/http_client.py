@@ -10,7 +10,7 @@ class HttpClassifier:
 
     def classify(self, err: BaseException) -> str | None:
         """Return const.HTTP when err originates in an HTTP-client library, else None."""
-        if type(err).__module__.split(".")[0] in const.HTTP_LIBRARIES:
+        if type(err).__module__.split(const.MODULE_SEPARATOR)[0] in const.HTTP_LIBRARIES:
             return const.HTTP
         return None
 

@@ -3,21 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TypedDict
 
 from monitoring_suite.monitoring.errors.constants import monitoring as const
 from monitoring_suite.monitoring.services.constants import metrics as metrics_const
 from monitoring_suite.monitoring.services.metrics import metrics_objects as objs
-
-
-class _MetricDatapoint(TypedDict, total=False):
-    """Metric data point for AWS CloudWatch put_metric_data API."""
-
-    MetricName: str
-    Value: float
-    Unit: str
-    Timestamp: datetime
-    Dimensions: list[dict[str, str]]
 
 
 class CloudWatchMetricSink:
@@ -37,7 +26,7 @@ class CloudWatchMetricSink:
             raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
 
         self.namespace = namespace
-        self._cloudwatch = boto3.client("cloudwatch")
+        self._cloudwatch = boto3.client(metrics_const.CLOUDWATCH_SERVICE_NAME)
 
     def emit(self, event: objs.MetricEvent) -> None:
         """
@@ -49,9 +38,11 @@ class CloudWatchMetricSink:
         """
         timestamp = datetime.fromisoformat(event.occurred_at)
         dimensions = self._build_dimensions(event)
-        metric_point: _MetricDatapoint = {
-            "MetricName": event.event, "Value": event.duration_ms,
-            "Unit": metrics_const.CLOUDWATCH_METRIC_UNIT, "Timestamp": timestamp, "Dimensions": dimensions
+        metric_point: metrics_const.MetricDatapoint = {
+            metrics_const.CLOUDWATCH_KEY_METRIC_NAME: event.event,
+            metrics_const.CLOUDWATCH_KEY_VALUE: event.duration_ms,
+            metrics_const.CLOUDWATCH_KEY_UNIT: metrics_const.CLOUDWATCH_METRIC_UNIT,
+            metrics_const.CLOUDWATCH_KEY_TIMESTAMP: timestamp, metrics_const.CLOUDWATCH_KEY_DIMENSIONS: dimensions
         }
         self._cloudwatch.put_metric_data(Namespace=self.namespace, MetricData=[metric_point])
 
@@ -68,10 +59,15 @@ class CloudWatchMetricSink:
             List of dimension dicts for CloudWatch.
         """
         dimensions: list[dict[str, str]] = [
-            {"Name": metrics_const.CLOUDWATCH_DIMENSION_OUTCOME, "Value": event.outcome.value}
+            {
+                metrics_const.CLOUDWATCH_KEY_NAME: metrics_const.CLOUDWATCH_DIMENSION_OUTCOME,
+                metrics_const.CLOUDWATCH_KEY_VALUE: event.outcome.value
+            }
         ]
 
         for label_key, label_value in event.labels:
-            dimensions.append({"Name": label_key, "Value": label_value})
+            dimensions.append(
+                {metrics_const.CLOUDWATCH_KEY_NAME: label_key, metrics_const.CLOUDWATCH_KEY_VALUE: label_value}
+            )
 
         return dimensions

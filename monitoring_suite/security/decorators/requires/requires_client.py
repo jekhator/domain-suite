@@ -9,10 +9,11 @@ from typing import Any
 
 from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
 from monitoring_suite.security.context.security_context.security_context_objects import SecurityContext
+from monitoring_suite.security.decorators.constants import requires as const
 from monitoring_suite.security.services.authz.authz_client import Authorizer
 from monitoring_suite.security.services.authz.authz_objects import Permission
 
-_REQUIRES_DECORATED_MARKER = "__requires_decorated__"
+_REQUIRES_DECORATED_MARKER = const.REQUIRES_DECORATED_MARKER
 
 
 class Requires:
@@ -58,7 +59,7 @@ class Requires:
     @staticmethod
     def _should_decorate(name: str, member: Any) -> bool:
         """Check if an object should be decorated."""
-        if name.startswith("_") or inspect.isbuiltin(member):
+        if name.startswith(const.PRIVATE_PREFIX) or inspect.isbuiltin(member):
             return False
         if isinstance(member, property):
             return False

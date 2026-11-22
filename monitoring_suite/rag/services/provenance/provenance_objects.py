@@ -12,8 +12,8 @@ from monitoring_suite.rag.services.constants import provenance as const
 class ProvenanceOutcome(StrEnum):
     """Retrieval provenance outcome enumeration."""
 
-    SUCCESS = "success"
-    FAILURE = "failure"
+    SUCCESS = const.OUTCOME_SUCCESS
+    FAILURE = const.OUTCOME_FAILURE
 
 
 @dataclass(frozen=True, slots=True)

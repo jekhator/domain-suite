@@ -12,8 +12,8 @@ from monitoring_suite.monitoring.services.constants import metrics as const
 class Outcome(StrEnum):
     """Metric outcome enumeration."""
 
-    SUCCESS = "success"
-    FAILURE = "failure"
+    SUCCESS = const.OUTCOME_SUCCESS
+    FAILURE = const.OUTCOME_FAILURE
 
 
 @dataclass(frozen=True, slots=True)

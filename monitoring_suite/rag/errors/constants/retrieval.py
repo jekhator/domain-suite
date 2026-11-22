@@ -13,3 +13,9 @@ ERR_RETRIEVAL_INVALID_TARGET: Final[str] = "Invalid retrieval target: must be a 
 """Empty class decoration."""
 
 ERR_RETRIEVAL_EMPTY_CLASS: Final[str] = "Cannot trace class with no public methods"
+
+
+"""Error class contract values: domain, codes and HTTP statuses."""
+
+DOMAIN_RETRIEVAL: Final[str] = "retrieval"
+HTTP_STATUS_INTERNAL_SERVER_ERROR: Final[int] = 500

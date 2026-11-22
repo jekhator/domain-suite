@@ -74,7 +74,7 @@ class Aspects:
     def _sort(self, entries: list[objs.AspectEntry]) -> list[objs.AspectEntry]:
         """Sort entries by ASPECT_ORDER."""
         order_map = {kind: index for index, kind in enumerate(const.ASPECT_ORDER)}
-        return sorted(entries, key=lambda entry: order_map.get(entry.kind, 999))
+        return sorted(entries, key=lambda entry: order_map.get(entry.kind, const.UNKNOWN_KIND_ORDER))
 
 
 aspects: Final = Aspects()

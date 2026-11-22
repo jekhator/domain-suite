@@ -7,10 +7,12 @@ import functools
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
+from monitoring_suite.aspects.services.constants import aspects as const
+
 if TYPE_CHECKING:
     from logging_suite.retry import RetryPolicy
 
-RETRIED_MARKER = "__retried_applied__"
+RETRIED_MARKER = const.RETRIED_MARKER
 
 
 class _RetriedBuilders:
@@ -71,7 +73,7 @@ class _RetriedBuilders:
         - Override: methods already marked with RETRIED_MARKER are left untouched
         """
         for name, method in list(cls.__dict__.items()):
-            if name.startswith("_"):
+            if name.startswith(const.PRIVATE_PREFIX):
                 continue
             if isinstance(method, property):
                 continue

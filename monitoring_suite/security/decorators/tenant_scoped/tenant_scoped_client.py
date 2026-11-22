@@ -14,7 +14,7 @@ from monitoring_suite.security.errors.constants import security_errors as errors
 from monitoring_suite.security.errors.security_errors import SecurityDeclarationError, TenancyError
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
 
-_TENANT_SCOPED_DECORATED_MARKER = "__tenant_scoped_decorated__"
+_TENANT_SCOPED_DECORATED_MARKER = const.TENANT_SCOPED_DECORATED_MARKER
 
 
 class TenantScoped:
@@ -62,7 +62,7 @@ class TenantScoped:
     @staticmethod
     def _should_decorate(name: str, member: Any) -> bool:
         """Check if an object should be decorated."""
-        if name.startswith("_") or inspect.isbuiltin(member):
+        if name.startswith(const.PRIVATE_PREFIX) or inspect.isbuiltin(member):
             return False
         if isinstance(member, property):
             return False

@@ -9,6 +9,7 @@ from typing import Any, Optional, cast
 
 from monitoring_suite.rag.errors.constants import retrieval as const
 from monitoring_suite.rag.errors.retrieval_errors import RetrievalDeclarationError
+from monitoring_suite.rag.services.constants import provenance as provenance_const
 from monitoring_suite.rag.services.provenance.provenance_client import ProvenanceSink
 from monitoring_suite.rag.services.provenance.provenance_objects import RetrievalProvenance
 from monitoring_suite.rag.services.registry.registry_client import ProvenanceRegistry
@@ -56,8 +57,8 @@ class TracedRetrievalClient:
             start_time = datetime.now(timezone.utc)
             actual_sink = sink or ProvenanceRegistry.get_default_sink()
 
-            if "query" in kwargs:
-                query_str = str(kwargs["query"])
+            if provenance_const.KWARG_QUERY in kwargs:
+                query_str = str(kwargs[provenance_const.KWARG_QUERY])
             elif len(args) > 1:
                 query_str = str(args[1])
             elif len(args) > 0:
@@ -68,13 +69,13 @@ class TracedRetrievalClient:
             try:
                 result = function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * provenance_const.MILLISECONDS_PER_SECOND
 
                 chunk_ids = ()
                 source_document_ids = ()
                 if isinstance(result, dict):
-                    chunk_ids = tuple(result.get("chunk_ids", []))
-                    source_document_ids = tuple(result.get("source_document_ids", []))
+                    chunk_ids = tuple(result.get(provenance_const.RESULT_KEY_CHUNK_IDS, []))
+                    source_document_ids = tuple(result.get(provenance_const.RESULT_KEY_SOURCE_DOCUMENT_IDS, []))
                 elif isinstance(result, (list, tuple)):
                     chunk_ids = tuple(result)
 
@@ -87,7 +88,7 @@ class TracedRetrievalClient:
                 return result
             except Exception:
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * provenance_const.MILLISECONDS_PER_SECOND
                 provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
                     query=query_str, principal_id=principal_id, session_id=session_id,
@@ -110,8 +111,8 @@ class TracedRetrievalClient:
             start_time = datetime.now(timezone.utc)
             actual_sink = sink or ProvenanceRegistry.get_default_sink()
 
-            if "query" in kwargs:
-                query_str = str(kwargs["query"])
+            if provenance_const.KWARG_QUERY in kwargs:
+                query_str = str(kwargs[provenance_const.KWARG_QUERY])
             elif len(args) > 1:
                 query_str = str(args[1])
             elif len(args) > 0:
@@ -122,13 +123,13 @@ class TracedRetrievalClient:
             try:
                 result = await function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * provenance_const.MILLISECONDS_PER_SECOND
 
                 chunk_ids = ()
                 source_document_ids = ()
                 if isinstance(result, dict):
-                    chunk_ids = tuple(result.get("chunk_ids", []))
-                    source_document_ids = tuple(result.get("source_document_ids", []))
+                    chunk_ids = tuple(result.get(provenance_const.RESULT_KEY_CHUNK_IDS, []))
+                    source_document_ids = tuple(result.get(provenance_const.RESULT_KEY_SOURCE_DOCUMENT_IDS, []))
                 elif isinstance(result, (list, tuple)):
                     chunk_ids = tuple(result)
 
@@ -141,7 +142,7 @@ class TracedRetrievalClient:
                 return result
             except Exception:
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * provenance_const.MILLISECONDS_PER_SECOND
                 provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
                     query=query_str, principal_id=principal_id, session_id=session_id,
@@ -173,10 +174,10 @@ class TracedRetrievalClient:
         public = []
 
         for name, value in inspect.getmembers(cls):
-            if name.startswith("_"):
+            if name.startswith(provenance_const.PRIVATE_PREFIX):
                 continue
             if inspect.ismethod(value) or inspect.isfunction(value):
-                if not hasattr(cls, "__bases__") or name not in dir(cls.__bases__[0]):
+                if not hasattr(cls, provenance_const.ATTR_BASES) or name not in dir(cls.__bases__[0]):
                     public.append(name)
             elif isinstance(value, classmethod):  # pragma: no cover
                 public.append(name)

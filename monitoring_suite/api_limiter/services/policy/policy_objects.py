@@ -13,10 +13,10 @@ from monitoring_suite.api_limiter.services.constants import policy as const
 class Period(StrEnum):
     """Rate period vocabulary, mirroring framework rate strings."""
 
-    SECOND = "second"
-    MINUTE = "minute"
-    HOUR = "hour"
-    DAY = "day"
+    SECOND = const.PERIOD_SECOND
+    MINUTE = const.PERIOD_MINUTE
+    HOUR = const.PERIOD_HOUR
+    DAY = const.PERIOD_DAY
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,7 +34,7 @@ class RateLimit:
     @classmethod
     def from_rate(cls, rate: str) -> Self:
         """Parse an N/period rate string into a RateLimit."""
-        head, separator, tail = rate.partition("/")
+        head, separator, tail = rate.partition(const.RATE_SEPARATOR)
         if not separator or not head.isdigit():
             raise ThrottleDeclarationError(message=const.ERR_POLICY_RATE_FORMAT, rate=rate)
         try:
@@ -59,7 +59,7 @@ class RateLimit:
 
     def as_rate(self) -> str:
         """Serialize back to the N/period form."""
-        return f"{self.requests}/{self.period.value}"
+        return f"{self.requests}{const.RATE_SEPARATOR}{self.period.value}"
 
 
 @dataclass(frozen=True, slots=True)

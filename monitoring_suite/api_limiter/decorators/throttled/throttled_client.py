@@ -53,7 +53,7 @@ class Throttled:
             if hasattr(method_obj, const.THROTTLE_POLICY_ATTR):
                 continue
 
-            method_scope = f"{root_policy.scope}:{method_name}"
+            method_scope = f"{root_policy.scope}{const.SCOPE_SEPARATOR}{method_name}"
             method_policy = ThrottlePolicy(scope=method_scope, rate=root_policy.rate, tier_rates=root_policy.tier_rates)
             setattr(method_obj, const.THROTTLE_POLICY_ATTR, method_policy)
 
@@ -68,7 +68,7 @@ class Throttled:
         """
         methods = []
         for name, member in cls.__dict__.items():
-            if name.startswith("_"):
+            if name.startswith(const.PRIVATE_PREFIX):
                 continue
 
             if isclass(member):

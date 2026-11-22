@@ -6,13 +6,15 @@ from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Protocol
 
+from monitoring_suite.errors.services.constants import chain as const
+
 
 class ChainVia(StrEnum):
     """How a link entered the chain."""
 
-    ROOT = "root"
-    CAUSE = "cause"
-    CONTEXT = "context"
+    ROOT = const.VIA_ROOT
+    CAUSE = const.VIA_CAUSE
+    CONTEXT = const.VIA_CONTEXT
 
 
 class DomainClassifier(Protocol):

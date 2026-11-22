@@ -22,14 +22,14 @@ if TYPE_CHECKING:
 class AspectKind(StrEnum):
     """Aspect classification kinds."""
 
-    LOGGED = "LOGGED"
-    REQUIRES = "REQUIRES"
-    TENANT_SCOPED = "TENANT_SCOPED"
-    THROTTLED = "THROTTLED"
-    MONITORED = "MONITORED"
-    WRAP_ERRORS = "WRAP_ERRORS"
-    RETRIED = "RETRIED"
-    REQUIRE_MIXINS = "REQUIRE_MIXINS"
+    LOGGED = const.KIND_LOGGED
+    REQUIRES = const.KIND_REQUIRES
+    TENANT_SCOPED = const.KIND_TENANT_SCOPED
+    THROTTLED = const.KIND_THROTTLED
+    MONITORED = const.KIND_MONITORED
+    WRAP_ERRORS = const.KIND_WRAP_ERRORS
+    RETRIED = const.KIND_RETRIED
+    REQUIRE_MIXINS = const.KIND_REQUIRE_MIXINS
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,7 +101,7 @@ class Requires:
 class TenantScoped:
     """Tenant isolation enforcement via monitoring_suite.security."""
 
-    param_name: str = "tenant_id"
+    param_name: str = const.DEFAULT_TENANT_PARAM_NAME
 
     def __post_init__(self) -> None:
         if not self.param_name or not isinstance(self.param_name, str):

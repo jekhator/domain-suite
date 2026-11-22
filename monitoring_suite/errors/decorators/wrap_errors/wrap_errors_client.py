@@ -8,10 +8,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
+from monitoring_suite.errors.decorators.constants import wrap_errors as const
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
 from monitoring_suite.errors.services.chain.chain_client import ErrorChain
 
-WRAP_ERRORS_MARKER = "__wrap_errors_applied__"
+WRAP_ERRORS_MARKER = const.WRAP_ERRORS_MARKER
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,7 +45,7 @@ class WrapErrorsClient:
             return self._decorate_class(target)
         if callable(target):
             return self._decorate_callable(target)
-        message = f"@wrap_errors target must be class or callable, got {type(target).__name__}"
+        message = f"{const.ERR_WRAP_ERRORS_INVALID_TARGET_PREFIX}{type(target).__name__}"
         raise TypeError(message)
 
     def _decorate_callable[**Params, Return](self, function: Callable[Params, Return]) -> Callable[Params, Return]:
@@ -88,7 +89,7 @@ class WrapErrorsClient:
         - Config: catch, as_, message, capture applied uniformly to each method
         """
         for name, method in list(cls.__dict__.items()):
-            if name.startswith("_"):
+            if name.startswith(const.PRIVATE_PREFIX):
                 continue
             if isinstance(method, property):
                 continue
@@ -133,8 +134,8 @@ class WrapErrorsClient:
         bound = inspect.signature(function).bind(*args, **kwargs)
         bound.apply_defaults()
         context = dict(bound.arguments)
-        context.pop("self", None)
-        context.pop("cls", None)
+        context.pop(const.BOUND_SELF_NAME, None)
+        context.pop(const.BOUND_CLS_NAME, None)
         return context
 
 

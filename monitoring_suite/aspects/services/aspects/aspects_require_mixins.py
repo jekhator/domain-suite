@@ -40,7 +40,7 @@ class RequireMixins:
 
             missing = [base for base in required_bases if not issubclass(target, base)]
             if missing:
-                missing_names = ", ".join(base.__name__ for base in missing)
+                missing_names = const.NAME_SEPARATOR.join(base.__name__ for base in missing)
                 raise ValueError(
                     const.ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES.format(
                         class_name=target.__name__, missing_bases=missing_names

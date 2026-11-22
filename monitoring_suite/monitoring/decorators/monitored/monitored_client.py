@@ -11,6 +11,7 @@ from logging_suite.logging import get_correlation_id
 
 from monitoring_suite.monitoring.errors.constants import monitoring as const
 from monitoring_suite.monitoring.errors.monitoring_errors import MonitoringDeclarationError
+from monitoring_suite.monitoring.services.constants import metrics as metrics_const
 from monitoring_suite.monitoring.services.metrics.metrics_client import MetricSink
 from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
 from monitoring_suite.monitoring.services.registry.registry_client import MonitorRegistry
@@ -71,7 +72,7 @@ class MonitoredClient:
             try:
                 result = function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * metrics_const.MILLISECONDS_PER_SECOND
                 labels = labels_from_result(result) if labels_from_result else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
                 occurred_at = end_time.isoformat()
@@ -82,7 +83,7 @@ class MonitoredClient:
                 return result
             except Exception as error:
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * metrics_const.MILLISECONDS_PER_SECOND
                 labels = labels_from_exc(error) if labels_from_exc else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event_occurred_at = end_time.isoformat()
@@ -111,7 +112,7 @@ class MonitoredClient:
             try:
                 result = await function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * metrics_const.MILLISECONDS_PER_SECOND
                 labels = labels_from_result(result) if labels_from_result else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
                 occurred_at = end_time.isoformat()
@@ -122,7 +123,7 @@ class MonitoredClient:
                 return result
             except Exception as error:
                 end_time = datetime.now(timezone.utc)
-                duration_ms = (end_time - start_time).total_seconds() * 1000
+                duration_ms = (end_time - start_time).total_seconds() * metrics_const.MILLISECONDS_PER_SECOND
                 labels = labels_from_exc(error) if labels_from_exc else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
                 metric_event_occurred_at = end_time.isoformat()
@@ -148,7 +149,7 @@ class MonitoredClient:
 
         for method_name in public_methods:
             original_method = getattr(cls, method_name)
-            derived_event = f"{event}.{method_name}"
+            derived_event = f"{event}{metrics_const.EVENT_SEPARATOR}{method_name}"
             monitored_method = MonitoredClient._monitor_callable(
                 original_method, derived_event, sink, labels_from_result, labels_from_exc
             )
@@ -162,10 +163,10 @@ class MonitoredClient:
         public = []
 
         for name, value in inspect.getmembers(cls):
-            if name.startswith("_"):
+            if name.startswith(metrics_const.PRIVATE_PREFIX):
                 continue
             if inspect.ismethod(value) or inspect.isfunction(value):
-                if not hasattr(cls, "__bases__") or name not in dir(cls.__bases__[0]):
+                if not hasattr(cls, metrics_const.ATTR_BASES) or name not in dir(cls.__bases__[0]):
                     public.append(name)
             elif isinstance(value, classmethod):  # pragma: no cover
                 public.append(name)
@@ -187,14 +188,14 @@ class MonitoredClient:
             return labels
 
         label_dict = dict(labels) if labels else {}
-        correlation_label = "correlation_id"
-        domain_correlation_label = "domain_correlation_id"
+        correlation_label = metrics_const.LABEL_CORRELATION_ID
+        domain_correlation_label = metrics_const.LABEL_DOMAIN_CORRELATION_ID
 
         if correlation_label not in label_dict:
             label_dict[correlation_label] = scenario_id
 
         if domain_correlation_label not in label_dict:
-            label_dict[domain_correlation_label] = f"{scenario_id}/monitoring"
+            label_dict[domain_correlation_label] = f"{scenario_id}{metrics_const.DOMAIN_LANE_SUFFIX}"
 
         return tuple(sorted(label_dict.items()))
 

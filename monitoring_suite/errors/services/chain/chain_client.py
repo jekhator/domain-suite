@@ -30,9 +30,9 @@ class ErrorChain:
         while current is not None and id(current) not in seen:
             seen.add(id(current))
             message = str(current)
-            code = getattr(current, "code", None)
+            code = getattr(current, const.ATTR_CODE, None)
             domain = ErrorChain._domain_of(current, classifiers)
-            context = getattr(current, "context", {})
+            context = getattr(current, const.ATTR_CONTEXT, {})
             links.append(
                 objs.ChainLink(
                     type_name=current.__class__.__name__, message=message,
@@ -64,7 +64,7 @@ class ErrorChain:
     @staticmethod
     def _domain_of(error: BaseException, classifiers: tuple[objs.DomainClassifier, ...]) -> str:
         """Resolve an error's domain from its contract or the first matching classifier."""
-        domain = getattr(error, "domain", None)
+        domain = getattr(error, const.ATTR_DOMAIN, None)
         if isinstance(domain, str):
             return domain
         for classifier in classifiers:
