@@ -17,7 +17,9 @@ def principal() -> Principal:  # noqa: R004
 
     Used by: TestTenancyGuard.
     """
-    return Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+    roles: frozenset[str] = frozenset()
+    scopes: frozenset[str] = frozenset()
+    return Principal(id="user:test", roles=roles, scopes=scopes)
 
 
 @pytest.fixture

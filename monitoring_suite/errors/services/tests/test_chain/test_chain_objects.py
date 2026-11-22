@@ -242,8 +242,9 @@ class TestDomainCrossing:
         effect1 = ChainLink("E2", "m2", "c2", "d2", ChainVia.CAUSE)
         crossing1 = DomainCrossing(cause=cause1, effect=effect1)
         crossing2 = DomainCrossing(cause=cause1, effect=effect1)
+        effect = ChainLink("E3", "m3", "c3", "d2", ChainVia.CAUSE)
         crossing3 = DomainCrossing(
-            cause=cause1, effect=ChainLink("E3", "m3", "c3", "d2", ChainVia.CAUSE)
+            cause=cause1, effect=effect
         )
         assert crossing1 == crossing2
         assert crossing1 != crossing3

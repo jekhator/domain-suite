@@ -50,7 +50,8 @@ def tier_rate_premium() -> TierRate:  # noqa: R004
 
     Used by: no test class yet.
     """
-    return TierRate(tier="premium", rate=RateLimit(requests=500, period=Period.HOUR))
+    rate = RateLimit(requests=500, period=Period.HOUR)
+    return TierRate(tier="premium", rate=rate)
 
 
 @pytest.fixture
@@ -60,8 +61,9 @@ def tier_rate_enterprise() -> TierRate:  # noqa: R004
 
     Used by: no test class yet.
     """
+    rate = RateLimit(requests=10000, period=Period.HOUR)
     return TierRate(
-        tier="enterprise", rate=RateLimit(requests=10000, period=Period.HOUR)
+        tier="enterprise", rate=rate
     )
 
 
@@ -72,9 +74,10 @@ def throttle_policy_base() -> ThrottlePolicy:  # noqa: R004
 
     Used by: no test class yet.
     """
+    rate = RateLimit(requests=100, period=Period.HOUR)
     return ThrottlePolicy(
         scope="api.users.list",
-        rate=RateLimit(requests=100, period=Period.HOUR),
+        rate=rate,
     )
 
 
@@ -87,9 +90,10 @@ def throttle_policy_with_tiers(  # noqa: R004
 
     Used by: no test class yet.
     """
+    rate = RateLimit(requests=10, period=Period.HOUR)
     return ThrottlePolicy(
         scope="api.data.export",
-        rate=RateLimit(requests=10, period=Period.HOUR),
+        rate=rate,
         tier_rates=(tier_rate_premium, tier_rate_enterprise),
     )
 

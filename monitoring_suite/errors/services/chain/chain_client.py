@@ -40,14 +40,18 @@ class ErrorChain:
         via = ChainVia.ROOT
         while current is not None and id(current) not in seen:
             seen.add(id(current))
+            message = str(current)
+            code = getattr(current, "code", None)
+            domain = ErrorChain._domain_of(current, classifiers)
+            context = getattr(current, "context", {})
             links.append(
                 ChainLink(
                     type_name=current.__class__.__name__,
-                    message=str(current),
-                    code=getattr(current, "code", None),
-                    domain=ErrorChain._domain_of(current, classifiers),
+                    message=message,
+                    code=code,
+                    domain=domain,
                     via=via,
-                    context=getattr(current, "context", {}),
+                    context=context,
                 )
             )
             if current.__cause__ is not None:

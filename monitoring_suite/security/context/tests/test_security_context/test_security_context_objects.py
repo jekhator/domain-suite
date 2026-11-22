@@ -17,7 +17,9 @@ class TestPrincipal:
 
     def test_principal_frozen(self) -> None:
         """Principal is immutable after construction."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         with pytest.raises(dataclasses.FrozenInstanceError):
             principal.id = "user:other"  # type: ignore[misc]
 
@@ -42,22 +44,26 @@ class TestPrincipal:
 
     def test_principal_equality(self) -> None:
         """Principals with same data are equal."""
+        roles = frozenset(["admin"])
+        scopes = frozenset(["read"])
         p1 = Principal(
             id="user:test",
-            roles=frozenset(["admin"]),
-            scopes=frozenset(["read"]),
+            roles=roles,
+            scopes=scopes,
         )
         p2 = Principal(
             id="user:test",
-            roles=frozenset(["admin"]),
-            scopes=frozenset(["read"]),
+            roles=roles,
+            scopes=scopes,
         )
         assert p1 == p2
 
     def test_principal_inequality(self) -> None:
         """Principals with different data are not equal."""
-        p1 = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
-        p2 = Principal(id="user:other", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        p1 = Principal(id="user:test", roles=roles, scopes=scopes)
+        p2 = Principal(id="user:other", roles=roles, scopes=scopes)
         assert p1 != p2
 
 
@@ -66,14 +72,18 @@ class TestSecurityContext:
 
     def test_security_context_frozen(self) -> None:
         """SecurityContext is immutable after construction."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         context = SecurityContext(principal=principal, tenant_id="tenant:test")
         with pytest.raises(dataclasses.FrozenInstanceError):
             context.tenant_id = "tenant:other"  # type: ignore[misc]
 
     def test_security_context_with_principal_and_tenant(self) -> None:
         """SecurityContext stores principal and tenant_id correctly."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         context = SecurityContext(principal=principal, tenant_id="tenant:acme")
         assert context.principal == principal
         assert context.tenant_id == "tenant:acme"
@@ -86,7 +96,9 @@ class TestSecurityContext:
 
     def test_security_context_tenant_id_none(self) -> None:
         """SecurityContext accepts None tenant_id for unscoped access."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         context = SecurityContext(principal=principal, tenant_id=None)
         assert context.principal == principal
         assert context.tenant_id is None
@@ -99,22 +111,28 @@ class TestSecurityContext:
 
     def test_security_context_equality(self) -> None:
         """SecurityContexts with same data are equal."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         ctx1 = SecurityContext(principal=principal, tenant_id="tenant:acme")
         ctx2 = SecurityContext(principal=principal, tenant_id="tenant:acme")
         assert ctx1 == ctx2
 
     def test_security_context_inequality_principal(self) -> None:
         """SecurityContexts with different principals are not equal."""
-        p1 = Principal(id="user:alice", roles=frozenset(), scopes=frozenset())
-        p2 = Principal(id="user:bob", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        p1 = Principal(id="user:alice", roles=roles, scopes=scopes)
+        p2 = Principal(id="user:bob", roles=roles, scopes=scopes)
         ctx1 = SecurityContext(principal=p1, tenant_id="tenant:acme")
         ctx2 = SecurityContext(principal=p2, tenant_id="tenant:acme")
         assert ctx1 != ctx2
 
     def test_security_context_inequality_tenant(self) -> None:
         """SecurityContexts with different tenant_ids are not equal."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         ctx1 = SecurityContext(principal=principal, tenant_id="tenant:acme")
         ctx2 = SecurityContext(principal=principal, tenant_id="tenant:widgets")
         assert ctx1 != ctx2

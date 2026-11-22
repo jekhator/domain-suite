@@ -188,10 +188,11 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
+        sink = CollectingSink()
         @aspects(
             objs.Monitored(
                 event="test.result_labels",
-                sink=CollectingSink(),
+                sink=sink,
                 labels_from_result=lambda value: (("tokens", str(value)),),
             )
         )
@@ -219,10 +220,11 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
+        sink = CollectingSink()
         @aspects(
             objs.Monitored(
                 event="test.exc_labels",
-                sink=CollectingSink(),
+                sink=sink,
                 labels_from_exc=lambda entry: (("error_type", type(entry).__name__),),
             )
         )
@@ -250,7 +252,8 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
-        @aspects(objs.Monitored(event="test.no_labels", sink=CollectingSink()))
+        sink = CollectingSink()
+        @aspects(objs.Monitored(event="test.no_labels", sink=sink))
         @dataclass(frozen=True, slots=True)
         class Service:
             def process(self) -> str:

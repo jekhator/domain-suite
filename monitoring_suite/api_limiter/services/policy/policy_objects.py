@@ -53,7 +53,8 @@ class RateLimit:
                 rate=rate,
                 period=tail,
             ) from error
-        return cls(requests=int(head), period=period)
+        requests = int(head)
+        return cls(requests=requests, period=period)
 
     @property
     def period_seconds(self) -> int:

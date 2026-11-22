@@ -48,7 +48,9 @@ def principal_with_read_scope() -> Principal:  # noqa: R004
 
     Used by: TestAuthorizer.
     """
-    return Principal(id="user:reader", roles=frozenset(), scopes=frozenset(["read"]))
+    roles: frozenset[str] = frozenset()
+    scopes = frozenset(["read"])
+    return Principal(id="user:reader", roles=roles, scopes=scopes)
 
 
 @pytest.fixture
@@ -58,10 +60,12 @@ def principal_with_multiple_scopes() -> Principal:  # noqa: R004
 
     Used by: TestAuthorizer.
     """
+    roles = frozenset(["admin"])
+    scopes = frozenset(["read", "write", "delete"])
     return Principal(
         id="user:admin",
-        roles=frozenset(["admin"]),
-        scopes=frozenset(["read", "write", "delete"]),
+        roles=roles,
+        scopes=scopes,
     )
 
 

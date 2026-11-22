@@ -33,10 +33,12 @@ class Throttled:
         Applied to a class: fans out to all public methods, scoped as
         '{root}:{method_name}'.
         """
+        policy_rate = RateLimit.from_rate(rate)
+        tier_rates = self._tier_rates(tiers)
         policy = ThrottlePolicy(
             scope=scope,
-            rate=RateLimit.from_rate(rate),
-            tier_rates=self._tier_rates(tiers),
+            rate=policy_rate,
+            tier_rates=tier_rates,
         )
 
         def declare(target: Decorated | type) -> Decorated | type:

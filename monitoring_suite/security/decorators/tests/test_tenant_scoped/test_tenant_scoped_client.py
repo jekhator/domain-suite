@@ -45,7 +45,9 @@ class TestTenantScoped:
 
     def test_decorator_with_kwarg_tenant_id(self) -> None:
         """Decorator extracts tenant_id from kwarg."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -59,7 +61,9 @@ class TestTenantScoped:
 
     def test_decorator_denies_tenant_mismatch_kwarg(self) -> None:
         """Decorator denies when kwarg tenant differs from context."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -73,7 +77,9 @@ class TestTenantScoped:
 
     def test_decorator_with_positional_tenant_id(self) -> None:
         """Decorator extracts tenant_id from positional argument."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -87,7 +93,9 @@ class TestTenantScoped:
 
     def test_decorator_self_tenant_id_from_instance(self) -> None:
         """Decorator extracts tenant_id from self.tenant_id instance attribute."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -109,7 +117,9 @@ class TestTenantScoped:
 
     def test_decorator_self_tenant_id_denies_mismatch(self) -> None:
         """Decorator denies when self.tenant_id differs from context."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -143,7 +153,9 @@ class TestTenantScoped:
 
     def test_decorator_missing_tenant_parameter(self) -> None:
         """Decorator raises when function lacks the tenant parameter."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -173,7 +185,9 @@ class TestTenantScoped:
             TenancyGuard,
         )
 
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -189,7 +203,9 @@ class TestTenantScoped:
 
     def test_module_handle_tenant_scoped(self) -> None:
         """Module-level tenant_scoped handle exists and works."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -203,7 +219,9 @@ class TestTenantScoped:
 
     def test_decorator_with_multiple_args(self) -> None:
         """Decorator handles functions with multiple arguments."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -217,7 +235,9 @@ class TestTenantScoped:
 
     def test_decorator_forwards_return_value(self) -> None:
         """Decorator forwards the decorated function return value."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -231,7 +251,9 @@ class TestTenantScoped:
 
     def test_decorator_error_includes_param_name(self) -> None:
         """Decorator error includes the param_name in context."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 

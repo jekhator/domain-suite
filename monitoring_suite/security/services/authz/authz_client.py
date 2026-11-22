@@ -24,9 +24,10 @@ class Authorizer:
                 allowed=False, reason=const.ERR_AUTHZ_NO_PRINCIPAL
             )
         if permission.value not in ctx.principal.scopes:
+            reason = const.ERR_AUTHZ_MISSING_SCOPE.format(scope=permission.value)
             return objs.PolicyDecision(
                 allowed=False,
-                reason=const.ERR_AUTHZ_MISSING_SCOPE.format(scope=permission.value),
+                reason=reason,
             )
         return objs.PolicyDecision(allowed=True)
 

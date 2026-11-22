@@ -75,15 +75,17 @@ class Aspects:
                     objs.RequireMixins,
                 ),
             ):
-                raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
+                message = const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
                         entry_type=type(entry).__name__
                     )
+                raise AspectDeclarationError(
+                    message=message
                 )
             kind = entry.kind
             if kind in seen_kinds:
+                aspect_declaration_error_message = const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
                 raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
+                    message=aspect_declaration_error_message
                 )
             seen_kinds.add(kind)
 

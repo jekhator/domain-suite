@@ -98,6 +98,7 @@ class TracedRetrievalClient:
                 elif isinstance(result, (list, tuple)):
                     chunk_ids = tuple(result)
 
+                occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_success(
                     query=query_str,
                     chunk_ids=chunk_ids,
@@ -105,19 +106,20 @@ class TracedRetrievalClient:
                     principal_id=principal_id,
                     session_id=session_id,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=occurred_at,
                 )
                 actual_sink.record(provenance)
                 return result
             except Exception:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
+                provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
                     query=query_str,
                     principal_id=principal_id,
                     session_id=session_id,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=provenance_occurred_at,
                 )
                 actual_sink.record(provenance)
                 raise
@@ -161,6 +163,7 @@ class TracedRetrievalClient:
                 elif isinstance(result, (list, tuple)):
                     chunk_ids = tuple(result)
 
+                occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_success(
                     query=query_str,
                     chunk_ids=chunk_ids,
@@ -168,19 +171,20 @@ class TracedRetrievalClient:
                     principal_id=principal_id,
                     session_id=session_id,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=occurred_at,
                 )
                 actual_sink.record(provenance)
                 return result
             except Exception:
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
+                provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
                     query=query_str,
                     principal_id=principal_id,
                     session_id=session_id,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=provenance_occurred_at,
                 )
                 actual_sink.record(provenance)
                 raise

@@ -49,12 +49,14 @@ class CloudWatchMetricSink:
             event:
                 MetricEvent with outcome, duration, and labels.
         """
+        timestamp = datetime.fromisoformat(event.occurred_at)
+        dimensions = self._build_dimensions(event)
         metric_point: _MetricDatapoint = {
             "MetricName": event.event,
             "Value": event.duration_ms,
             "Unit": metrics_const.CLOUDWATCH_METRIC_UNIT,
-            "Timestamp": datetime.fromisoformat(event.occurred_at),
-            "Dimensions": self._build_dimensions(event),
+            "Timestamp": timestamp,
+            "Dimensions": dimensions,
         }
         self._cloudwatch.put_metric_data(
             Namespace=self.namespace,

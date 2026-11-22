@@ -23,8 +23,9 @@ class TestPolicyRegistry:
         def decorated_func() -> None:
             pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
-            scope="test.scope", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="test.scope", rate=rate
         )
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 
@@ -83,11 +84,13 @@ class TestPolicyRegistry:
             def method3(self) -> None:
                 pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy1 = ThrottlePolicy(
-            scope="method1", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="method1", rate=rate
         )
+        policy2_rate = RateLimit(requests=200, period=Period.HOUR)
         policy2 = ThrottlePolicy(
-            scope="method2", rate=RateLimit(requests=200, period=Period.HOUR)
+            scope="method2", rate=policy2_rate
         )
 
         setattr(TestClass.method1, const.THROTTLE_POLICY_ATTR, policy1)
@@ -113,14 +116,17 @@ class TestPolicyRegistry:
             def third_method(self) -> None:
                 pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy1 = ThrottlePolicy(
-            scope="first", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="first", rate=rate
         )
+        policy2_rate = RateLimit(requests=200, period=Period.HOUR)
         policy2 = ThrottlePolicy(
-            scope="second", rate=RateLimit(requests=200, period=Period.HOUR)
+            scope="second", rate=policy2_rate
         )
+        policy3_rate = RateLimit(requests=300, period=Period.HOUR)
         policy3 = ThrottlePolicy(
-            scope="third", rate=RateLimit(requests=300, period=Period.HOUR)
+            scope="third", rate=policy3_rate
         )
 
         setattr(TestClass.first_method, const.THROTTLE_POLICY_ATTR, policy1)
@@ -142,8 +148,9 @@ class TestPolicyRegistry:
             def undecorated_method(self) -> None:
                 pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
-            scope="decorated", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="decorated", rate=rate
         )
         setattr(TestClass.decorated_method, const.THROTTLE_POLICY_ATTR, policy)
 
@@ -162,8 +169,9 @@ class TestPolicyRegistry:
             def decorated_method(self) -> None:
                 pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
-            scope="method", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="method", rate=rate
         )
         setattr(TestClass.decorated_method, const.THROTTLE_POLICY_ATTR, policy)
 
@@ -198,11 +206,13 @@ class TestPolicyRegistry:
         def func2() -> None:
             pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy1 = ThrottlePolicy(
-            scope="func1", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="func1", rate=rate
         )
+        policy2_rate = RateLimit(requests=200, period=Period.HOUR)
         policy2 = ThrottlePolicy(
-            scope="func2", rate=RateLimit(requests=200, period=Period.HOUR)
+            scope="func2", rate=policy2_rate
         )
 
         setattr(func1, const.THROTTLE_POLICY_ATTR, policy1)
@@ -228,11 +238,13 @@ class TestPolicyRegistry:
         def second_func() -> None:
             pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy1 = ThrottlePolicy(
-            scope="first", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="first", rate=rate
         )
+        policy2_rate = RateLimit(requests=200, period=Period.HOUR)
         policy2 = ThrottlePolicy(
-            scope="second", rate=RateLimit(requests=200, period=Period.HOUR)
+            scope="second", rate=policy2_rate
         )
 
         setattr(first_func, const.THROTTLE_POLICY_ATTR, policy1)
@@ -256,8 +268,9 @@ class TestPolicyRegistry:
         def undecorated_func() -> None:
             pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
-            scope="decorated", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="decorated", rate=rate
         )
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 
@@ -277,8 +290,9 @@ class TestPolicyRegistry:
         def decorated_func() -> None:
             pass
 
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
-            scope="func", rate=RateLimit(requests=100, period=Period.HOUR)
+            scope="func", rate=rate
         )
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 

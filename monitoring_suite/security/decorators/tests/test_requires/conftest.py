@@ -38,7 +38,9 @@ def principal_with_read_scope() -> Principal:
 
     Used by: no test class yet.
     """
-    return Principal(id="user:reader", roles=frozenset(), scopes=frozenset(["read"]))
+    roles: frozenset[str] = frozenset()
+    scopes = frozenset(["read"])
+    return Principal(id="user:reader", roles=roles, scopes=scopes)
 
 
 @pytest.fixture

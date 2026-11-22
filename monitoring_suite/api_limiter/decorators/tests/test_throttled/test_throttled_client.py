@@ -211,9 +211,10 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+            match=match,
         ):
             throttled(scope="test", rate="invalid")(my_function)
 
@@ -223,9 +224,10 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
+        match = re.escape(const.ERR_POLICY_UNKNOWN_PERIOD)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_UNKNOWN_PERIOD),
+            match=match,
         ):
             throttled(scope="test", rate="100/week")(my_function)
 
@@ -235,9 +237,10 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
+        match = re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE),
+            match=match,
         ):
             throttled(scope="test", rate="0/hour")(my_function)
 
@@ -247,9 +250,10 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+            match=match,
         ):
             throttled(scope="test", rate="100/hour", tiers={"premium": "bad_rate"})(
                 my_function
@@ -261,9 +265,10 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
+        match = re.escape(const.ERR_POLICY_EMPTY_SCOPE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_SCOPE),
+            match=match,
         ):
             throttled(scope="", rate="100/hour")(my_function)
 
@@ -291,9 +296,10 @@ class TestThrottledDecoratorValidation:
 
         tiers = {"": "500/hour"}
 
+        match = re.escape(const.ERR_POLICY_EMPTY_TIER)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_TIER),
+            match=match,
         ):
             throttled(scope="test", rate="100/hour", tiers=tiers)(my_function)
 
@@ -417,9 +423,10 @@ class TestThrottledComplexScenarios:
             "enterprise": "unlimited_practically",
         }
 
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+            match=match,
         ):
             throttled(scope="api.complex", rate="1000/hour", tiers=tiers)(complex_func)
 
@@ -748,9 +755,10 @@ class TestThrottledClassLevelDecoration:
     def test_class_decoration_raises_on_empty_class(self) -> None:
         """Class-level @throttled raises ThrottleDeclarationError for empty class."""
 
+        match = re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS),
+            match=match,
         ):
 
             @throttled(scope="docs", rate="100/hour")
@@ -760,9 +768,10 @@ class TestThrottledClassLevelDecoration:
     def test_class_decoration_raises_on_private_only_class(self) -> None:
         """Class-level @throttled raises if class has only private methods."""
 
+        match = re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS),
+            match=match,
         ):
 
             @throttled(scope="docs", rate="100/hour")

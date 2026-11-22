@@ -27,10 +27,11 @@ class TestCloudWatchMetricSink:
 
             sink = CloudWatchMetricSink(namespace="test-ns")
             now = datetime.now(timezone.utc)
+            occurred_at = now.isoformat()
             event = MetricEvent.for_success(
                 event="test.operation",
                 duration_ms=123.45,
-                occurred_at=now.isoformat(),
+                occurred_at=occurred_at,
                 labels=(("env", "test"), ("version", "1.0")),
             )
 
@@ -63,10 +64,11 @@ class TestCloudWatchMetricSink:
 
             sink = CloudWatchMetricSink(namespace="prod-ns")
             now = datetime.now(timezone.utc)
+            occurred_at = now.isoformat()
             event = MetricEvent.for_failure(
                 event="test.failed_operation",
                 duration_ms=456.78,
-                occurred_at=now.isoformat(),
+                occurred_at=occurred_at,
                 labels=(("error_type", "ValueError"),),
             )
 
@@ -93,10 +95,11 @@ class TestCloudWatchMetricSink:
 
             sink = CloudWatchMetricSink()
             now = datetime.now(timezone.utc)
+            occurred_at = now.isoformat()
             event = MetricEvent.for_success(
                 event="test.no_labels",
                 duration_ms=100.0,
-                occurred_at=now.isoformat(),
+                occurred_at=occurred_at,
             )
 
             sink.emit(event)

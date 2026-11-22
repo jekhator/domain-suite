@@ -34,7 +34,9 @@ def principal() -> Principal:
 
     Used by: no test class yet.
     """
-    return Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+    roles: frozenset[str] = frozenset()
+    scopes: frozenset[str] = frozenset()
+    return Principal(id="user:test", roles=roles, scopes=scopes)
 
 
 @pytest.fixture

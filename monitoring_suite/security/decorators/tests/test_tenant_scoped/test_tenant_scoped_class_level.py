@@ -25,7 +25,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_applies_to_all_public_methods(self) -> None:
         """Decorator applied to class wraps all public methods."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -64,7 +66,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_self_tenant_id_skips_validation(self) -> None:
         """Decorator with self.tenant_id skips validation check."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -85,7 +89,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_denies_tenant_mismatch(self) -> None:
         """Decorated class methods deny on tenant mismatch."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -103,7 +109,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_skips_private_methods(self) -> None:
         """Decorator skips private methods."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -125,7 +133,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_skips_dunder_methods(self) -> None:
         """Decorator skips dunder methods."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -151,7 +161,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_skips_properties(self) -> None:
         """Decorator skips properties."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -178,7 +190,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_handles_classmethod(self) -> None:
         """Decorator handles classmethods correctly."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -196,7 +210,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_handles_staticmethod(self) -> None:
         """Decorator handles staticmethods correctly."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -214,7 +230,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_skips_inherited_methods(self) -> None:
         """Decorator applies only to methods in class dict, not inherited."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -242,7 +260,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_method_already_decorated_skipped(self) -> None:
         """Method already decorated is not re-decorated."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -267,7 +287,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_forwards_return_values(self) -> None:
         """Class decorator forwards return values correctly."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -301,7 +323,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_with_method_args(self) -> None:
         """Class decorator preserves method arguments."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 
@@ -369,7 +393,9 @@ class TestTenantScopedClassLevel:
 
     def test_class_decorator_skips_nested_classes(self) -> None:
         """Decorator skips nested classes when scanning attributes."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:acme"))
 

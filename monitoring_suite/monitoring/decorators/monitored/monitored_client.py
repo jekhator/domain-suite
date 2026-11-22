@@ -113,10 +113,11 @@ class MonitoredClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
+                occurred_at = end_time.isoformat()
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=occurred_at,
                     labels=labels,
                 )
                 actual_sink.emit(metric_event)
@@ -126,10 +127,11 @@ class MonitoredClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_exc(error) if labels_from_exc else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
+                metric_event_occurred_at = end_time.isoformat()
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=metric_event_occurred_at,
                     labels=labels,
                 )
                 actual_sink.emit(metric_event)
@@ -163,10 +165,11 @@ class MonitoredClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
+                occurred_at = end_time.isoformat()
                 metric_event = MetricEvent.for_success(
                     event=event,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=occurred_at,
                     labels=labels,
                 )
                 actual_sink.emit(metric_event)
@@ -176,10 +179,11 @@ class MonitoredClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_exc(error) if labels_from_exc else ()
                 labels = MonitoredClient._stamp_correlation_labels(labels)
+                metric_event_occurred_at = end_time.isoformat()
                 metric_event = MetricEvent.for_failure(
                     event=event,
                     duration_ms=duration_ms,
-                    occurred_at=end_time.isoformat(),
+                    occurred_at=metric_event_occurred_at,
                     labels=labels,
                 )
                 actual_sink.emit(metric_event)

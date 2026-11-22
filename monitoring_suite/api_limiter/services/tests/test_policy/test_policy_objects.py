@@ -83,27 +83,30 @@ class TestRateLimit:
 
     def test_from_rate_missing_slash(self) -> None:
         """RateLimit.from_rate rejects rate without slash."""
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+            match=match,
         ) as exc_info:
             RateLimit.from_rate("100hour")
         assert exc_info.value.context.get("rate") == "100hour"
 
     def test_from_rate_non_digit_head(self) -> None:
         """RateLimit.from_rate rejects non-digit before slash."""
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
+            match=match,
         ) as exc_info:
             RateLimit.from_rate("x/hour")
         assert exc_info.value.context.get("rate") == "x/hour"
 
     def test_from_rate_unknown_period(self) -> None:
         """RateLimit.from_rate rejects unknown period with __cause__ ValueError."""
+        match = re.escape(const.ERR_POLICY_UNKNOWN_PERIOD)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_UNKNOWN_PERIOD),
+            match=match,
         ) as exc_info:
             RateLimit.from_rate("10/fortnight")
         assert exc_info.value.context.get("rate") == "10/fortnight"
@@ -112,27 +115,30 @@ class TestRateLimit:
 
     def test_from_rate_zero_requests(self) -> None:
         """RateLimit.from_rate rejects zero request count."""
+        match = re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE),
+            match=match,
         ) as exc_info:
             RateLimit.from_rate("0/hour")
         assert exc_info.value.context.get("requests") == 0
 
     def test_direct_construction_negative_requests(self) -> None:
         """RateLimit rejects negative request count."""
+        match = re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE),
+            match=match,
         ) as exc_info:
             RateLimit(requests=-1, period=Period.HOUR)
         assert exc_info.value.context.get("requests") == -1
 
     def test_direct_construction_zero_requests(self) -> None:
         """RateLimit rejects zero request count."""
+        match = re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE),
+            match=match,
         ) as exc_info:
             RateLimit(requests=0, period=Period.HOUR)
         assert exc_info.value.context.get("requests") == 0
@@ -200,16 +206,19 @@ class TestTierRate:
 
     def test_empty_tier_label_rejected(self) -> None:
         """TierRate rejects empty tier label."""
+        match = re.escape(const.ERR_POLICY_EMPTY_TIER)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_TIER),
+            match=match,
         ):
-            TierRate(tier="", rate=RateLimit(requests=500, period=Period.HOUR))
+            rate = RateLimit(requests=500, period=Period.HOUR)
+            TierRate(tier="", rate=rate)
 
     def test_tier_rate_frozen(self) -> None:
         """TierRate is frozen and prevents modification."""
+        rate = RateLimit(requests=500, period=Period.HOUR)
         tier_rate = TierRate(
-            tier="premium", rate=RateLimit(requests=500, period=Period.HOUR)
+            tier="premium", rate=rate
         )
         with pytest.raises(FrozenInstanceError):
             tier_rate.tier = "enterprise"  # type: ignore
@@ -229,8 +238,9 @@ class TestThrottlePolicy:
     def test_valid_policy_with_tier_overrides(self) -> None:
         """ThrottlePolicy accepts scope, rate, and tier overrides."""
         base_rate = RateLimit(requests=10, period=Period.HOUR)
+        rate = RateLimit(requests=100, period=Period.HOUR)
         premium_tier = TierRate(
-            tier="premium", rate=RateLimit(requests=100, period=Period.HOUR)
+            tier="premium", rate=rate
         )
         policy = ThrottlePolicy(
             scope="api.data.export",
@@ -243,24 +253,29 @@ class TestThrottlePolicy:
 
     def test_empty_scope_rejected(self) -> None:
         """ThrottlePolicy rejects empty scope."""
+        match = re.escape(const.ERR_POLICY_EMPTY_SCOPE)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_SCOPE),
+            match=match,
         ):
-            ThrottlePolicy(scope="", rate=RateLimit(requests=100, period=Period.HOUR))
+            rate = RateLimit(requests=100, period=Period.HOUR)
+            ThrottlePolicy(scope="", rate=rate)
 
     def test_duplicate_tier_labels_rejected(self) -> None:
         """ThrottlePolicy rejects duplicate tier labels."""
         base_rate = RateLimit(requests=10, period=Period.HOUR)
+        rate = RateLimit(requests=100, period=Period.HOUR)
         tier1 = TierRate(
-            tier="premium", rate=RateLimit(requests=100, period=Period.HOUR)
+            tier="premium", rate=rate
         )
+        tier2_rate = RateLimit(requests=200, period=Period.HOUR)
         tier2 = TierRate(
-            tier="premium", rate=RateLimit(requests=200, period=Period.HOUR)
+            tier="premium", rate=tier2_rate
         )
+        match = re.escape(const.ERR_POLICY_DUPLICATE_TIERS)
         with pytest.raises(
             ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_DUPLICATE_TIERS),
+            match=match,
         ) as exc_info:
             ThrottlePolicy(
                 scope="api.test",
@@ -271,20 +286,23 @@ class TestThrottlePolicy:
 
     def test_has_tiers_false_when_empty(self) -> None:
         """ThrottlePolicy.has_tiers returns False with no tier overrides."""
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
             scope="api.users.list",
-            rate=RateLimit(requests=100, period=Period.HOUR),
+            rate=rate,
         )
         assert policy.has_tiers is False
 
     def test_has_tiers_true_when_populated(self) -> None:
         """ThrottlePolicy.has_tiers returns True with tier overrides."""
+        rate = RateLimit(requests=10, period=Period.HOUR)
+        policy_rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
             scope="api.data.export",
-            rate=RateLimit(requests=10, period=Period.HOUR),
+            rate=rate,
             tier_rates=(
                 TierRate(
-                    tier="premium", rate=RateLimit(requests=100, period=Period.HOUR)
+                    tier="premium", rate=policy_rate
                 ),
             ),
         )
@@ -306,8 +324,9 @@ class TestThrottlePolicy:
     def test_rate_for_returns_base_when_tier_not_declared(self) -> None:
         """ThrottlePolicy.rate_for returns base rate when tier not found."""
         base_rate = RateLimit(requests=10, period=Period.HOUR)
+        rate = RateLimit(requests=100, period=Period.HOUR)
         premium_tier = TierRate(
-            tier="premium", rate=RateLimit(requests=100, period=Period.HOUR)
+            tier="premium", rate=rate
         )
         policy = ThrottlePolicy(
             scope="api.data.export",
@@ -336,9 +355,10 @@ class TestThrottlePolicy:
 
     def test_throttle_policy_frozen(self) -> None:
         """ThrottlePolicy is frozen and prevents modification."""
+        rate = RateLimit(requests=100, period=Period.HOUR)
         policy = ThrottlePolicy(
             scope="api.test",
-            rate=RateLimit(requests=100, period=Period.HOUR),
+            rate=rate,
         )
         with pytest.raises(FrozenInstanceError):
             policy.scope = "api.other"  # type: ignore

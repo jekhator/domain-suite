@@ -68,7 +68,9 @@ class TestRequires:
 
     def test_decorator_denies_missing_scope(self) -> None:
         """Decorated function denies when principal lacks required scope."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -82,8 +84,10 @@ class TestRequires:
 
     def test_decorator_allows_with_scope(self) -> None:
         """Decorated function allows when principal has required scope."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read"])
         principal = Principal(
-            id="user:reader", roles=frozenset(), scopes=frozenset(["read"])
+            id="user:reader", roles=roles, scopes=scopes
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -109,8 +113,10 @@ class TestRequires:
 
     def test_decorator_rejects_denied_permission(self, always_deny_authorizer) -> None:
         """Requires with custom authorizer respects deny decision."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read"])
         principal = Principal(
-            id="user:test", roles=frozenset(), scopes=frozenset(["read"])
+            id="user:test", roles=roles, scopes=scopes
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -125,8 +131,10 @@ class TestRequires:
 
     def test_module_handle_requires(self) -> None:
         """Module-level requires handle exists and works."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read"])
         principal = Principal(
-            id="user:reader", roles=frozenset(), scopes=frozenset(["read"])
+            id="user:reader", roles=roles, scopes=scopes
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -141,8 +149,10 @@ class TestRequires:
 
     def test_decorator_with_function_args(self) -> None:
         """Decorated function forwards args correctly."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read"])
         principal = Principal(
-            id="user:reader", roles=frozenset(), scopes=frozenset(["read"])
+            id="user:reader", roles=roles, scopes=scopes
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -157,8 +167,10 @@ class TestRequires:
 
     def test_decorator_with_function_kwargs(self) -> None:
         """Decorated function forwards kwargs correctly."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read"])
         principal = Principal(
-            id="user:reader", roles=frozenset(), scopes=frozenset(["read"])
+            id="user:reader", roles=roles, scopes=scopes
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -173,10 +185,12 @@ class TestRequires:
 
     def test_decorator_multiple_scopes_allows_any(self) -> None:
         """Decorated function allows if principal has any required scope."""
+        roles: frozenset[str] = frozenset()
+        scopes = frozenset(["read", "write", "delete"])
         principal = Principal(
             id="user:admin",
-            roles=frozenset(),
-            scopes=frozenset(["read", "write", "delete"]),
+            roles=roles,
+            scopes=scopes,
         )
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
@@ -191,7 +205,9 @@ class TestRequires:
 
     def test_decorator_error_preserves_context(self) -> None:
         """Decorator error includes permission in context."""
-        principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 

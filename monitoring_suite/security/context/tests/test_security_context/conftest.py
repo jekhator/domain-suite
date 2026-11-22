@@ -17,7 +17,9 @@ def principal() -> Principal:
 
     Used by: TestSecurityContextManager.
     """
-    return Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+    roles: frozenset[str] = frozenset()
+    scopes: frozenset[str] = frozenset()
+    return Principal(id="user:test", roles=roles, scopes=scopes)
 
 
 @pytest.fixture
@@ -27,10 +29,12 @@ def principal_with_scopes() -> Principal:
 
     Used by: no test class yet.
     """
+    roles = frozenset(["admin"])
+    scopes = frozenset(["read", "write", "delete"])
     return Principal(
         id="user:admin",
-        roles=frozenset(["admin"]),
-        scopes=frozenset(["read", "write", "delete"]),
+        roles=roles,
+        scopes=scopes,
     )
 
 
@@ -41,7 +45,9 @@ def security_context() -> SecurityContext:
 
     Used by: TestSecurityContextManager.
     """
-    principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+    roles: frozenset[str] = frozenset()
+    scopes: frozenset[str] = frozenset()
+    principal = Principal(id="user:test", roles=roles, scopes=scopes)
     return SecurityContext(principal=principal, tenant_id="tenant:acme")
 
 

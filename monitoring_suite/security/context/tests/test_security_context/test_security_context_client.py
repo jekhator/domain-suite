@@ -133,8 +133,10 @@ class TestSecurityContextManager:
         """bind replaces context entirely, not merging with existing."""
         manager = SecurityContextManager()
         manager.set(security_context)
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
         other_principal = Principal(
-            id="user:other", roles=frozenset(), scopes=frozenset()
+            id="user:other", roles=roles, scopes=scopes
         )
         with manager.bind(principal=other_principal, tenant_id="tenant:other"):
             context = manager.get()
