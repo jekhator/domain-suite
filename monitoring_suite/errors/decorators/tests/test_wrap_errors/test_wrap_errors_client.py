@@ -222,7 +222,6 @@ class TestWrapErrorsDomainErrorPassthrough:
 
         with pytest.raises(CustomError) as exc_info:
             fail_with_domain_error()
-        # Verify it's the same instance, not wrapped
         assert exc_info.value.__cause__ is None
         assert exc_info.value.message == "original domain error"
 
@@ -238,7 +237,6 @@ class TestWrapErrorsDomainErrorPassthrough:
 
         with pytest.raises(CustomError) as exc_info:
             asyncio.run(async_fail_with_domain_error())
-        # Verify it's the same instance, not wrapped
         assert exc_info.value.__cause__ is None
         assert exc_info.value.message == "original domain error"
 
@@ -393,7 +391,6 @@ class TestWrapErrorsClientDirect:
 
     def test_client_is_dataclass(self) -> None:
         """WrapErrorsClient is a dataclass with slots."""
-        # Verify slots behavior: __slots__ should exist (frozen dataclass with slots)
         assert hasattr(WrapErrorsClient, "__slots__")
 
 
@@ -469,7 +466,6 @@ class TestWrapErrorsSignatureBinding:
 
         with pytest.raises(DemoError) as exc_info:
             func(1, c=30)
-        # apply_defaults fills in b=10
         assert exc_info.value.context == {"a": 1, "b": 10, "c": 30}
 
     def test_no_args_function_captured(self) -> None:
@@ -537,7 +533,6 @@ class TestWrapErrorsMessageNone:
 
         with pytest.raises(DemoError) as exc_info:
             fail()
-        # DemoError.default_message is the default value
         assert exc_info.value.message == DemoError.default_message
 
 

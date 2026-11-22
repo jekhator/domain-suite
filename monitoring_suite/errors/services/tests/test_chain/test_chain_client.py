@@ -124,19 +124,16 @@ class TestErrorChainHistory:
                 raise outer from None
         except RuntimeError as error:
             links = ErrorChain.history(error)
-        # only outer, because "from None" suppresses context
         assert len(links) == 1
         assert links[0].type_name == "RuntimeError"
 
     def test_cycle_guard(self) -> None:
         """history() terminates on cycles and does not infinite loop."""
-        # Manually create a cycle (raises on normal exception chaining)
         e1: BaseException = ValueError("e1")
         e2: BaseException = RuntimeError("e2")
         e1.__cause__ = e2
-        e2.__cause__ = e1  # cycle
+        e2.__cause__ = e1
         links = ErrorChain.history(e1)
-        # Should have exactly 2 links, then stop
         assert len(links) == 2
         assert links[0].type_name == "ValueError"
         assert links[1].type_name == "RuntimeError"
@@ -159,7 +156,6 @@ class TestErrorChainHistory:
         err = CustomDomainError()
         classifier = FakeDomainClassifier()
         links = ErrorChain.history(err, classifiers=(classifier,))
-        # CustomDomainError.domain = "custom", not "application"
         assert links[0].domain == "custom"
 
     def test_context_propagation_from_domain_error(self) -> None:
@@ -205,7 +201,6 @@ class TestErrorChainHistory:
         classifier2 = FakeDomainClassifier()
         err = TypeError("test")
         links = ErrorChain.history(err, classifiers=(classifier1, classifier2))
-        # Both would match TypeError, but classifier1 is first
         assert links[0].domain == "typing"
 
 
@@ -220,14 +215,12 @@ class TestErrorChainCrossings:
 
     def test_no_crossings_same_domain(self) -> None:
         """crossings() returns empty when all links have the same domain."""
-        # Create a chain of errors that both resolve to the same domain
         err = KeyError("same domain")
         try:
             raise RuntimeError("also python domain") from err
         except RuntimeError as error:
             classifier = FakeDomainClassifier()
             crossings = ErrorChain.crossings(error, classifiers=(classifier,))
-        # Both KeyError and RuntimeError unmatched, default to "python"
         assert len(crossings) == 0
 
     def test_crossing_on_domain_change(self) -> None:
@@ -239,22 +232,19 @@ class TestErrorChainCrossings:
         except RuntimeError as error:
             classifier = FakeDomainClassifier()
             crossings = ErrorChain.crossings(error, classifiers=(classifier,))
-        # inner (validation) -> outer (python) is a crossing
         assert len(crossings) == 1
         assert crossings[0].cause.domain == "validation"
         assert crossings[0].effect.domain == "python"
 
     def test_crossing_cause_effect_pairing(self) -> None:
         """crossings() correctly pairs cause and effect in DomainCrossing."""
-        # Create a domain-error as inner and a foreign error as outer
-        inner = CustomDomainError()  # domain = "custom"
+        inner = CustomDomainError()
         outer = ValueError("oops")
         try:
             raise outer from inner
         except ValueError as error:
             classifier = FakeDomainClassifier()
             crossings = ErrorChain.crossings(error, classifiers=(classifier,))
-        # inner is the cause, outer is the effect
         assert len(crossings) == 1
         assert crossings[0].cause.type_name == "CustomDomainError"
         assert crossings[0].cause.domain == "custom"
@@ -263,11 +253,10 @@ class TestErrorChainCrossings:
 
     def test_multiple_crossings(self) -> None:
         """crossings() returns multiple DomainCrossing for multi-hop chains."""
-        # e1 (custom) -> e2 (validation) -> e3 (python)
         classifier = FakeDomainClassifier()
-        e1 = CustomDomainError()  # "custom"
-        e2 = ValueError("oops")  # "validation" via classifier
-        e3 = KeyError("key")  # "python"
+        e1 = CustomDomainError()
+        e2 = ValueError("oops")
+        e3 = KeyError("key")
         try:
             try:
                 try:
@@ -278,7 +267,6 @@ class TestErrorChainCrossings:
                 raise e3 from e2
         except KeyError as error:
             crossings = ErrorChain.crossings(error, classifiers=(classifier,))
-        # custom->validation and validation->python
         assert len(crossings) == 2
 
 

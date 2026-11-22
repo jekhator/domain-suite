@@ -293,8 +293,6 @@ class TestAspectsIntegration:
         """All six entry types can be composed in one Aspects call."""
         aspects_svc = client_module.Aspects()
 
-        # Verify that all six entries can be passed to aspects()
-        # without raising at composition time (import/build happens later).
         decorator = aspects_svc(
             objs.Logged(event="test"),
             objs.Requires(permission="read"),

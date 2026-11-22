@@ -150,10 +150,8 @@ class TestDomainErrorContextPropagation:
         assert err.context == {"user_id": 42, "request_id": "xyz"}
         links = ErrorChain.history(err)
         assert len(links) == 1
-        # context IS propagated into the link
         assert links[0].context == {"user_id": 42, "request_id": "xyz"}
         extra = links[0].to_log_extra()
-        # and appears in to_log_extra output
         assert extra["context"] == {"user_id": 42, "request_id": "xyz"}
         assert set(extra.keys()) == {
             "type",

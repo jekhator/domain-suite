@@ -104,7 +104,6 @@ class TestChainLink:
             via=ChainVia.ROOT,
             context={"user_id": 999},
         )
-        # Equal even though context differs, because context has compare=False
         assert link1 == link2
 
     def test_hash(self) -> None:
@@ -123,9 +122,7 @@ class TestChainLink:
             domain="val",
             via=ChainVia.ROOT,
         )
-        # Equal objects should have equal hash
         assert hash(link1) == hash(link2)
-        # Can be placed in a set
         s = {link1, link2}
         assert len(s) == 1
 
@@ -294,7 +291,6 @@ class TestDomainClassifier:
         """FakeDomainClassifier satisfies the DomainClassifier protocol."""
         classifier = FakeDomainClassifier()
         assert hasattr(classifier, "classify")
-        # Verify it can classify
         assert classifier.classify(ValueError("x")) == "validation"
         assert classifier.classify(TypeError("x")) == "typing"
         assert classifier.classify(RuntimeError("x")) is None
