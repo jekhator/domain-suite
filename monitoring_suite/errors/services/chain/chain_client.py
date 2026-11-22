@@ -3,12 +3,7 @@
 from __future__ import annotations
 
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
-from monitoring_suite.errors.services.chain.chain_objects import (
-    ChainLink,
-    ChainVia,
-    DomainClassifier,
-    DomainCrossing,
-)
+from monitoring_suite.errors.services.chain import chain_objects as objs
 from monitoring_suite.errors.services.constants import chain as const
 
 
@@ -31,13 +26,13 @@ class ErrorChain:
     @staticmethod
     def history(
         err: BaseException,
-        classifiers: tuple[DomainClassifier, ...] = (),
-    ) -> tuple[ChainLink, ...]:
+        classifiers: tuple[objs.DomainClassifier, ...] = (),
+    ) -> tuple[objs.ChainLink, ...]:
         """Walk the full exception cascade into links, the error itself first."""
-        links: list[ChainLink] = []
+        links: list[objs.ChainLink] = []
         seen: set[int] = set()
         current: BaseException | None = err
-        via = ChainVia.ROOT
+        via = objs.ChainVia.ROOT
         while current is not None and id(current) not in seen:
             seen.add(id(current))
             message = str(current)
@@ -45,7 +40,7 @@ class ErrorChain:
             domain = ErrorChain._domain_of(current, classifiers)
             context = getattr(current, "context", {})
             links.append(
-                ChainLink(
+                objs.ChainLink(
                     type_name=current.__class__.__name__,
                     message=message,
                     code=code,
@@ -56,10 +51,10 @@ class ErrorChain:
             )
             if current.__cause__ is not None:
                 current = current.__cause__
-                via = ChainVia.CAUSE
+                via = objs.ChainVia.CAUSE
             elif not current.__suppress_context__:
                 current = current.__context__
-                via = ChainVia.CONTEXT
+                via = objs.ChainVia.CONTEXT
             else:
                 current = None
         return tuple(links)
@@ -67,19 +62,19 @@ class ErrorChain:
     @staticmethod
     def crossings(
         err: BaseException,
-        classifiers: tuple[DomainClassifier, ...] = (),
-    ) -> tuple[DomainCrossing, ...]:
+        classifiers: tuple[objs.DomainClassifier, ...] = (),
+    ) -> tuple[objs.DomainCrossing, ...]:
         """Return the causation hops where the cascade crossed domains."""
         links = ErrorChain.history(err, classifiers)
-        found: list[DomainCrossing] = []
+        found: list[objs.DomainCrossing] = []
         for effect, cause in zip(links, links[1:]):
             if cause.domain != effect.domain:
-                found.append(DomainCrossing(cause=cause, effect=effect))
+                found.append(objs.DomainCrossing(cause=cause, effect=effect))
         return tuple(found)
 
     @staticmethod
     def _domain_of(
-        error: BaseException, classifiers: tuple[DomainClassifier, ...]
+        error: BaseException, classifiers: tuple[objs.DomainClassifier, ...]
     ) -> str:
         """Resolve an error's domain from its contract or the first matching classifier."""
         domain = getattr(error, "domain", None)

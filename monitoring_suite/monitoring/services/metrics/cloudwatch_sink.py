@@ -7,7 +7,7 @@ from typing import TypedDict
 
 from monitoring_suite.monitoring.errors.constants import monitoring as const
 from monitoring_suite.monitoring.services.constants import metrics as metrics_const
-from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
+from monitoring_suite.monitoring.services.metrics import metrics_objects as objs
 
 
 class _MetricDatapoint(TypedDict, total=False):
@@ -41,7 +41,7 @@ class CloudWatchMetricSink:
         self.namespace = namespace
         self._cloudwatch = boto3.client("cloudwatch")
 
-    def emit(self, event: MetricEvent) -> None:
+    def emit(self, event: objs.MetricEvent) -> None:
         """
         Emit metric event to CloudWatch.
 
@@ -64,7 +64,7 @@ class CloudWatchMetricSink:
         )
 
     @staticmethod
-    def _build_dimensions(event: MetricEvent) -> list[dict[str, str]]:
+    def _build_dimensions(event: objs.MetricEvent) -> list[dict[str, str]]:
         """
         Build CloudWatch dimensions from metric event labels and outcome.
 
