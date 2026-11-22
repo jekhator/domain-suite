@@ -26,7 +26,8 @@ class Throttled:
         rate: str,
         tiers: Mapping[str, str] | None = None,
     ) -> Callable[[Decorated | type], Decorated | type]:
-        """Attach throttle policy to a callable or class.
+        """
+        Attach throttle policy to a callable or class.
 
         Applied to a callable: attaches policy with the given scope.
         Applied to a class: fans out to all public methods, scoped as
@@ -48,7 +49,8 @@ class Throttled:
         return declare
 
     def _decorate_class(self, cls: type, root_policy: ThrottlePolicy) -> type:
-        """Fan out policy to all public methods in the class.
+        """
+        Fan out policy to all public methods in the class.
 
         Skips _-prefixed, dunders, properties, nested classes, and methods
         already decorated. Each method gets scope '{root}:{method_name}'.
@@ -76,7 +78,8 @@ class Throttled:
         return cls
 
     def _select_public_methods(self, cls: type) -> list[tuple[str, Any]]:
-        """Select callable members eligible for policy fanning.
+        """
+        Select callable members eligible for policy fanning.
 
         Returns (name, callable) pairs from cls.__dict__, skipping:
         _-prefixed names, dunders, nested classes, properties, and descriptors.

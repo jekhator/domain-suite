@@ -1,4 +1,5 @@
-"""Integration tests for aspect composition with real dependencies.
+"""
+Integration tests for aspect composition with real dependencies.
 
 Tests all six aspects with REAL packages from [all] extra. Verifies aspects compose
 correctly on function and class targets, catching the bug that existed in 0.1.0
@@ -263,7 +264,8 @@ class TestRealDepsIntegration:
         assert event.labels == ()
 
     def test_stacked_retried_wrap_errors_plain_class(self) -> None:
-        """Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
+        """
+        Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
 
         Verifies the composition defect fix: Retried must wrap class methods, not
         replace the class. Retried sees raw ValueError, retries succeed on attempt 3,

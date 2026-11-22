@@ -1,4 +1,5 @@
-"""Aspect composition and ordering constants.
+"""
+Aspect composition and ordering constants.
 
 Imported as const.
 """
@@ -37,7 +38,9 @@ __all__ = [
 ]
 
 
-"""Aspect application order (outermost to innermost: LOGGED → REQUIRES → TENANT_SCOPED → THROTTLED → MONITORED → WRAP_ERRORS → RETRIED innermost).
+"""
+Aspect application order (outermost to innermost: LOGGED → REQUIRES → TENANT_SCOPED → THROTTLED → MONITORED →
+WRAP_ERRORS → RETRIED innermost).
 
 RETRIED is placed innermost so retries see raw exceptions for predicate matching, before WRAP_ERRORS converts them.
 Sensitivity is adopted client-side via logging_suite.sensitivity.SensitiveRepr (not a wrapper concern).

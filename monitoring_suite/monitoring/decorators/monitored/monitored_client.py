@@ -241,7 +241,8 @@ class MonitoredClient:
     def _stamp_correlation_labels(
         labels: tuple[tuple[str, str], ...],
     ) -> tuple[tuple[str, str], ...]:
-        """Stamp correlation labels from ambient ContextVar; consumer labels win.
+        """
+        Stamp correlation labels from ambient ContextVar; consumer labels win.
 
         Derives domain lane id as scenario_id/monitoring (if scenario id present).
         Returns merged labels with consumer-provided labels taking precedence.

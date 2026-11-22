@@ -22,7 +22,8 @@ class _LoggedBuilders:
         payload_from_exc: Optional[Callable[[BaseException], dict]],
         timed: bool,
     ) -> Callable:
-        """Build native wrapper for logging entry/exit/error events.
+        """
+        Build native wrapper for logging entry/exit/error events.
 
         Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
         Extractions are guarded: errors log WARNING, operation continues.
@@ -188,7 +189,8 @@ class _LoggedBuilders:
         payload_from_exc: Optional[Callable[[BaseException], dict]],
         timed: bool,
     ) -> type[object]:
-        """Fan out @logged over all public methods in the class.
+        """
+        Fan out @logged over all public methods in the class.
 
         Rules:
         - Only methods in cls.__dict__ (not inherited)

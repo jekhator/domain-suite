@@ -63,7 +63,8 @@ class _RetriedBuilders:
         policy: Optional[RetryPolicy],
         policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
     ) -> type[object]:
-        """Fan out @retried over all public methods in the class.
+        """
+        Fan out @retried over all public methods in the class.
 
         Rules:
         - Only methods in cls.__dict__ (not inherited)

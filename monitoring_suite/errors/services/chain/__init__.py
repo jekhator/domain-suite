@@ -1,4 +1,7 @@
-"""Error chaining: typed wrap, full cascade history, and cross-domain crossings (ErrorChain + ChainLink/DomainCrossing value objects)."""
+"""
+Error chaining: typed wrap, full cascade history, and cross-domain crossings (ErrorChain + ChainLink/DomainCrossing
+value objects).
+"""
 
 from monitoring_suite.errors.services.chain.chain_client import ErrorChain
 from monitoring_suite.errors.services.chain.chain_objects import (

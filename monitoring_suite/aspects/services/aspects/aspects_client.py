@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 
 
 class Aspects:
-    """Compose and apply aspect decorators in canonical order.
+    """
+    Compose and apply aspect decorators in canonical order.
 
     Validates duplicate kinds and unknown entry types at decoration time.
     """
@@ -23,7 +24,8 @@ class Aspects:
         self,
         *entries: objs.AspectEntry | frozenset[objs.AspectEntry],
     ) -> Callable:
-        """Apply aspect decorators to the target function or class.
+        """
+        Apply aspect decorators to the target function or class.
 
         Flattens frozensets, validates, sorts by ASPECT_ORDER, applies innermost-first.
         """

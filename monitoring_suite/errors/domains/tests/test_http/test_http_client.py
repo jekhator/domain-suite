@@ -106,7 +106,9 @@ class TestHttpClassifierRequests:
         assert result == const.HTTP
 
     def test_requests_invalidurl_returns_http(self) -> None:
-        """requests.exceptions.InvalidURL is classified as http (__module__ is requests.exceptions → top-level requests)."""
+        """
+        requests.exceptions.InvalidURL is classified as http (__module__ is requests.exceptions → top-level requests).
+        """
         from requests.exceptions import InvalidURL
 
         err = InvalidURL("test")

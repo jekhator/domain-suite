@@ -36,7 +36,8 @@ class WrapErrorsClient:
         return cls(as_=as_, catch=catch, message=message, capture=capture)
 
     def __call__(self, target: Any) -> Any:
-        """Wrap target (callable or class) so caught errors become a DomainError.
+        """
+        Wrap target (callable or class) so caught errors become a DomainError.
 
         On a callable: applies the decorator directly (sync + async support).
         On a class: fans out over public callables, preserving sync/async dispatch.
@@ -85,7 +86,8 @@ class WrapErrorsClient:
         return wrapper
 
     def _decorate_class(self, cls: type[Any]) -> type[Any]:
-        """Fan out @wrap_errors over all public callables in the class.
+        """
+        Fan out @wrap_errors over all public callables in the class.
 
         Rules:
         - Only callables in cls.__dict__ (not inherited)

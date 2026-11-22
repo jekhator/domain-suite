@@ -11,7 +11,8 @@ from monitoring_suite.aspects.services.constants import aspects as const
 
 @dataclass(frozen=True, slots=True)
 class RequireMixins:
-    """Composition validation marker: class must inherit all specified mixin bases.
+    """
+    Composition validation marker: class must inherit all specified mixin bases.
 
     Validate-only marker (no runtime wrapper). Performed at composition time, fails loudly.
     Class-target only; function targets rejected.

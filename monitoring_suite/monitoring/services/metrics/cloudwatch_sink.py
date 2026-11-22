@@ -26,13 +26,12 @@ class CloudWatchMetricSink:
     def __init__(
         self, namespace: str = metrics_const.DEFAULT_CLOUDWATCH_NAMESPACE
     ) -> None:
-        """Initialize CloudWatch sink.
+        """
+        Initialize CloudWatch sink.
 
         Args:
-            namespace: CloudWatch namespace for metrics.
-
-        Raises:
-            ImportError: If boto3 is not installed.
+            namespace:
+                CloudWatch namespace for metrics.
         """
         try:
             import boto3
@@ -43,10 +42,12 @@ class CloudWatchMetricSink:
         self._cloudwatch = boto3.client("cloudwatch")
 
     def emit(self, event: MetricEvent) -> None:
-        """Emit metric event to CloudWatch.
+        """
+        Emit metric event to CloudWatch.
 
         Args:
-            event: MetricEvent with outcome, duration, and labels.
+            event:
+                MetricEvent with outcome, duration, and labels.
         """
         metric_point: _MetricDatapoint = {
             "MetricName": event.event,
@@ -62,10 +63,12 @@ class CloudWatchMetricSink:
 
     @staticmethod
     def _build_dimensions(event: MetricEvent) -> list[dict[str, str]]:
-        """Build CloudWatch dimensions from metric event labels and outcome.
+        """
+        Build CloudWatch dimensions from metric event labels and outcome.
 
         Args:
-            event: MetricEvent with labels and outcome.
+            event:
+                MetricEvent with labels and outcome.
 
         Returns:
             List of dimension dicts for CloudWatch.

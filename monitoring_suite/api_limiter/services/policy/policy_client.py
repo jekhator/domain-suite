@@ -18,7 +18,8 @@ class PolicyRegistry:
         return policy if isinstance(policy, objs.ThrottlePolicy) else None
 
     def collect(self, container: type | ModuleType) -> tuple[objs.ThrottlePolicy, ...]:
-        """Collect all declared policies from class or module members.
+        """
+        Collect all declared policies from class or module members.
 
         Preserves definition order. Handles instance methods, classmethod,
         and staticmethod decorators.

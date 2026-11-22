@@ -1,4 +1,5 @@
-"""Error messages raised at the API surface (source-side; tests match against these via const.ERR_*).
+"""
+Error messages raised at the API surface (source-side; tests match against these via const.ERR_*).
 
 Imported as const.
 """

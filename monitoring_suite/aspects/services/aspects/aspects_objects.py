@@ -40,7 +40,8 @@ class AspectKind(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Logged:
-    """Native event logging with entry/exit/error emissions and optional timing.
+    """
+    Native event logging with entry/exit/error emissions and optional timing.
 
     Emits structured events via instance LoggingMixin.log_* or ambient logging_suite.logging functions.
     """
@@ -228,7 +229,8 @@ class Monitored:
 
 @dataclass(frozen=True, slots=True)
 class Retried:
-    """Exponential backoff retry with static or dynamic policy selection.
+    """
+    Exponential backoff retry with static or dynamic policy selection.
 
     Exactly one of policy or policy_from_request must be provided (not both, not neither).
     Retries see raw exceptions for predicate matching before WRAP_ERRORS converts them.
