@@ -1,50 +1,52 @@
-# domain-suite
+# monitoring-suite
+
+Formerly domain-suite. Imports moved under the `monitoring_suite` root (see the 0.7.0 changelog entry for the map).
 
 Consolidated domain packages for Python services: typed errors, security context, API rate limiting, event monitoring, and cross-cutting aspects.
 
-[![PyPI](https://img.shields.io/pypi/v/domain-suite.svg)](https://pypi.org/project/domain-suite/)
-[![CI](https://github.com/jekhator/domain-suite/workflows/CI/badge.svg)](https://github.com/jekhator/domain-suite/actions)
+[![PyPI](https://img.shields.io/pypi/v/monitoring-suite.svg)](https://pypi.org/project/monitoring-suite/)
+[![CI](https://github.com/jekhator/monitoring-suite/workflows/CI/badge.svg)](https://github.com/jekhator/monitoring-suite/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python versions](https://img.shields.io/pypi/pyversions/domain-suite.svg)](https://pypi.org/project/domain-suite/)
+[![Python versions](https://img.shields.io/pypi/pyversions/monitoring-suite.svg)](https://pypi.org/project/monitoring-suite/)
 
 ## Overview
 
-**domain-suite** brings together five complementary domain packages into a single distribution:
+**monitoring-suite** brings together five complementary domain packages into a single distribution:
 
-- **domain-errors**: Typed domain error hierarchy with wrapping and chaining
-- **domain-security**: Security context management and authorization checks
-- **domain-api-limiter**: Request rate limiting and quota enforcement
-- **domain-monitoring**: Event monitoring and telemetry
-- **domain-aspects**: Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking
+- **monitoring_suite.errors**: Typed domain error hierarchy with wrapping and chaining
+- **monitoring_suite.security**: Security context management and authorization checks
+- **monitoring_suite.api_limiter**: Request rate limiting and quota enforcement
+- **monitoring_suite.monitoring**: Event monitoring and telemetry
+- **monitoring_suite.aspects**: Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking
 
-Each package maintains its namespace and API; the consolidation is organizational (single distribution, unified testing).
+Each package keeps its API under the single `monitoring_suite` import root; the consolidation is organizational (single distribution, unified testing).
 
 ## Installation
 
 ```bash
 # Base install
-uv add domain-suite
+uv add monitoring-suite
 
 # With all optional extras (logging + sensitivity)
-uv add "domain-suite[all]"
+uv add "monitoring-suite[all]"
 
 # Or select extras
-uv add "domain-suite[logging]"    # for mixin-logging support
-uv add "domain-suite[sensitivity]" # for mixin-sensitivity support
+uv add "monitoring-suite[logging]"    # for mixin-logging support
+uv add "monitoring-suite[sensitivity]" # for mixin-sensitivity support
 ```
 
 or with pip:
 
 ```bash
-pip install domain-suite
-pip install "domain-suite[all]"
+pip install monitoring-suite
+pip install "monitoring-suite[all]"
 ```
 
 Requires Python 3.11+.
 
 ## Packages
 
-### domain-errors
+### monitoring_suite.errors
 
 Typed domain error hierarchy with wrapping and chaining for Python services.
 
@@ -54,7 +56,7 @@ Typed domain error hierarchy with wrapping and chaining for Python services.
 **Example:**
 
 ```python
-from domain_errors import DomainError, wrap_errors
+from monitoring_suite.errors import DomainError, wrap_errors
 
 class DatabaseError(DomainError):
     domain = "database"
@@ -72,14 +74,14 @@ except DatabaseError as e:
     print(f"Error domain: {e.domain}, code: {e.code}, http_status: {e.http_status}, retryable: {e.retryable}")
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.11+, monitoring-suite==0.5.0):**
 ```
 Error domain: database, code: db_connection_failed, http_status: 503, retryable: True
 ```
 
-See `docs/domain_errors/` for full documentation.
+See `docs/monitoring_suite/errors/` for full documentation.
 
-### domain-security
+### monitoring_suite.security
 
 Security context management and authorization checks.
 
@@ -89,7 +91,7 @@ Security context management and authorization checks.
 **Example:**
 
 ```python
-from domain_security import Principal, SecurityContext, SecurityContextManager, requires
+from monitoring_suite.security import Principal, SecurityContext, SecurityContextManager, requires
 
 # Create principal with required scope
 principal = Principal(id="usr_123", scopes=frozenset(["admin.read"]))
@@ -107,14 +109,14 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.11+, monitoring-suite==0.5.0):**
 ```
 Admin access granted
 ```
 
-See `docs/domain_security/` for full documentation.
+See `docs/monitoring_suite/security/` for full documentation.
 
-### domain-api-limiter
+### monitoring_suite.api_limiter
 
 Request rate limiting and quota enforcement.
 
@@ -124,7 +126,7 @@ Request rate limiting and quota enforcement.
 **Example:**
 
 ```python
-from domain_api_limiter import throttled
+from monitoring_suite.api_limiter import throttled
 
 @throttled(scope="api.documents", rate="100/hour")
 def create_document(title: str):
@@ -134,14 +136,14 @@ result = create_document("My Document")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.11+, monitoring-suite==0.5.0):**
 ```
 {'id': 'doc_123', 'title': 'My Document'}
 ```
 
-See `docs/domain_api_limiter/` for full documentation.
+See `docs/monitoring_suite/api_limiter/` for full documentation.
 
-### domain-monitoring
+### monitoring_suite.monitoring
 
 Event monitoring and telemetry.
 
@@ -151,7 +153,7 @@ Event monitoring and telemetry.
 **Example:**
 
 ```python
-from domain_monitoring import monitored
+from monitoring_suite.monitoring import monitored
 
 @monitored(event="document.processed")
 def process_document(doc_id: str):
@@ -161,14 +163,14 @@ result = process_document("doc_123")
 print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.11+, monitoring-suite==0.5.0):**
 ```
 {'status': 'success'}
 ```
 
-See `docs/domain_monitoring/` for full documentation.
+See `docs/monitoring_suite/monitoring/` for full documentation.
 
-### domain-aspects
+### monitoring_suite.aspects
 
 Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking.
 
@@ -178,8 +180,8 @@ Composable decorators for logging, auth, throttling, error wrapping, and sensiti
 **Example:**
 
 ```python
-from domain_aspects import aspects, Logged, Throttled
-from domain_security import Principal, SecurityContextManager
+from monitoring_suite.aspects import aspects, Logged, Throttled
+from monitoring_suite.security import Principal, SecurityContextManager
 from mixin_logging import LoggingMixin
 
 class DocumentService(LoggingMixin):
@@ -198,16 +200,16 @@ with manager.bind(principal=principal, tenant_id="org_abc"):
     print(result)
 ```
 
-**Output (Python 3.11+, domain-suite==0.5.0):**
+**Output (Python 3.11+, monitoring-suite==0.5.0):**
 ```
 {'id': 'doc_123', 'title': 'My Doc'}
 ```
 
-See `docs/domain_aspects/` for full documentation.
+See `docs/monitoring_suite/aspects/` for full documentation.
 
 ## Consolidated From
 
-This distribution consolidates five independent domain packages (originally `domain-errors`, `domain-security`, `domain-api-limiter`, `domain-monitoring`, and `domain-aspects`) into a single unified distribution to simplify dependency management and testing.
+This distribution consolidates five independent domain packages (`monitoring_suite.errors`, `monitoring_suite.security`, `monitoring_suite.api_limiter`, `monitoring_suite.monitoring`, and `monitoring_suite.aspects`) into a single unified distribution to simplify dependency management and testing.
 
 Each package retains its original public API and namespace. Internal dependencies between packages within the suite are resolved locally (no external package re-imports required).
 

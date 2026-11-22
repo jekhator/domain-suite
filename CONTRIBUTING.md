@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to domain-suite!
+Thank you for your interest in contributing to monitoring-suite!
 
 ## Development Setup
 
@@ -12,8 +12,8 @@ Thank you for your interest in contributing to domain-suite!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/jekhator/domain-suite.git
-   cd domain-suite
+   git clone https://github.com/jekhator/monitoring-suite.git
+   cd monitoring-suite
    ```
 
 2. Install dependencies and all optional extras:
@@ -35,7 +35,7 @@ uv run pytest
 
 For coverage report:
 ```bash
-uv run pytest --cov=domain_api_limiter,domain_aspects,domain_errors,domain_monitoring,domain_security
+uv run pytest --cov=monitoring_suite.api_limiter,monitoring_suite.aspects,monitoring_suite.errors,monitoring_suite.monitoring,monitoring_suite.security
 ```
 
 ## Linting and Code Style

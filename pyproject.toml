@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "domain-suite"
+name = "monitoring-suite"
 dynamic = ["version"]
 description = "Consolidated domain packages: typed errors, security, API rate limiting, monitoring, retrieval provenance, and cross-cutting aspects"
 readme = "README.md"
@@ -23,29 +23,29 @@ classifiers = [
 keywords = ["domains", "errors", "security", "rate-limiting", "monitoring", "aspects"]
 
 [project.urls]
-Homepage = "https://pypi.org/project/domain-suite/"
-Repository = "https://github.com/jekhator/domain-suite"
-Issues = "https://github.com/jekhator/domain-suite/issues"
-Changelog = "https://github.com/jekhator/domain-suite/blob/main/CHANGELOG.md"
+Homepage = "https://pypi.org/project/monitoring-suite/"
+Repository = "https://github.com/jekhator/monitoring-suite"
+Issues = "https://github.com/jekhator/monitoring-suite/issues"
+Changelog = "https://github.com/jekhator/monitoring-suite/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
-path = "domain_errors/config/_version.py"
+path = "monitoring_suite/errors/config/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["domain_errors", "domain_security", "domain_api_limiter", "domain_monitoring", "domain_aspects", "domain_rag"]
+packages = ["monitoring_suite"]
 exclude = [
-    "domain_*/**/tests",
-    "domain_*/**/conftest.py",
-    "domain_*/common/constants/tests.py"
+    "monitoring_suite/**/tests",
+    "monitoring_suite/**/conftest.py",
+    "monitoring_suite/errors/common/constants/tests.py"
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["domain_errors", "domain_security", "domain_api_limiter", "domain_monitoring", "domain_aspects", "domain_rag"]
+testpaths = ["monitoring_suite"]
 python_files = ["test_*.py"]
 
 [tool.coverage.run]
-source = ["domain_errors", "domain_security", "domain_api_limiter", "domain_monitoring", "domain_aspects", "domain_rag"]
-omit = ["domain_*/**/tests/*", "domain_*/common/constants/tests.py", "domain_aspects/conftest.py", "domain_rag/conftest.py"]
+source = ["monitoring_suite"]
+omit = ["monitoring_suite/**/tests/*", "monitoring_suite/errors/common/constants/tests.py", "monitoring_suite/aspects/conftest.py", "monitoring_suite/rag/conftest.py"]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -72,13 +72,13 @@ extend-select = ["I", "TID252", "PLC0414", "UP035"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-known-first-party = ["domain_errors", "domain_security", "domain_api_limiter", "domain_monitoring", "domain_aspects", "domain_rag"]
+known-first-party = ["monitoring_suite"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
 [tool.strict-module]
-paths = ["domain_errors/", "domain_security/", "domain_api_limiter/", "domain_monitoring/", "domain_aspects/", "domain_rag/"]
+paths = ["monitoring_suite/errors/", "monitoring_suite/security/", "monitoring_suite/api_limiter/", "monitoring_suite/monitoring/", "monitoring_suite/aspects/", "monitoring_suite/rag/"]
 exception_tags = ["fixture"]
 
 [tool.strict-module.loc-cap]
