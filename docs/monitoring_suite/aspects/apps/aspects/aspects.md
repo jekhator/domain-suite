@@ -9,7 +9,7 @@ The Aspects service enables declarative composition of six cross-cutting aspects
 Key design:
 
 - **Immutable entries**: All aspect entries are frozen dataclasses with hashable fields for frozenset membership.
-- **Lazy imports**: Optional dependencies (mixin-logging, monitoring_suite.security, monitoring_suite.api_limiter, mixin-sensitivity) are imported only when an entry's `build()` method is called, so validation works without them installed.
+- **Lazy imports**: Optional dependencies (logging-suite, monitoring_suite.security, monitoring_suite.api_limiter, logging-suite) are imported only when an entry's `build()` method is called, so validation works without them installed.
 - **Canonical ordering**: Aspects apply in ASPECT_ORDER regardless of declaration order (LOGGED outermost, WRAP_ERRORS innermost).
 - **Validation at decoration time**: Duplicate kinds, unknown entry types, and empty declarations raise AspectDeclarationError.
 
@@ -21,7 +21,7 @@ Key design:
 Logged(event: str)
 ```
 
-Emit entry and exit events via mixin-logging.
+Emit entry and exit events via logging-suite.
 
 ### Requires
 
@@ -61,7 +61,7 @@ Translate exceptions to a target exception type via monitoring_suite.errors.
 Sensitive()
 ```
 
-Mask sensitive fields in repr via mixin-sensitivity.
+Mask sensitive fields in repr via logging-suite.
 
 ## Usage
 
@@ -110,22 +110,22 @@ Declaration-time validation raises AspectDeclarationError when:
 Each aspect has an optional extra for its underlying library:
 
 <<<<<<< HEAD:docs/aspects/apps/aspects/aspects.md
-- `[logging]` : mixin-logging
+- `[logging]` : logging-suite
 - `[security]` : monitoring_suite.security
 - `[throttle]` : monitoring_suite.api_limiter
-- `[sensitivity]` : mixin-sensitivity
+- `[sensitivity]` : logging-suite
 - `[all]` : all four
 ||||||| 4d36750:docs/aspects/apps/aspects/aspects.md
-- `[logging]`: mixin-logging
+- `[logging]`: logging-suite
 - `[security]`: monitoring_suite.security
 - `[throttle]`: monitoring_suite.api_limiter
-- `[sensitivity]`: mixin-sensitivity
+- `[sensitivity]`: logging-suite
 - `[all]`: all four
 =======
-- `[logging]`: mixin-logging
+- `[logging]`: logging-suite
 - `[security]`: monitoring_suite.security
 - `[throttle]`: monitoring_suite.api_limiter
-- `[sensitivity]`: mixin-sensitivity
+- `[sensitivity]`: logging-suite
 - `[all]`: all four
 >>>>>>> origin/main:docs/monitoring_suite/aspects/apps/aspects/aspects.md
 

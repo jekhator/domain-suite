@@ -40,7 +40,7 @@ __all__ = [
 """Aspect application order (outermost to innermost: LOGGED → REQUIRES → TENANT_SCOPED → THROTTLED → MONITORED → WRAP_ERRORS → RETRIED innermost).
 
 RETRIED is placed innermost so retries see raw exceptions for predicate matching, before WRAP_ERRORS converts them.
-Sensitivity is adopted client-side via mixin_sensitivity.SensitiveRepr (not a wrapper concern).
+Sensitivity is adopted client-side via logging_suite.sensitivity.SensitiveRepr (not a wrapper concern).
 """
 
 ASPECT_ORDER: Final = (
@@ -99,7 +99,7 @@ ERR_ASPECT_MONITORED_EVENT_EMPTY: Final = "Monitored.event must be a non-empty s
 """Aspect dependency import error messages."""
 
 ERR_ASPECT_LOGGED_IMPORT_MISSING: Final = (
-    "mixin-logging not installed; add [logging] extra."
+    "logging-suite not installed; add [logging] extra."
 )
 
 ERR_ASPECT_REQUIRES_IMPORT_MISSING: Final = (

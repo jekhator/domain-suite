@@ -583,12 +583,12 @@ wheels = [
 ]
 
 [[package]]
-name = "mixin-suite"
-version = "0.6.0"
+name = "logging-suite"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7e/2d/053c40774052cd925732dddc490211bc580a0bc75b7b933561e515484527/mixin_suite-0.6.0.tar.gz", hash = "sha256:dfc0e1be247227d1aca3bae47d1d35213cffb6444b9e94ce0ab029bba8ab6ac2", size = 414563, upload-time = "2026-08-12T02:20:47.277Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/71/b8b02c3bbd5f203d4e9a748677dd138fd0ea99e49051bc596989b7da3f85/logging_suite-0.7.0.tar.gz", hash = "sha256:33441f4c7d57bc2b5c48da69e513741ad34883b6d77ab20833c1d36f3def4082", size = 415881, upload-time = "2026-11-22T20:18:44.653Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/7d/0b0e4066291c9b68c9f901529c5b62ba7532763885f3c72bbe0ababd3e3c/mixin_suite-0.6.0-py3-none-any.whl", hash = "sha256:7eae614b5739f65d57d9c430751ae26eca1e3f457f27ce02b171fa7eccae3d9e", size = 85411, upload-time = "2026-08-12T02:20:45.742Z" },
+    { url = "https://files.pythonhosted.org/packages/15/40/1ead94bc79b95b9c9ad33a0863722d96d31bef12a29d9b8667bbe69b97ad/logging_suite-0.7.0-py3-none-any.whl", hash = "sha256:8647fcca5a26fb64960aba82604fdad30a68bdb14cdf915bc46191d07ce76c5c", size = 88478, upload-time = "2026-11-22T20:18:43.516Z" },
 ]
 
 [[package]]
@@ -598,16 +598,16 @@ source = { editable = "." }
 [package.optional-dependencies]
 all = [
     { name = "boto3" },
-    { name = "mixin-suite" },
+    { name = "logging-suite" },
 ]
 cloudwatch = [
     { name = "boto3" },
 ]
 logging = [
-    { name = "mixin-suite" },
+    { name = "logging-suite" },
 ]
 sensitivity = [
-    { name = "mixin-suite" },
+    { name = "logging-suite" },
 ]
 
 [package.dev-dependencies]
@@ -616,7 +616,7 @@ dev = [
     { name = "boto3" },
     { name = "botocore" },
     { name = "httpx" },
-    { name = "mixin-suite" },
+    { name = "logging-suite" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -628,9 +628,9 @@ dev = [
 requires-dist = [
     { name = "boto3", marker = "extra == 'all'", specifier = ">=1.28.0" },
     { name = "boto3", marker = "extra == 'cloudwatch'", specifier = ">=1.28.0" },
-    { name = "mixin-suite", marker = "extra == 'all'", specifier = ">=0.6.0" },
-    { name = "mixin-suite", marker = "extra == 'logging'", specifier = ">=0.6.0" },
-    { name = "mixin-suite", marker = "extra == 'sensitivity'", specifier = ">=0.6.0" },
+    { name = "logging-suite", marker = "extra == 'all'", specifier = ">=0.7.0" },
+    { name = "logging-suite", marker = "extra == 'logging'", specifier = ">=0.7.0" },
+    { name = "logging-suite", marker = "extra == 'sensitivity'", specifier = ">=0.7.0" },
 ]
 provides-extras = ["all", "cloudwatch", "logging", "sensitivity"]
 
@@ -640,7 +640,7 @@ dev = [
     { name = "boto3" },
     { name = "botocore" },
     { name = "httpx" },
-    { name = "mixin-suite", specifier = ">=0.6.0" },
+    { name = "logging-suite", specifier = ">=0.7.0" },
     { name = "mypy" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov" },

@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
-from mixin_logging import clear_correlation_id, set_correlation_id
+from logging_suite.logging import clear_correlation_id, set_correlation_id
 
 from monitoring_suite.monitoring.decorators.monitored.monitored_client import monitored
 from monitoring_suite.monitoring.errors.monitoring_errors import (

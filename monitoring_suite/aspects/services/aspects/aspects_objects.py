@@ -20,7 +20,7 @@ from monitoring_suite.aspects.services.aspects.aspects_retried_builders import (
 from monitoring_suite.aspects.services.constants import aspects as const
 
 if TYPE_CHECKING:
-    from mixin_retry import RetryPolicy
+    from logging_suite.retry import RetryPolicy
 
     from monitoring_suite.monitoring.services.metrics.metrics_client import MetricSink
 
@@ -42,7 +42,7 @@ class AspectKind(StrEnum):
 class Logged:
     """Native event logging with entry/exit/error emissions and optional timing.
 
-    Emits structured events via instance LoggingMixin.log_* or ambient mixin_logging functions.
+    Emits structured events via instance LoggingMixin.log_* or ambient logging_suite.logging functions.
     """
 
     event: str

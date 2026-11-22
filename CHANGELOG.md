@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Renamed from domain-suite to monitoring-suite; imports moved under monitoring_suite**: the distribution is now `monitoring-suite`. Every top-level package moved under the single `monitoring_suite` import root with the old prefix dropped: `domain_errors` -> `monitoring_suite.errors`, `domain_security` -> `monitoring_suite.security`, `domain_api_limiter` -> `monitoring_suite.api_limiter`, `domain_monitoring` -> `monitoring_suite.monitoring`, `domain_aspects` -> `monitoring_suite.aspects`, `domain_rag` -> `monitoring_suite.rag`. Docs moved to `docs/monitoring_suite/<name>/`. The default CloudWatch namespace is now `monitoring-suite` and the security context variable is now `monitoring_suite_security_context`. The old `domain-suite` PyPI project stays installable with a moved-to notice.
+- **Depends on logging-suite instead of mixin-suite**: the `logging`, `sensitivity` and `all` extras and the dev dependencies require `logging-suite>=0.7.0`; imports moved from `mixin_logging`, `mixin_sensitivity`, `mixin_retry` and `mixin_latency` to `logging_suite.logging`, `logging_suite.sensitivity`, `logging_suite.retry` and `logging_suite.latency`.
 
 ## [0.6.0] - 2026-08-12
 

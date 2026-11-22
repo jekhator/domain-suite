@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from mixin_retry import RetryPolicy
+from logging_suite.retry import RetryPolicy
 
 from monitoring_suite.aspects.services.aspects import aspects_objects as objs
 

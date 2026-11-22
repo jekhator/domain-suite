@@ -26,12 +26,12 @@ class _LoggedBuilders:
 
         Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
         Extractions are guarded: errors log WARNING, operation continues.
-        When timed=True, measures operation duration via mixin_latency.LatencyClock.
+        When timed=True, measures operation duration via logging_suite.latency.LatencyClock.
         """
-        from mixin_logging import LoggingMixin, log_error, log_info
+        from logging_suite.logging import LoggingMixin, log_error, log_info
 
         if timed:
-            from mixin_latency import LatencyClock
+            from logging_suite.latency import LatencyClock
 
         if asyncio.iscoroutinefunction(target):
 

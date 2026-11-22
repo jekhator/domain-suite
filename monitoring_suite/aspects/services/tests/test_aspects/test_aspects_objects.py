@@ -260,7 +260,7 @@ class TestRetried:
 
     def test_retried_with_static_policy(self) -> None:
         """Create Retried with static retry policy."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=3,
@@ -276,7 +276,7 @@ class TestRetried:
 
     def test_retried_with_dynamic_policy_selector(self) -> None:
         """Create Retried with dynamic policy selector."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
             return None
@@ -293,7 +293,7 @@ class TestRetried:
 
     def test_retried_both_policies_raises(self) -> None:
         """Retried with both policy and selector raises ValueError."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=3,
@@ -311,7 +311,7 @@ class TestRetried:
 
     def test_retried_is_frozen(self) -> None:
         """Retried is frozen dataclass."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=3,
@@ -326,7 +326,7 @@ class TestRetried:
 
     def test_retried_hashable(self) -> None:
         """Retried is hashable for frozenset membership."""
-        from mixin_retry import RetryPolicy
+        from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
             max_attempts=3,

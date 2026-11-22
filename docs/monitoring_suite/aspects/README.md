@@ -34,7 +34,7 @@ def create_document(title: str, content: str) -> dict:
 - **`Throttled`**: Rate limiting aspect (from monitoring_suite.api_limiter)
 - **`TenantScoped`**: Tenant isolation aspect (from monitoring_suite.security)
 - **`WrapErrors`**: Error wrapping aspect (from monitoring_suite.errors)
-- **`Sensitive`**: Sensitivity masking aspect (from mixin-sensitivity)
+- **`Sensitive`**: Sensitivity masking aspect (from logging-suite)
 - **`AspectEntry`**: Base interface for custom aspects
 - **`AspectKind`**: Enum of aspect types
 - Aspect error classes: `AspectsError`, `AspectDeclarationError`

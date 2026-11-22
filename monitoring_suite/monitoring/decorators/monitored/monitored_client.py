@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Optional, cast
 
-from mixin_logging import get_correlation_id
+from logging_suite.logging import get_correlation_id
 
 from monitoring_suite.monitoring.errors.constants import monitoring as const
 from monitoring_suite.monitoring.errors.monitoring_errors import (
