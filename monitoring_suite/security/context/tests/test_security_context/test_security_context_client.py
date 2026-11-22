@@ -96,19 +96,19 @@ class TestSecurityContextManager:
         """bind accepts None principal for anonymous binding."""
         manager = SecurityContextManager()
         with manager.bind(principal=None, tenant_id="tenant:test"):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal is None
-            assert ctx.tenant_id == "tenant:test"
+            context = manager.get()
+            assert context is not None
+            assert context.principal is None
+            assert context.tenant_id == "tenant:test"
 
     def test_bind_with_none_tenant_id(self, principal: Principal) -> None:
         """bind accepts None tenant_id for unscoped binding."""
         manager = SecurityContextManager()
         with manager.bind(principal=principal, tenant_id=None):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal == principal
-            assert ctx.tenant_id is None
+            context = manager.get()
+            assert context is not None
+            assert context.principal == principal
+            assert context.tenant_id is None
 
     def test_nested_bind_operations(
         self, security_context: SecurityContext, anonymous_context: SecurityContext
@@ -137,11 +137,11 @@ class TestSecurityContextManager:
             id="user:other", roles=frozenset(), scopes=frozenset()
         )
         with manager.bind(principal=other_principal, tenant_id="tenant:other"):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal == other_principal
-            assert ctx.tenant_id == "tenant:other"
-            assert ctx != security_context
+            context = manager.get()
+            assert context is not None
+            assert context.principal == other_principal
+            assert context.tenant_id == "tenant:other"
+            assert context != security_context
 
     def test_bind_returns_context_manager(
         self, security_context: SecurityContext

@@ -75,14 +75,14 @@ class ErrorChain:
 
     @staticmethod
     def _domain_of(
-        err: BaseException, classifiers: tuple[DomainClassifier, ...]
+        error: BaseException, classifiers: tuple[DomainClassifier, ...]
     ) -> str:
         """Resolve an error's domain from its contract or the first matching classifier."""
-        domain = getattr(err, "domain", None)
+        domain = getattr(error, "domain", None)
         if isinstance(domain, str):
             return domain
         for classifier in classifiers:
-            verdict = classifier.classify(err)
+            verdict = classifier.classify(error)
             if verdict is not None:
                 return verdict
         return const.DEFAULT_DOMAIN

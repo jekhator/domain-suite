@@ -250,9 +250,9 @@ class TestEntryHashability:
         """All entries can be dict keys."""
         entry1 = objs.Logged(event="test")
         entry2 = objs.Requires(permission="read")
-        d = {entry1: "logged", entry2: "requires"}
-        assert d[entry1] == "logged"
-        assert d[entry2] == "requires"
+        dimension = {entry1: "logged", entry2: "requires"}
+        assert dimension[entry1] == "logged"
+        assert dimension[entry2] == "requires"
 
 
 class TestRetried:

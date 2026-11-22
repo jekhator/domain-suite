@@ -23,8 +23,8 @@ class TestLoggedAsyncPaths:
         def extract_result(result) -> dict:
             return {"res_key": result}
 
-        def extract_exc(exc: BaseException) -> dict:
-            return {"exc_msg": str(exc)}
+        def extract_exc(error: BaseException) -> dict:
+            return {"exc_msg": str(error)}
 
         logged = objs.Logged(
             event="test.async",
@@ -49,8 +49,8 @@ class TestLoggedAsyncPaths:
     def test_logged_async_exception_with_payloads(self) -> None:
         """Logged async exception path with payload extraction."""
 
-        def extract_exc(exc: BaseException) -> dict:
-            return {"error_msg": str(exc)}
+        def extract_exc(error: BaseException) -> dict:
+            return {"error_msg": str(error)}
 
         logged = objs.Logged(
             event="test.async.error",
@@ -79,7 +79,7 @@ class TestLoggedAsyncPaths:
         def bad_result(result) -> dict:
             raise RuntimeError("result extract failed")
 
-        def bad_exc(exc: BaseException) -> dict:
+        def bad_exc(error: BaseException) -> dict:
             raise RuntimeError("exc extract failed")
 
         logged = objs.Logged(
@@ -105,7 +105,7 @@ class TestLoggedAsyncPaths:
     def test_logged_async_bad_exc_extractor_during_exception(self) -> None:
         """Logged async exception with bad extraction in exception handler."""
 
-        def bad_exc(exc: BaseException) -> dict:
+        def bad_exc(error: BaseException) -> dict:
             raise RuntimeError("double fault")
 
         logged = objs.Logged(
@@ -138,7 +138,7 @@ class TestRetriedBothForms:
             backoff_multiplier=1.0,
             backoff_max_seconds=1.0,
             jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            should_retry=lambda error: isinstance(error, ValueError),
         )
         retried = objs.Retried(policy=policy)
         wrapper = retried.build()
@@ -193,7 +193,7 @@ class TestRetriedBothForms:
                     backoff_multiplier=1.0,
                     backoff_max_seconds=1.0,
                     jitter=False,
-                    should_retry=lambda e: isinstance(e, ValueError),
+                    should_retry=lambda error: isinstance(error, ValueError),
                 )
             return None
 
@@ -227,8 +227,8 @@ class TestOrderingIntegration:
         """Retried and Logged aspects compose correctly."""
         aspects_svc = Aspects()
 
-        def should_retry(exc: BaseException) -> bool:
-            return isinstance(exc, ValueError)
+        def should_retry(error: BaseException) -> bool:
+            return isinstance(error, ValueError)
 
         policy = RetryPolicy(
             max_attempts=2,
@@ -276,7 +276,7 @@ class TestSyncExceptionPaths:
     def test_logged_sync_exception_with_bad_payload_extractors(self) -> None:
         """Logged sync exception with multiple failing extractors."""
 
-        def extract_exc(exc: BaseException) -> dict:
+        def extract_exc(error: BaseException) -> dict:
             raise RuntimeError("extraction error")
 
         logged = objs.Logged(
@@ -299,7 +299,7 @@ class TestSyncExceptionPaths:
         def extract_result(result) -> dict:
             raise RuntimeError("result error")
 
-        def extract_exc(exc: BaseException) -> dict:
+        def extract_exc(error: BaseException) -> dict:
             raise RuntimeError("exc error")
 
         logged = objs.Logged(

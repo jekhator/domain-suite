@@ -192,7 +192,7 @@ class TestRealDepsIntegration:
             objs.Monitored(
                 event="test.result_labels",
                 sink=CollectingSink(),
-                labels_from_result=lambda r: (("tokens", str(r)),),
+                labels_from_result=lambda value: (("tokens", str(value)),),
             )
         )
         @dataclass(frozen=True, slots=True)
@@ -223,7 +223,7 @@ class TestRealDepsIntegration:
             objs.Monitored(
                 event="test.exc_labels",
                 sink=CollectingSink(),
-                labels_from_exc=lambda e: (("error_type", type(e).__name__),),
+                labels_from_exc=lambda entry: (("error_type", type(entry).__name__),),
             )
         )
         @dataclass(frozen=True, slots=True)
@@ -287,7 +287,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            should_retry=lambda entry: isinstance(entry, ValueError),
         )
         calls = {"n": 0}
 
@@ -325,7 +325,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            should_retry=lambda entry: isinstance(entry, ValueError),
         )
         calls = {"n": 0}
 
@@ -357,7 +357,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            should_retry=lambda entry: isinstance(entry, ValueError),
         )
         calls = {"n": 0}
 
@@ -382,7 +382,7 @@ class TestRealDepsIntegration:
         calls = {"n": 0}
 
         @aspects(
-            objs.Retried(policy_from_request=lambda *a, **k: None),
+            objs.Retried(policy_from_request=lambda *argument, **key: None),
         )
         class Service:
             def no_retry(self) -> str:
@@ -449,7 +449,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: False,
+            should_retry=lambda entry: False,
         )
 
         @aspects(objs.Retried(policy=policy))
@@ -485,7 +485,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: False,
+            should_retry=lambda entry: False,
         )
 
         @aspects(objs.Retried(policy=policy))
@@ -525,7 +525,7 @@ class TestRealDepsIntegration:
             backoff_multiplier=1.0,
             backoff_max_seconds=0.0,
             jitter=False,
-            should_retry=lambda e: False,
+            should_retry=lambda entry: False,
         )
 
         @aspects(objs.Retried(policy=policy))

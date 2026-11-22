@@ -37,16 +37,16 @@ class TestChainLink:
 
     def test_construction_with_context(self) -> None:
         """ChainLink can be constructed with explicit context."""
-        ctx = {"user_id": 123, "request_id": "abc"}
+        context = {"user_id": 123, "request_id": "abc"}
         link = ChainLink(
             type_name="ValueError",
             message="invalid value",
             code="VAL_001",
             domain="validation",
             via=ChainVia.ROOT,
-            context=ctx,
+            context=context,
         )
-        assert link.context == ctx
+        assert link.context == context
 
     def test_frozen(self) -> None:
         """ChainLink is frozen and prevents assignment."""
@@ -123,8 +123,8 @@ class TestChainLink:
             via=ChainVia.ROOT,
         )
         assert hash(link1) == hash(link2)
-        s = {link1, link2}
-        assert len(s) == 1
+        unique = {link1, link2}
+        assert len(unique) == 1
 
     def test_repr(self) -> None:
         """ChainLink has a repr string."""
@@ -135,9 +135,9 @@ class TestChainLink:
             domain="val",
             via=ChainVia.CAUSE,
         )
-        r = repr(link)
-        assert "ChainLink" in r
-        assert "ValueError" in r
+        text = repr(link)
+        assert "ChainLink" in text
+        assert "ValueError" in text
 
     def test_to_log_extra_with_code(self) -> None:
         """to_log_extra returns a dict with all fields, code as string."""
@@ -192,17 +192,17 @@ class TestChainLink:
 
     def test_to_log_extra_includes_context(self) -> None:
         """to_log_extra includes context field."""
-        ctx = {"user_id": 123, "request_id": "abc"}
+        context = {"user_id": 123, "request_id": "abc"}
         link = ChainLink(
             type_name="ValueError",
             message="invalid",
             code="VAL_001",
             domain="validation",
             via=ChainVia.ROOT,
-            context=ctx,
+            context=context,
         )
         extra = link.to_log_extra()
-        assert extra["context"] == ctx
+        assert extra["context"] == context
 
 
 class TestDomainCrossing:
@@ -255,8 +255,8 @@ class TestDomainCrossing:
         crossing1 = DomainCrossing(cause=cause, effect=effect)
         crossing2 = DomainCrossing(cause=cause, effect=effect)
         assert hash(crossing1) == hash(crossing2)
-        s = {crossing1, crossing2}
-        assert len(s) == 1
+        unique = {crossing1, crossing2}
+        assert len(unique) == 1
 
     def test_to_log_extra(self) -> None:
         """to_log_extra returns cause and effect domain info."""

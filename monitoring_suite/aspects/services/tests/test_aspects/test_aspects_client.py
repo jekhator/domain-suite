@@ -63,7 +63,7 @@ class TestAspectsFlatten:
         )
         result = aspects_svc._flatten((entry_set,))  # type: ignore[arg-type]
         assert len(result) == 2
-        assert {e.kind for e in result} == {
+        assert {entry.kind for entry in result} == {
             objs.AspectKind.LOGGED,
             objs.AspectKind.REQUIRES,
         }
@@ -83,7 +83,7 @@ class TestAspectsFlatten:
         )
         result = aspects_svc._flatten(entries)  # type: ignore[arg-type]
         assert len(result) == 3
-        kinds = {e.kind for e in result}
+        kinds = {entry.kind for entry in result}
         assert kinds == {
             objs.AspectKind.LOGGED,
             objs.AspectKind.REQUIRES,
@@ -151,7 +151,7 @@ class TestAspectsSort:
             objs.Requires(permission="read"),
         ]
         result = aspects_svc._sort(entries)  # type: ignore[arg-type]
-        kinds = [e.kind for e in result]
+        kinds = [entry.kind for entry in result]
         assert kinds == [
             objs.AspectKind.LOGGED,
             objs.AspectKind.REQUIRES,
@@ -170,7 +170,7 @@ class TestAspectsSort:
         entries = [wrap, logged, requires, tenant, throttled, monitored]
         result = aspects_svc._sort(entries)  # type: ignore[arg-type]
         assert len(result) == 6
-        kinds = [e.kind for e in result]
+        kinds = [entry.kind for entry in result]
         assert kinds == [
             objs.AspectKind.LOGGED,
             objs.AspectKind.REQUIRES,

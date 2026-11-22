@@ -47,15 +47,15 @@ class TenantScoped:
         return decorate
 
     def _decorate_callable[**Params, Return](
-        self, func: Callable[Params, Return], param_name: str
+        self, function: Callable[Params, Return], param_name: str
     ) -> Callable[Params, Return]:
         """Decorate a single callable."""
 
-        @functools.wraps(func)
+        @functools.wraps(function)
         def wrapper(*args: Params.args, **kwargs: Params.kwargs) -> Return:
-            tenant_id = self._tenant_argument(func, param_name, args, kwargs)
+            tenant_id = self._tenant_argument(function, param_name, args, kwargs)
             self._guard.check(self._current_context(), tenant_id)
-            return func(*args, **kwargs)
+            return function(*args, **kwargs)
 
         setattr(wrapper, _TENANT_SCOPED_DECORATED_MARKER, True)
         return wrapper
@@ -70,30 +70,30 @@ class TenantScoped:
         return cls
 
     @staticmethod
-    def _should_decorate(name: str, obj: Any) -> bool:
+    def _should_decorate(name: str, member: Any) -> bool:
         """Check if an object should be decorated."""
-        if name.startswith("_") or inspect.isbuiltin(obj):
+        if name.startswith("_") or inspect.isbuiltin(member):
             return False
-        if isinstance(obj, property):
+        if isinstance(member, property):
             return False
-        if inspect.isclass(obj):
+        if inspect.isclass(member):
             return False
-        if hasattr(obj, _TENANT_SCOPED_DECORATED_MARKER):
+        if hasattr(member, _TENANT_SCOPED_DECORATED_MARKER):
             return False
-        return callable(obj) or isinstance(obj, (classmethod, staticmethod))
+        return callable(member) or isinstance(member, (classmethod, staticmethod))
 
     def _validate_tenant_param(
         self, method: Any, param_name: str, method_name: str
     ) -> None:
         """Validate that a method has the tenant parameter at declaration time."""
-        func = (
+        function = (
             method.__func__
             if isinstance(method, (classmethod, staticmethod))
             else method
         )
-        sig = inspect.signature(func)
+        signature = inspect.signature(function)
         if param_name != const.SELF_TENANT_ID:
-            if param_name not in sig.parameters:
+            if param_name not in signature.parameters:
                 raise SecurityDeclarationError(
                     message=errors_const.ERR_SECURITY_DECLARATION_FAILED,
                     method_name=method_name,
@@ -110,7 +110,7 @@ class TenantScoped:
 
     @staticmethod
     def _tenant_argument(
-        func: Callable[..., Any],
+        function: Callable[..., Any],
         param_name: str,
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
@@ -120,7 +120,7 @@ class TenantScoped:
             if not args:
                 raise TenancyError(message=const.ERR_TENANT_SCOPED_UNBOUND_SELF)
             return str(args[0].tenant_id)
-        bound = inspect.signature(func).bind(*args, **kwargs)
+        bound = inspect.signature(function).bind(*args, **kwargs)
         if param_name not in bound.arguments:
             raise TenancyError(
                 message=const.ERR_TENANT_SCOPED_PARAM_MISSING,

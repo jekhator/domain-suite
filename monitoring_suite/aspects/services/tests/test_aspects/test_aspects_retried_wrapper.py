@@ -39,8 +39,8 @@ class TestRetriedWrapperSync:
     def test_retried_wrapper_retries_on_predicate_match(self) -> None:
         """Retried wrapper retries when predicate matches."""
 
-        def should_retry(exc: BaseException) -> bool:
-            return isinstance(exc, ValueError)
+        def should_retry(error: BaseException) -> bool:
+            return isinstance(error, ValueError)
 
         policy = RetryPolicy(
             max_attempts=3,
@@ -71,8 +71,8 @@ class TestRetriedWrapperSync:
     def test_retried_wrapper_exhausts_retries(self) -> None:
         """Retried wrapper raises after exhausting retries."""
 
-        def should_retry(exc: BaseException) -> bool:
-            return isinstance(exc, ValueError)
+        def should_retry(error: BaseException) -> bool:
+            return isinstance(error, ValueError)
 
         policy = RetryPolicy(
             max_attempts=2,
@@ -104,7 +104,7 @@ class TestRetriedWrapperSync:
                     backoff_multiplier=1.0,
                     backoff_max_seconds=1.0,
                     jitter=False,
-                    should_retry=lambda e: isinstance(e, ValueError),
+                    should_retry=lambda error: isinstance(error, ValueError),
                 )
             return None
 

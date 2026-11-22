@@ -67,7 +67,7 @@ class MonitoredClient:
 
     @staticmethod
     def _monitor_callable(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         event: str,
         sink: Optional[MetricSink],
         labels_from_result: Optional[
@@ -78,18 +78,18 @@ class MonitoredClient:
         ] = None,
     ) -> Callable[..., Any]:
         """Wrap a callable with monitoring."""
-        if asyncio.iscoroutinefunction(fn):
+        if asyncio.iscoroutinefunction(function):
             return MonitoredClient._wrap_async(
-                fn, event, sink, labels_from_result, labels_from_exc
+                function, event, sink, labels_from_result, labels_from_exc
             )
         else:
             return MonitoredClient._wrap_sync(
-                fn, event, sink, labels_from_result, labels_from_exc
+                function, event, sink, labels_from_result, labels_from_exc
             )
 
     @staticmethod
     def _wrap_sync(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         event: str,
         sink: Optional[MetricSink],
         labels_from_result: Optional[
@@ -101,14 +101,14 @@ class MonitoredClient:
     ) -> Callable[..., Any]:
         """Wrap synchronous callable."""
 
-        @functools.wraps(fn)
+        @functools.wraps(function)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Execute with metric tracking."""
             start_time = datetime.now(timezone.utc)
             actual_sink = sink or MonitorRegistry.get_default_sink()
 
             try:
-                result = fn(*args, **kwargs)
+                result = function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()
@@ -139,7 +139,7 @@ class MonitoredClient:
 
     @staticmethod
     def _wrap_async(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         event: str,
         sink: Optional[MetricSink],
         labels_from_result: Optional[
@@ -151,14 +151,14 @@ class MonitoredClient:
     ) -> Callable[..., Any]:
         """Wrap asynchronous callable."""
 
-        @functools.wraps(fn)
+        @functools.wraps(function)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             """Execute async with metric tracking."""
             start_time = datetime.now(timezone.utc)
             actual_sink = sink or MonitorRegistry.get_default_sink()
 
             try:
-                result = await fn(*args, **kwargs)
+                result = await function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 labels = labels_from_result(result) if labels_from_result else ()

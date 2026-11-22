@@ -233,8 +233,8 @@ class TestMonitoredLabels:
         """@monitored with labels_from_exc populates labels on failure."""
         sink = CollectingSink()
 
-        def extract_error_labels(exc: BaseException) -> tuple[tuple[str, str], ...]:
-            return (("error_type", type(exc).__name__),)
+        def extract_error_labels(error: BaseException) -> tuple[tuple[str, str], ...]:
+            return (("error_type", type(error).__name__),)
 
         @monitored(
             "test.with_error_labels",
@@ -290,8 +290,8 @@ class TestMonitoredLabels:
         """@monitored with async function and labels_from_exc."""
         sink = CollectingSink()
 
-        def extract_error_labels(exc: BaseException) -> tuple[tuple[str, str], ...]:
-            return (("error_type", type(exc).__name__),)
+        def extract_error_labels(error: BaseException) -> tuple[tuple[str, str], ...]:
+            return (("error_type", type(error).__name__),)
 
         @monitored(
             "test.async_error_labels",
@@ -390,8 +390,8 @@ class TestMonitoredEdgeCases:
                 """Factory method."""
                 return cls()
 
-        obj = FactoryService.create()
-        assert obj is not None
+        instance = FactoryService.create()
+        assert instance is not None
         assert len(sink.events) == 1
         assert sink.events[0].event == "factory.create"
         assert sink.events[0].outcome == Outcome.SUCCESS

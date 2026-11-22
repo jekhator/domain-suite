@@ -48,39 +48,39 @@ class WrapErrorsClient:
             return self._decorate_class(target)
         if callable(target):
             return self._decorate_callable(target)
-        msg = (
+        message = (
             f"@wrap_errors target must be class or callable, "
             f"got {type(target).__name__}"
         )
-        raise TypeError(msg)
+        raise TypeError(message)
 
     def _decorate_callable[**Params, Return](
-        self, func: Callable[Params, Return]
+        self, function: Callable[Params, Return]
     ) -> Callable[Params, Return]:
         """Wrap a single callable (function or method)."""
-        if inspect.iscoroutinefunction(func):
-            async_func = cast("Callable[Params, Awaitable[Any]]", func)
+        if inspect.iscoroutinefunction(function):
+            async_func = cast("Callable[Params, Awaitable[Any]]", function)
 
-            @functools.wraps(func)
+            @functools.wraps(function)
             async def async_wrapper(*args: Params.args, **kwargs: Params.kwargs) -> Any:
                 try:
                     return await async_func(*args, **kwargs)
                 except DomainError:
                     raise
                 except self.catch as error:
-                    raise self._as_domain(error, func, args, kwargs) from error
+                    raise self._as_domain(error, function, args, kwargs) from error
 
             setattr(async_wrapper, WRAP_ERRORS_MARKER, True)
             return cast("Callable[Params, Return]", async_wrapper)
 
-        @functools.wraps(func)
+        @functools.wraps(function)
         def wrapper(*args: Params.args, **kwargs: Params.kwargs) -> Return:
             try:
-                return func(*args, **kwargs)
+                return function(*args, **kwargs)
             except DomainError:
                 raise
             except self.catch as error:
-                raise self._as_domain(error, func, args, kwargs) from error
+                raise self._as_domain(error, function, args, kwargs) from error
 
         setattr(wrapper, WRAP_ERRORS_MARKER, True)
         return wrapper
@@ -132,7 +132,7 @@ class WrapErrorsClient:
     def _as_domain(
         self,
         error: Exception,
-        func: Callable[..., Any],
+        function: Callable[..., Any],
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> DomainError:
@@ -141,19 +141,19 @@ class WrapErrorsClient:
             error,
             as_=self.as_,
             message=self.message,
-            **self._capture(func, args, kwargs),
+            **self._capture(function, args, kwargs),
         )
 
     def _capture(
         self,
-        func: Callable[..., Any],
+        function: Callable[..., Any],
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> dict[str, Any]:
         """Bind call args to parameter names; empty when capture is off."""
         if not self.capture:
             return {}
-        bound = inspect.signature(func).bind(*args, **kwargs)
+        bound = inspect.signature(function).bind(*args, **kwargs)
         bound.apply_defaults()
         context = dict(bound.arguments)
         context.pop("self", None)

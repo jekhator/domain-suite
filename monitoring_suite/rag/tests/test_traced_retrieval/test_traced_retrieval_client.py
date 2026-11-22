@@ -142,7 +142,7 @@ class TestTracedRetrievalOnCallable:
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         def retrieve(query: str, top_k: int = 5) -> list[str]:
-            return [f"chunk_{i}" for i in range(top_k)]
+            return [f"chunk_{index}" for index in range(top_k)]
 
         result = retrieve("test query", top_k=3)
 
@@ -368,8 +368,8 @@ class TestTracedRetrievalEdgeCases:
                 """Factory method."""
                 return cls()
 
-        obj = RetrievalFactory.create("test query")
-        assert obj is not None
+        instance = RetrievalFactory.create("test query")
+        assert instance is not None
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].query == "test query"
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.SUCCESS

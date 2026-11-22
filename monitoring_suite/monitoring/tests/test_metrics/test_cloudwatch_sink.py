@@ -45,7 +45,7 @@ class TestCloudWatchMetricSink:
             assert metric["Value"] == 123.45
             assert metric["Unit"] == "Milliseconds"
             assert metric["Timestamp"] == now
-            dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
+            dimensions = {dimension["Name"]: dimension["Value"] for dimension in metric["Dimensions"]}
             assert dimensions["Outcome"] == "success"
             assert dimensions["env"] == "test"
             assert dimensions["version"] == "1.0"
@@ -76,7 +76,7 @@ class TestCloudWatchMetricSink:
             metric = call_args.kwargs["MetricData"][0]
             assert metric["MetricName"] == "test.failed_operation"
             assert metric["Value"] == 456.78
-            dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
+            dimensions = {dimension["Name"]: dimension["Value"] for dimension in metric["Dimensions"]}
             assert dimensions["Outcome"] == "failure"
             assert dimensions["error_type"] == "ValueError"
 
@@ -103,7 +103,7 @@ class TestCloudWatchMetricSink:
 
             call_args = mock_cw.put_metric_data.call_args
             metric = call_args.kwargs["MetricData"][0]
-            dimensions = {d["Name"]: d["Value"] for d in metric["Dimensions"]}
+            dimensions = {dimension["Name"]: dimension["Value"] for dimension in metric["Dimensions"]}
             assert "Outcome" in dimensions
             assert len(dimensions) == 1
 

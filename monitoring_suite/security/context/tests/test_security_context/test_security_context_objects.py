@@ -67,35 +67,35 @@ class TestSecurityContext:
     def test_security_context_frozen(self) -> None:
         """SecurityContext is immutable after construction."""
         principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
-        ctx = SecurityContext(principal=principal, tenant_id="tenant:test")
+        context = SecurityContext(principal=principal, tenant_id="tenant:test")
         with pytest.raises(dataclasses.FrozenInstanceError):
-            ctx.tenant_id = "tenant:other"  # type: ignore[misc]
+            context.tenant_id = "tenant:other"  # type: ignore[misc]
 
     def test_security_context_with_principal_and_tenant(self) -> None:
         """SecurityContext stores principal and tenant_id correctly."""
         principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
-        ctx = SecurityContext(principal=principal, tenant_id="tenant:acme")
-        assert ctx.principal == principal
-        assert ctx.tenant_id == "tenant:acme"
+        context = SecurityContext(principal=principal, tenant_id="tenant:acme")
+        assert context.principal == principal
+        assert context.tenant_id == "tenant:acme"
 
     def test_security_context_principal_none(self) -> None:
         """SecurityContext accepts None principal for anonymous access."""
-        ctx = SecurityContext(principal=None, tenant_id="tenant:test")
-        assert ctx.principal is None
-        assert ctx.tenant_id == "tenant:test"
+        context = SecurityContext(principal=None, tenant_id="tenant:test")
+        assert context.principal is None
+        assert context.tenant_id == "tenant:test"
 
     def test_security_context_tenant_id_none(self) -> None:
         """SecurityContext accepts None tenant_id for unscoped access."""
         principal = Principal(id="user:test", roles=frozenset(), scopes=frozenset())
-        ctx = SecurityContext(principal=principal, tenant_id=None)
-        assert ctx.principal == principal
-        assert ctx.tenant_id is None
+        context = SecurityContext(principal=principal, tenant_id=None)
+        assert context.principal == principal
+        assert context.tenant_id is None
 
     def test_security_context_both_none(self) -> None:
         """SecurityContext can have both principal and tenant_id as None."""
-        ctx = SecurityContext(principal=None, tenant_id=None)
-        assert ctx.principal is None
-        assert ctx.tenant_id is None
+        context = SecurityContext(principal=None, tenant_id=None)
+        assert context.principal is None
+        assert context.tenant_id is None
 
     def test_security_context_equality(self) -> None:
         """SecurityContexts with same data are equal."""

@@ -23,34 +23,34 @@ class TestErrorChainWrap:
 
     def test_wrap_returns_target_class(self) -> None:
         """wrap() returns an instance of the specified as_ class."""
-        err = ValueError("oops")
-        result = ErrorChain.wrap(err, as_=CustomDomainError)
+        cause = ValueError("oops")
+        result = ErrorChain.wrap(cause, as_=CustomDomainError)
         assert isinstance(result, CustomDomainError)
 
     def test_wrap_with_explicit_message(self) -> None:
         """wrap() uses the provided message."""
-        err = ValueError("oops")
-        result = ErrorChain.wrap(err, as_=CustomDomainError, message="custom msg")
+        cause = ValueError("oops")
+        result = ErrorChain.wrap(cause, as_=CustomDomainError, message="custom msg")
         assert result.message == "custom msg"
         assert str(result) == "custom msg"
 
     def test_wrap_with_none_message_uses_default(self) -> None:
         """wrap() with message=None uses the class default_message."""
-        err = ValueError("oops")
-        result = ErrorChain.wrap(err, as_=CustomDomainError, message=None)
+        cause = ValueError("oops")
+        result = ErrorChain.wrap(cause, as_=CustomDomainError, message=None)
         assert result.message == CustomDomainError.default_message
 
     def test_wrap_with_no_message_arg_uses_default(self) -> None:
         """wrap() without message arg uses the class default_message."""
-        err = ValueError("oops")
-        result = ErrorChain.wrap(err, as_=CustomDomainError)
+        cause = ValueError("oops")
+        result = ErrorChain.wrap(cause, as_=CustomDomainError)
         assert result.message == CustomDomainError.default_message
 
     def test_wrap_stores_context_kwargs(self) -> None:
         """wrap() passes context kwargs to the domain error."""
-        err = ValueError("oops")
+        cause = ValueError("oops")
         result = ErrorChain.wrap(
-            err,
+            cause,
             as_=CustomDomainError,
             user_id=123,
             request_id="abc",
@@ -73,9 +73,9 @@ class TestErrorChainHistory:
 
     def test_single_error_is_root(self) -> None:
         """history() of a single error returns one ROOT link."""
-        err = ValueError("oops")
+        cause = ValueError("oops")
         classifier = FakeDomainClassifier()
-        links = ErrorChain.history(err, classifiers=(classifier,))
+        links = ErrorChain.history(cause, classifiers=(classifier,))
         assert len(links) == 1
         assert links[0].type_name == "ValueError"
         assert links[0].message == "oops"
@@ -140,67 +140,67 @@ class TestErrorChainHistory:
 
     def test_domain_resolution_from_classvar(self) -> None:
         """history() resolves domain from DomainError.domain classvar."""
-        err = CustomDomainError()
-        links = ErrorChain.history(err)
+        cause = CustomDomainError()
+        links = ErrorChain.history(cause)
         assert links[0].domain == "custom"
 
     def test_domain_resolution_from_classifier(self) -> None:
         """history() uses the first matching classifier to resolve domain."""
-        err = ValueError("test")
+        cause = ValueError("test")
         classifier = FakeDomainClassifier()
-        links = ErrorChain.history(err, classifiers=(classifier,))
+        links = ErrorChain.history(cause, classifiers=(classifier,))
         assert links[0].domain == "validation"
 
     def test_domain_resolution_classvar_takes_precedence(self) -> None:
         """history() prefers classvar domain over classifier."""
-        err = CustomDomainError()
+        cause = CustomDomainError()
         classifier = FakeDomainClassifier()
-        links = ErrorChain.history(err, classifiers=(classifier,))
+        links = ErrorChain.history(cause, classifiers=(classifier,))
         assert links[0].domain == "custom"
 
     def test_context_propagation_from_domain_error(self) -> None:
         """history() propagates DomainError.context into ChainLink.context."""
-        err = CustomDomainError(user_id=123, request_id="abc")
-        links = ErrorChain.history(err)
+        cause = CustomDomainError(user_id=123, request_id="abc")
+        links = ErrorChain.history(cause)
         assert links[0].context == {"user_id": 123, "request_id": "abc"}
 
     def test_context_in_log_extra_for_domain_error(self) -> None:
         """to_log_extra() includes the propagated context from history()."""
-        err = CustomDomainError(user_id=123, request_id="abc")
-        links = ErrorChain.history(err)
+        cause = CustomDomainError(user_id=123, request_id="abc")
+        links = ErrorChain.history(cause)
         extra = links[0].to_log_extra()
         assert extra["context"] == {"user_id": 123, "request_id": "abc"}
 
     def test_context_empty_dict_for_foreign_error(self) -> None:
         """history() assigns empty dict context to foreign errors."""
-        err = ValueError("test")
-        links = ErrorChain.history(err)
+        cause = ValueError("test")
+        links = ErrorChain.history(cause)
         assert links[0].context == {}
 
     def test_domain_fallback_to_python(self) -> None:
         """history() falls back to 'python' when no classifier matches."""
-        err = KeyError("key")
-        links = ErrorChain.history(err)
+        cause = KeyError("key")
+        links = ErrorChain.history(cause)
         assert links[0].domain == "python"
 
     def test_code_attribute_extracted(self) -> None:
         """history() extracts code attribute from DomainError."""
-        err = CustomDomainError()
-        links = ErrorChain.history(err)
+        cause = CustomDomainError()
+        links = ErrorChain.history(cause)
         assert links[0].code == "CUSTOM"
 
     def test_code_none_when_absent(self) -> None:
         """history() sets code to None when error has no code attribute."""
-        err = ValueError("test")
-        links = ErrorChain.history(err)
+        cause = ValueError("test")
+        links = ErrorChain.history(cause)
         assert links[0].code is None
 
     def test_multiple_classifiers_first_match_wins(self) -> None:
         """history() uses the first classifier that returns non-None."""
         classifier1 = FakeDomainClassifier()
         classifier2 = FakeDomainClassifier()
-        err = TypeError("test")
-        links = ErrorChain.history(err, classifiers=(classifier1, classifier2))
+        cause = TypeError("test")
+        links = ErrorChain.history(cause, classifiers=(classifier1, classifier2))
         assert links[0].domain == "typing"
 
 
@@ -209,15 +209,15 @@ class TestErrorChainCrossings:
 
     def test_no_crossings_single_error(self) -> None:
         """crossings() returns empty tuple for a single error."""
-        err = ValueError("oops")
-        crossings = ErrorChain.crossings(err)
+        cause = ValueError("oops")
+        crossings = ErrorChain.crossings(cause)
         assert crossings == ()
 
     def test_no_crossings_same_domain(self) -> None:
         """crossings() returns empty when all links have the same domain."""
-        err = KeyError("same domain")
+        cause = KeyError("same domain")
         try:
-            raise RuntimeError("also python domain") from err
+            raise RuntimeError("also python domain") from cause
         except RuntimeError as error:
             classifier = FakeDomainClassifier()
             crossings = ErrorChain.crossings(error, classifiers=(classifier,))
@@ -275,28 +275,28 @@ class TestErrorChainDomainOf:
 
     def test_domain_from_classvar(self) -> None:
         """_domain_of returns the domain classvar if it is a string."""
-        err = CustomDomainError()
-        domain = ErrorChain._domain_of(err, classifiers=())
+        cause = CustomDomainError()
+        domain = ErrorChain._domain_of(cause, classifiers=())
         assert domain == "custom"
 
     def test_domain_from_first_matching_classifier(self) -> None:
         """_domain_of uses the first classifier that returns non-None."""
         classifier = FakeDomainClassifier()
-        err = ValueError("test")
-        domain = ErrorChain._domain_of(err, classifiers=(classifier,))
+        cause = ValueError("test")
+        domain = ErrorChain._domain_of(cause, classifiers=(classifier,))
         assert domain == "validation"
 
     def test_domain_fallback_python(self) -> None:
         """_domain_of defaults to 'python' when no classifier matches."""
         classifier = FakeDomainClassifier()
-        err = KeyError("test")
-        domain = ErrorChain._domain_of(err, classifiers=(classifier,))
+        cause = KeyError("test")
+        domain = ErrorChain._domain_of(cause, classifiers=(classifier,))
         assert domain == "python"
 
     def test_domain_ignores_non_string_attribute(self) -> None:
         """_domain_of ignores a domain attribute that is not a string."""
-        err = ValueError("test")
-        err.domain = 123  # type: ignore
+        cause = ValueError("test")
+        cause.domain = 123  # type: ignore
         classifier = FakeDomainClassifier()
-        domain = ErrorChain._domain_of(err, classifiers=(classifier,))
+        domain = ErrorChain._domain_of(cause, classifiers=(classifier,))
         assert domain == "validation"

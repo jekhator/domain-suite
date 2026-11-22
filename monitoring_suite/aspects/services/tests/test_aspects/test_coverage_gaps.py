@@ -153,7 +153,7 @@ class TestAmbientLoggingSync:
     def test_logged_sync_ambient_with_bad_error_extractor(self) -> None:
         """Logged sync ambient logs extraction failure in .error path."""
 
-        def extract_exc(exc: BaseException) -> dict:
+        def extract_exc(error: BaseException) -> dict:
             raise RuntimeError("error extraction broke")
 
         logged = objs.Logged(
@@ -217,7 +217,7 @@ class TestSyncExtractionFailures:
     def test_logged_sync_error_extraction_failure_ambient(self) -> None:
         """Sync logged .error emitted even when payload_from_exc fails (line 409 ambient)."""
 
-        def bad_error_extractor(exc: BaseException) -> dict:
+        def bad_error_extractor(error: BaseException) -> dict:
             raise RuntimeError("error extraction error")
 
         logged = objs.Logged(
@@ -340,7 +340,7 @@ class TestAsyncExtractionFailures:
     def test_logged_async_error_extraction_failure(self) -> None:
         """Async logged handles payload_from_exc exception."""
 
-        def bad_error_extractor(exc: BaseException) -> dict:
+        def bad_error_extractor(error: BaseException) -> dict:
             raise RuntimeError("error extraction failed")
 
         logged = objs.Logged(

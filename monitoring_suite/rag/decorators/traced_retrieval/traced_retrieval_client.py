@@ -50,27 +50,27 @@ class TracedRetrievalClient:
 
     @staticmethod
     def _trace_callable(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         principal_id: str,
         session_id: str,
         sink: Optional[ProvenanceSink],
     ) -> Callable[..., Any]:
         """Wrap a callable with retrieval provenance tracking."""
-        if asyncio.iscoroutinefunction(fn):
-            return TracedRetrievalClient._wrap_async(fn, principal_id, session_id, sink)
+        if asyncio.iscoroutinefunction(function):
+            return TracedRetrievalClient._wrap_async(function, principal_id, session_id, sink)
         else:
-            return TracedRetrievalClient._wrap_sync(fn, principal_id, session_id, sink)
+            return TracedRetrievalClient._wrap_sync(function, principal_id, session_id, sink)
 
     @staticmethod
     def _wrap_sync(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         principal_id: str,
         session_id: str,
         sink: Optional[ProvenanceSink],
     ) -> Callable[..., Any]:
         """Wrap synchronous callable."""
 
-        @functools.wraps(fn)
+        @functools.wraps(function)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Execute with retrieval provenance tracking."""
             start_time = datetime.now(timezone.utc)
@@ -86,7 +86,7 @@ class TracedRetrievalClient:
                 query_str = ""
 
             try:
-                result = fn(*args, **kwargs)
+                result = function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
 
@@ -126,14 +126,14 @@ class TracedRetrievalClient:
 
     @staticmethod
     def _wrap_async(
-        fn: Callable[..., Any],
+        function: Callable[..., Any],
         principal_id: str,
         session_id: str,
         sink: Optional[ProvenanceSink],
     ) -> Callable[..., Any]:
         """Wrap asynchronous callable."""
 
-        @functools.wraps(fn)
+        @functools.wraps(function)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             """Execute async with retrieval provenance tracking."""
             start_time = datetime.now(timezone.utc)
@@ -149,7 +149,7 @@ class TracedRetrievalClient:
                 query_str = ""
 
             try:
-                result = await fn(*args, **kwargs)
+                result = await function(*args, **kwargs)
                 end_time = datetime.now(timezone.utc)
                 duration_ms = (end_time - start_time).total_seconds() * 1000
 

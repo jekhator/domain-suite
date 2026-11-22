@@ -44,9 +44,9 @@ class SecurityContextManager:
         self._context.reset(token)
 
     @contextmanager
-    def _bound(self, ctx: objs.SecurityContext) -> Generator[None, None, None]:
+    def _bound(self, context: objs.SecurityContext) -> Generator[None, None, None]:
         """Set the context for the with-block and reset it afterward."""
-        token = self.set(ctx)
+        token = self.set(context)
         try:
             yield
         finally:

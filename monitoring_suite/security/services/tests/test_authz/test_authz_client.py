@@ -23,8 +23,8 @@ class TestAuthorizer:
     def test_check_denies_no_principal(self, permission: Permission) -> None:
         """check denies access when context has no principal."""
         authorizer = Authorizer()
-        ctx = SecurityContext(principal=None, tenant_id="tenant:test")
-        decision = authorizer.check(ctx, permission)
+        context = SecurityContext(principal=None, tenant_id="tenant:test")
+        decision = authorizer.check(context, permission)
         assert decision.allowed is False
         assert decision.reason == const.ERR_AUTHZ_NO_PRINCIPAL
 
@@ -33,10 +33,10 @@ class TestAuthorizer:
     ) -> None:
         """check denies access when principal lacks required scope."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
-        decision = authorizer.check(ctx, write_permission)
+        decision = authorizer.check(context, write_permission)
         assert decision.allowed is False
         assert decision.reason == const.ERR_AUTHZ_MISSING_SCOPE.format(
             scope=write_permission.value
@@ -47,10 +47,10 @@ class TestAuthorizer:
     ) -> None:
         """check allows access when principal has required scope."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
-        decision = authorizer.check(ctx, permission)
+        decision = authorizer.check(context, permission)
         assert decision.allowed is True
         assert decision.reason is None
 
@@ -61,10 +61,10 @@ class TestAuthorizer:
     ) -> None:
         """check allows access when principal has one of multiple scopes."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_multiple_scopes, tenant_id="tenant:test"
         )
-        decision = authorizer.check(ctx, write_permission)
+        decision = authorizer.check(context, write_permission)
         assert decision.allowed is True
 
     def test_require_raises_authz_error_when_denied(
@@ -72,11 +72,11 @@ class TestAuthorizer:
     ) -> None:
         """require raises AuthzError when permission is denied."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
         with pytest.raises(AuthzError) as exc_info:
-            authorizer.require(ctx, write_permission)
+            authorizer.require(context, write_permission)
         assert exc_info.value.code == "authz_denied"
         assert exc_info.value.context["permission"] == "write"
 
@@ -85,11 +85,11 @@ class TestAuthorizer:
     ) -> None:
         """require uses the decision reason as error message."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
         with pytest.raises(AuthzError) as exc_info:
-            authorizer.require(ctx, write_permission)
+            authorizer.require(context, write_permission)
         assert exc_info.value.message == const.ERR_AUTHZ_MISSING_SCOPE.format(
             scope=write_permission.value
         )
@@ -99,20 +99,20 @@ class TestAuthorizer:
     ) -> None:
         """require does not raise when permission is allowed."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
-        authorizer.require(ctx, permission)
+        authorizer.require(context, permission)
 
     def test_check_returns_policy_decision(
         self, principal_with_read_scope: Principal, permission: Permission
     ) -> None:
         """check returns a PolicyDecision object."""
         authorizer = Authorizer()
-        ctx = SecurityContext(
+        context = SecurityContext(
             principal=principal_with_read_scope, tenant_id="tenant:test"
         )
-        decision = authorizer.check(ctx, permission)
+        decision = authorizer.check(context, permission)
         assert isinstance(decision, PolicyDecision)
 
     def test_require_raises_with_no_principal_message(
@@ -120,9 +120,9 @@ class TestAuthorizer:
     ) -> None:
         """require raises with no principal reason when principal is None."""
         authorizer = Authorizer()
-        ctx = SecurityContext(principal=None, tenant_id="tenant:test")
+        context = SecurityContext(principal=None, tenant_id="tenant:test")
         with pytest.raises(AuthzError) as exc_info:
-            authorizer.require(ctx, permission)
+            authorizer.require(context, permission)
         assert exc_info.value.message == const.ERR_AUTHZ_NO_PRINCIPAL
 
     def test_authorizer_subclass_can_override_check(
