@@ -11,4 +11,4 @@ __all__ = [
 
 """Domain assigned to an error when no classvar or classifier resolves it."""
 
-DEFAULT_DOMAIN: Final = "python"
+DEFAULT_DOMAIN: Final[str] = "python"

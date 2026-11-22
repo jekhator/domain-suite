@@ -14,7 +14,7 @@ __all__ = [
 
 """Coarse domains the stdlib classifier maps exception families to."""
 
-ASSERTION: Final = "assertion"
-LOGIC: Final = "logic"
-NETWORK: Final = "network"
-OS: Final = "os"
+ASSERTION: Final[str] = "assertion"
+LOGIC: Final[str] = "logic"
+NETWORK: Final[str] = "network"
+OS: Final[str] = "os"

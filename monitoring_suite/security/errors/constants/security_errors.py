@@ -19,15 +19,15 @@ __all__ = [
 
 """Security constraint messages."""
 
-ERR_SECURITY_CONSTRAINT_VIOLATED: Final = "Security constraint violated."
+ERR_SECURITY_CONSTRAINT_VIOLATED: Final[str] = "Security constraint violated."
 
-ERR_AUTHZ_PERMISSION_DENIED: Final = "Permission denied."
+ERR_AUTHZ_PERMISSION_DENIED: Final[str] = "Permission denied."
 
-ERR_TENANCY_BOUNDARY_VIOLATION: Final = "Tenant boundary violation."
+ERR_TENANCY_BOUNDARY_VIOLATION: Final[str] = "Tenant boundary violation."
 
-ERR_SECRET_ACCESS_FAILED: Final = "Secret access failed."
+ERR_SECRET_ACCESS_FAILED: Final[str] = "Secret access failed."
 
 
 """Decorator declaration-time validation messages."""
 
-ERR_SECURITY_DECLARATION_FAILED: Final = "Security decorator declaration failed."
+ERR_SECURITY_DECLARATION_FAILED: Final[str] = "Security decorator declaration failed."

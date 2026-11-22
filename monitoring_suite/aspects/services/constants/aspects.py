@@ -46,7 +46,7 @@ RETRIED is placed innermost so retries see raw exceptions for predicate matching
 Sensitivity is adopted client-side via logging_suite.sensitivity.SensitiveRepr (not a wrapper concern).
 """
 
-ASPECT_ORDER: Final = (
+ASPECT_ORDER: Final[tuple[str, ...]] = (
     "LOGGED",
     "REQUIRES",
     "TENANT_SCOPED",
@@ -59,93 +59,93 @@ ASPECT_ORDER: Final = (
 
 """Aspect declaration validation error messages."""
 
-ERR_ASPECTS_DUPLICATE_KIND: Final = "Duplicate aspect kind in declaration: {kind}."
+ERR_ASPECTS_DUPLICATE_KIND: Final[str] = "Duplicate aspect kind in declaration: {kind}."
 
-ERR_ASPECTS_UNKNOWN_ENTRY_TYPE: Final = "Unknown aspect entry type: {entry_type}."
+ERR_ASPECTS_UNKNOWN_ENTRY_TYPE: Final[str] = "Unknown aspect entry type: {entry_type}."
 
-ERR_ASPECTS_EMPTY_DECLARATION: Final = "Aspect declaration is empty."
+ERR_ASPECTS_EMPTY_DECLARATION: Final[str] = "Aspect declaration is empty."
 
-ERR_ASPECTS_DECLARATION_FAILED: Final = "Aspect declaration failed."
+ERR_ASPECTS_DECLARATION_FAILED: Final[str] = "Aspect declaration failed."
 
 
 """Aspect entry validation error messages."""
 
-ERR_ASPECT_LOGGED_EVENT_EMPTY: Final = "Logged.event must be a non-empty string."
+ERR_ASPECT_LOGGED_EVENT_EMPTY: Final[str] = "Logged.event must be a non-empty string."
 
-ERR_ASPECT_REQUIRES_PERMISSION_EMPTY: Final = (
+ERR_ASPECT_REQUIRES_PERMISSION_EMPTY: Final[str] = (
     "Requires.permission must be a non-empty string."
 )
 
-ERR_ASPECT_TENANT_SCOPED_PARAM_EMPTY: Final = (
+ERR_ASPECT_TENANT_SCOPED_PARAM_EMPTY: Final[str] = (
     "TenantScoped.param_name must be a non-empty string."
 )
 
-ERR_ASPECT_THROTTLED_SCOPE_EMPTY: Final = "Throttled.scope must be a non-empty string."
+ERR_ASPECT_THROTTLED_SCOPE_EMPTY: Final[str] = "Throttled.scope must be a non-empty string."
 
-ERR_ASPECT_THROTTLED_RATE_EMPTY: Final = "Throttled.rate must be a non-empty string."
+ERR_ASPECT_THROTTLED_RATE_EMPTY: Final[str] = "Throttled.rate must be a non-empty string."
 
-ERR_ASPECT_THROTTLED_TIERS_NOT_TUPLE: Final = (
+ERR_ASPECT_THROTTLED_TIERS_NOT_TUPLE: Final[str] = (
     "Throttled.tiers must be a tuple of pairs."
 )
 
-ERR_ASPECT_WRAP_ERRORS_AS_NOT_CLASS: Final = (
+ERR_ASPECT_WRAP_ERRORS_AS_NOT_CLASS: Final[str] = (
     "WrapErrors.as_ must be an exception class."
 )
 
-ERR_ASPECT_WRAP_ERRORS_CATCH_INVALID: Final = (
+ERR_ASPECT_WRAP_ERRORS_CATCH_INVALID: Final[str] = (
     "WrapErrors.catch must be a non-empty tuple of exception types."
 )
 
-ERR_ASPECT_MONITORED_EVENT_EMPTY: Final = "Monitored.event must be a non-empty string."
+ERR_ASPECT_MONITORED_EVENT_EMPTY: Final[str] = "Monitored.event must be a non-empty string."
 
 
 """Aspect dependency import error messages."""
 
-ERR_ASPECT_LOGGED_IMPORT_MISSING: Final = (
+ERR_ASPECT_LOGGED_IMPORT_MISSING: Final[str] = (
     "logging-suite not installed; add [logging] extra."
 )
 
-ERR_ASPECT_REQUIRES_IMPORT_MISSING: Final = (
+ERR_ASPECT_REQUIRES_IMPORT_MISSING: Final[str] = (
     "monitoring_suite.security not installed; reinstall monitoring-suite."
 )
 
-ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING: Final = (
+ERR_ASPECT_TENANT_SCOPED_IMPORT_MISSING: Final[str] = (
     "monitoring_suite.security not installed; reinstall monitoring-suite."
 )
 
-ERR_ASPECT_THROTTLED_IMPORT_MISSING: Final = (
+ERR_ASPECT_THROTTLED_IMPORT_MISSING: Final[str] = (
     "monitoring_suite.api_limiter not installed; reinstall monitoring-suite."
 )
 
-ERR_ASPECT_WRAP_ERRORS_IMPORT_MISSING: Final = (
+ERR_ASPECT_WRAP_ERRORS_IMPORT_MISSING: Final[str] = (
     "monitoring_suite.errors not installed; it is a hard dependency."
 )
 
-ERR_ASPECT_MONITORED_IMPORT_MISSING: Final = (
+ERR_ASPECT_MONITORED_IMPORT_MISSING: Final[str] = (
     "monitoring_suite.monitoring not installed; it is a hard dependency."
 )
 
-ERR_ASPECT_RETRIED_POLICY_REQUIRED: Final = "Retried must specify exactly one of: policy (static) or policy_from_request (dynamic)."
+ERR_ASPECT_RETRIED_POLICY_REQUIRED: Final[str] = "Retried must specify exactly one of: policy (static) or policy_from_request (dynamic)."
 
-ERR_ASPECT_RETRIED_POLICY_FROM_REQUEST_REQUIRED: Final = (
+ERR_ASPECT_RETRIED_POLICY_FROM_REQUEST_REQUIRED: Final[str] = (
     "Retried.policy_from_request must be a callable that returns RetryPolicy or None."
 )
 
-ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED: Final = (
+ERR_ASPECT_RETRIED_BOTH_POLICIES_PROVIDED: Final[str] = (
     "Retried cannot specify both policy and policy_from_request; use only one."
 )
 
 
 """RequireMixins validation error messages."""
 
-ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID: Final = (
+ERR_ASPECT_REQUIRE_MIXINS_BASES_INVALID: Final[str] = (
     "RequireMixins.bases must be a non-empty tuple of types."
 )
 
-ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET: Final = (
+ERR_ASPECT_REQUIRE_MIXINS_FUNCTION_TARGET: Final[str] = (
     "RequireMixins is a class-only marker; function targets are not allowed."
 )
 
-ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES: Final = (
+ERR_ASPECT_REQUIRE_MIXINS_MISSING_BASES: Final[str] = (
     "{class_name} does not inherit required mixins: {missing_bases}."
 )

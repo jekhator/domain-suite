@@ -12,9 +12,9 @@ __all__ = [
 
 """Cloud-layer domain the classifier maps AWS-SDK (botocore/boto3) errors to."""
 
-CLOUD: Final = "cloud"
+CLOUD: Final[str] = "cloud"
 
 
 """Top-level package names of the AWS-SDK libraries classified by origin."""
 
-CLOUD_LIBRARIES: Final = frozenset({"botocore", "boto3"})
+CLOUD_LIBRARIES: Final[frozenset[str]] = frozenset({"botocore", "boto3"})

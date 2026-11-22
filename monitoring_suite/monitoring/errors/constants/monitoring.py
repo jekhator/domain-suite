@@ -4,18 +4,18 @@ from typing import Final
 
 """Monitoring failures."""
 
-ERR_MONITORING_FAILED: Final = "Monitoring operation failed"
+ERR_MONITORING_FAILED: Final[str] = "Monitoring operation failed"
 
 """Invalid decorator targets."""
 
-ERR_MONITORING_INVALID_TARGET: Final = (
+ERR_MONITORING_INVALID_TARGET: Final[str] = (
     "Invalid monitoring target: must be a callable or class"
 )
 
 """Empty class decoration."""
 
-ERR_MONITORING_EMPTY_CLASS: Final = "Cannot monitor class with no public methods"
+ERR_MONITORING_EMPTY_CLASS: Final[str] = "Cannot monitor class with no public methods"
 
 """Missing optional dependencies."""
 
-ERR_MONITORING_BOTO3_MISSING: Final = "CloudWatch sink requires boto3; install with: pip install monitoring-suite[cloudwatch]"
+ERR_MONITORING_BOTO3_MISSING: Final[str] = "CloudWatch sink requires boto3; install with: pip install monitoring-suite[cloudwatch]"

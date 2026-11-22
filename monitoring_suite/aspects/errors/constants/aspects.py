@@ -19,15 +19,15 @@ __all__ = [
 
 """Aspect composition error messages."""
 
-ERR_ASPECTS_COMPOSITION_FAILED: Final = "Aspect composition failed."
+ERR_ASPECTS_COMPOSITION_FAILED: Final[str] = "Aspect composition failed."
 
-ERR_ASPECTS_DECLARATION_FAILED: Final = "Aspect declaration failed."
+ERR_ASPECTS_DECLARATION_FAILED: Final[str] = "Aspect declaration failed."
 
 
 """Aspect declaration validation error messages."""
 
-ERR_ASPECTS_DUPLICATE_KIND: Final = "Duplicate aspect kind in declaration: {kind}."
+ERR_ASPECTS_DUPLICATE_KIND: Final[str] = "Duplicate aspect kind in declaration: {kind}."
 
-ERR_ASPECTS_UNKNOWN_ENTRY_TYPE: Final = "Unknown aspect entry type: {entry_type}."
+ERR_ASPECTS_UNKNOWN_ENTRY_TYPE: Final[str] = "Unknown aspect entry type: {entry_type}."
 
-ERR_ASPECTS_EMPTY_DECLARATION: Final = "Aspect declaration is empty."
+ERR_ASPECTS_EMPTY_DECLARATION: Final[str] = "Aspect declaration is empty."

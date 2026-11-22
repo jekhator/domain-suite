@@ -9,5 +9,5 @@ Denial reasons returned in PolicyDecision and raised via AuthzError (source-side
 const.ERR_*).
 """
 
-ERR_AUTHZ_NO_PRINCIPAL: Final = "no authenticated principal"
-ERR_AUTHZ_MISSING_SCOPE: Final = "missing scope {scope}"
+ERR_AUTHZ_NO_PRINCIPAL: Final[str] = "no authenticated principal"
+ERR_AUTHZ_MISSING_SCOPE: Final[str] = "missing scope {scope}"

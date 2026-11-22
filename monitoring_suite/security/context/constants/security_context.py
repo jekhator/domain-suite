@@ -7,4 +7,4 @@ from typing import Final
 """Ambient context variable name."""
 
 
-CONTEXT_VAR_NAME: Final = "monitoring_suite_security_context"
+CONTEXT_VAR_NAME: Final[str] = "monitoring_suite_security_context"

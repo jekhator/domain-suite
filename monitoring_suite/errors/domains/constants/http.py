@@ -12,9 +12,9 @@ __all__ = [
 
 """HTTP-layer domain the classifier maps httpx/requests/aiohttp errors to."""
 
-HTTP: Final = "http"
+HTTP: Final[str] = "http"
 
 
 """Top-level package names of the HTTP-client libraries classified by origin."""
 
-HTTP_LIBRARIES: Final = frozenset({"httpx", "requests", "aiohttp"})
+HTTP_LIBRARIES: Final[frozenset[str]] = frozenset({"httpx", "requests", "aiohttp"})

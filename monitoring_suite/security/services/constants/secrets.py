@@ -6,9 +6,9 @@ from typing import Final
 
 """Masked repr token for resolved secrets."""
 
-SECRET_VALUE_MASKED_REPR: Final = "<SecretValue ***>"
+SECRET_VALUE_MASKED_REPR: Final[str] = "<SecretValue ***>"
 
 
 """Error messages raised during secret resolution (source-side; tests match against these via const.ERR_*)."""
 
-ERR_SECRETS_NO_BACKEND: Final = "no secrets backend provided"
+ERR_SECRETS_NO_BACKEND: Final[str] = "no secrets backend provided"
