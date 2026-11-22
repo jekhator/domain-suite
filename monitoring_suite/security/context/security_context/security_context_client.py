@@ -8,17 +8,13 @@ from contextvars import ContextVar, Token
 from typing import ClassVar
 
 from monitoring_suite.security.context.constants import security_context as const
-from monitoring_suite.security.context.security_context import (
-    security_context_objects as objs,
-)
+from monitoring_suite.security.context.security_context import security_context_objects as objs
 
 
 class SecurityContextManager:
     """Set, read, bind, and clear the ambient security context."""
 
-    _context: ClassVar[ContextVar[objs.SecurityContext | None]] = ContextVar(
-        const.CONTEXT_VAR_NAME, default=None
-    )
+    _context: ClassVar[ContextVar[objs.SecurityContext | None]] = ContextVar(const.CONTEXT_VAR_NAME, default=None)
 
     def set(self, ctx: objs.SecurityContext) -> Token[objs.SecurityContext | None]:
         """Store the context and return the reset token."""
@@ -29,15 +25,10 @@ class SecurityContextManager:
         return self._context.get()
 
     def bind(
-        self,
-        *,
-        principal: objs.Principal | None = None,
-        tenant_id: str | None = None,
+        self, *, principal: objs.Principal | None = None, tenant_id: str | None = None
     ) -> AbstractContextManager[None]:
         """Temporarily bind a fresh context, restoring the prior one on exit."""
-        return self._bound(
-            objs.SecurityContext(principal=principal, tenant_id=tenant_id)
-        )
+        return self._bound(objs.SecurityContext(principal=principal, tenant_id=tenant_id))
 
     def clear(self, token: Token[objs.SecurityContext | None]) -> None:
         """Reset the context to its state before the matching set call."""

@@ -40,9 +40,7 @@ class TestSecretRef:
             ref.resolve(backend=None)
         assert exc_info.value.__cause__ is None
 
-    def test_resolve_backend_failure_wrapped_in_secret_error(
-        self, failing_backend
-    ) -> None:
+    def test_resolve_backend_failure_wrapped_in_secret_error(self, failing_backend) -> None:
         """resolve wraps backend exceptions in SecretError with __cause__."""
         ref = SecretRef(name="missing_secret")
         with pytest.raises(SecretError) as exc_info:

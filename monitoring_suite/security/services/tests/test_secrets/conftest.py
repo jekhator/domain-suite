@@ -26,9 +26,7 @@ def fake_backend() -> FakeSecretsBackend:  # noqa: R004
 
     Used by: TestSecretRef.
     """
-    return FakeSecretsBackend(
-        {"db_password": "super_secret_123", "api_key": "key_abc_xyz"}
-    )
+    return FakeSecretsBackend({"db_password": "super_secret_123", "api_key": "key_abc_xyz"})
 
 
 @pytest.fixture

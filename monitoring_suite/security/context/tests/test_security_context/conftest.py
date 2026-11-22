@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 
 
 @pytest.fixture
@@ -31,11 +28,7 @@ def principal_with_scopes() -> Principal:
     """
     roles = frozenset(["admin"])
     scopes = frozenset(["read", "write", "delete"])
-    return Principal(
-        id="user:admin",
-        roles=roles,
-        scopes=scopes,
-    )
+    return Principal(id="user:admin", roles=roles, scopes=scopes)
 
 
 @pytest.fixture

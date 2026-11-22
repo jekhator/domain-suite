@@ -4,20 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
-from monitoring_suite.security.decorators.tenant_scoped.tenant_scoped_client import (
-    tenant_scoped,
-)
-from monitoring_suite.security.errors.security_errors import (
-    SecurityDeclarationError,
-    TenancyError,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
+from monitoring_suite.security.decorators.tenant_scoped.tenant_scoped_client import tenant_scoped
+from monitoring_suite.security.errors.security_errors import SecurityDeclarationError, TenancyError
 
 
 class TestTenantScopedClassLevel:
@@ -252,10 +242,7 @@ class TestTenantScopedClassLevel:
                 return f"derived entity for {tenant_id}"
 
         repo = DerivedRepository()
-        assert (
-            repo.derived_get(tenant_id="tenant:acme")
-            == "derived entity for tenant:acme"
-        )
+        assert (repo.derived_get(tenant_id="tenant:acme") == "derived entity for tenant:acme")
         assert repo.base_get(tenant_id="tenant:acme") == "base entity for tenant:acme"
 
     def test_class_decorator_method_already_decorated_skipped(self) -> None:
@@ -311,15 +298,8 @@ class TestTenantScopedClassLevel:
 
         repo = Repository()
         assert repo.get_count(tenant_id="tenant:acme") == 42
-        assert repo.get_data(tenant_id="tenant:acme") == {
-            "tenant": "tenant:acme",
-            "status": "ok",
-        }
-        assert repo.get_items(tenant_id="tenant:acme") == [
-            "tenant:acme",
-            "item1",
-            "item2",
-        ]
+        assert repo.get_data(tenant_id="tenant:acme") == {"tenant": "tenant:acme", "status": "ok"}
+        assert repo.get_items(tenant_id="tenant:acme") == ["tenant:acme", "item1", "item2"]
 
     def test_class_decorator_with_method_args(self) -> None:
         """Class decorator preserves method arguments."""
@@ -337,9 +317,7 @@ class TestTenantScopedClassLevel:
                 """Update entity."""
                 return f"{tenant_id}:{entity_id}={value}"
 
-            def batch_delete(
-                self, tenant_id: str, ids: list, force: bool = False
-            ) -> str:
+            def batch_delete(self, tenant_id: str, ids: list, force: bool = False) -> str:
                 """Batch delete."""
                 return f"deleted {len(ids)} for {tenant_id} (force={force})"
 

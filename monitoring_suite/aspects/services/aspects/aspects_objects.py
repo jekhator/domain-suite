@@ -8,15 +8,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
-from monitoring_suite.aspects.services.aspects.aspects_logged_builders import (
-    _LoggedBuilders,
-)
-from monitoring_suite.aspects.services.aspects.aspects_require_mixins import (
-    RequireMixins,
-)
-from monitoring_suite.aspects.services.aspects.aspects_retried_builders import (
-    _RetriedBuilders,
-)
+from monitoring_suite.aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
+from monitoring_suite.aspects.services.aspects.aspects_require_mixins import RequireMixins
+from monitoring_suite.aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
 from monitoring_suite.aspects.services.constants import aspects as const
 
 if TYPE_CHECKING:
@@ -71,20 +65,10 @@ class Logged:
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
                 return _LoggedBuilders.decorate_class_logged(
-                    target,
-                    event,
-                    payload_from_request,
-                    payload_from_result,
-                    payload_from_exc,
-                    timed,
+                    target, event, payload_from_request, payload_from_result, payload_from_exc, timed
                 )
             return _LoggedBuilders.build_logged_wrapper(
-                target,
-                event,
-                payload_from_request,
-                payload_from_result,
-                payload_from_exc,
-                timed,
+                target, event, payload_from_request, payload_from_result, payload_from_exc, timed
             )
 
         return decorator
@@ -199,9 +183,7 @@ class Monitored:
     event: str
     sink: Optional[MetricSink] = None
     labels_from_result: Optional[Callable[[object], tuple[tuple[str, str], ...]]] = None
-    labels_from_exc: Optional[
-        Callable[[BaseException], tuple[tuple[str, str], ...]]
-    ] = None
+    labels_from_exc: Optional[Callable[[BaseException], tuple[tuple[str, str], ...]]] = None
 
     def __post_init__(self) -> None:
         if not self.event or not isinstance(self.event, str):
@@ -214,16 +196,11 @@ class Monitored:
     def build(self) -> Callable:
         """Lazily import and apply monitored decorator."""
         try:
-            from monitoring_suite.monitoring.decorators.monitored.monitored_client import (
-                monitored,
-            )
+            from monitoring_suite.monitoring.decorators.monitored.monitored_client import monitored
         except ImportError as error:  # pragma: no cover
             raise ImportError(const.ERR_ASPECT_MONITORED_IMPORT_MISSING) from error
         return monitored(
-            self.event,
-            sink=self.sink,
-            labels_from_result=self.labels_from_result,
-            labels_from_exc=self.labels_from_exc,
+            self.event, sink=self.sink, labels_from_result=self.labels_from_result, labels_from_exc=self.labels_from_exc
         )
 
 
@@ -259,28 +236,11 @@ class Retried:
 
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
-                return _RetriedBuilders.decorate_class_retried(
-                    target,
-                    policy,
-                    policy_from_request,
-                )
-            return _RetriedBuilders.build_retried_wrapper(
-                target,
-                policy,
-                policy_from_request,
-            )
+                return _RetriedBuilders.decorate_class_retried(target, policy, policy_from_request)
+            return _RetriedBuilders.build_retried_wrapper(target, policy, policy_from_request)
 
         return decorator
 
 
-AspectEntry = (
-    Logged
-    | Requires
-    | TenantScoped
-    | Throttled
-    | Monitored
-    | WrapErrors
-    | Retried
-    | RequireMixins
-)
+AspectEntry = Logged | Requires | TenantScoped | Throttled | Monitored | WrapErrors | Retried | RequireMixins
 """Union type alias for all aspect entry types."""

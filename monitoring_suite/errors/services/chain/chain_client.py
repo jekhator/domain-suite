@@ -14,20 +14,14 @@ class ErrorChain:
 
     @staticmethod
     def wrap(
-        err: Exception,
-        *,
-        as_: type[TypeDomainError],
-        message: str | None = None,
-        **context: object,
+        err: Exception, *, as_: type[TypeDomainError], message: str | None = None,
+        **context: object
     ) -> TypeDomainError:
         """Construct a typed domain error for the caller to raise with from err."""
         return as_(message=message, **context)
 
     @staticmethod
-    def history(
-        err: BaseException,
-        classifiers: tuple[objs.DomainClassifier, ...] = (),
-    ) -> tuple[objs.ChainLink, ...]:
+    def history(err: BaseException, classifiers: tuple[objs.DomainClassifier, ...] = ()) -> tuple[objs.ChainLink, ...]:
         """Walk the full exception cascade into links, the error itself first."""
         links: list[objs.ChainLink] = []
         seen: set[int] = set()
@@ -41,12 +35,8 @@ class ErrorChain:
             context = getattr(current, "context", {})
             links.append(
                 objs.ChainLink(
-                    type_name=current.__class__.__name__,
-                    message=message,
-                    code=code,
-                    domain=domain,
-                    via=via,
-                    context=context,
+                    type_name=current.__class__.__name__, message=message,
+                    code=code, domain=domain, via=via, context=context
                 )
             )
             if current.__cause__ is not None:
@@ -61,8 +51,7 @@ class ErrorChain:
 
     @staticmethod
     def crossings(
-        err: BaseException,
-        classifiers: tuple[objs.DomainClassifier, ...] = (),
+        err: BaseException, classifiers: tuple[objs.DomainClassifier, ...] = ()
     ) -> tuple[objs.DomainCrossing, ...]:
         """Return the causation hops where the cascade crossed domains."""
         links = ErrorChain.history(err, classifiers)
@@ -73,9 +62,7 @@ class ErrorChain:
         return tuple(found)
 
     @staticmethod
-    def _domain_of(
-        error: BaseException, classifiers: tuple[objs.DomainClassifier, ...]
-    ) -> str:
+    def _domain_of(error: BaseException, classifiers: tuple[objs.DomainClassifier, ...]) -> str:
         """Resolve an error's domain from its contract or the first matching classifier."""
         domain = getattr(error, "domain", None)
         if isinstance(domain, str):

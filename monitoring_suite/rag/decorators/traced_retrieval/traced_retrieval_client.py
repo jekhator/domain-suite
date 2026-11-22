@@ -10,9 +10,7 @@ from typing import Any, Optional, cast
 from monitoring_suite.rag.errors.constants import retrieval as const
 from monitoring_suite.rag.errors.retrieval_errors import RetrievalDeclarationError
 from monitoring_suite.rag.services.provenance.provenance_client import ProvenanceSink
-from monitoring_suite.rag.services.provenance.provenance_objects import (
-    RetrievalProvenance,
-)
+from monitoring_suite.rag.services.provenance.provenance_objects import RetrievalProvenance
 from monitoring_suite.rag.services.registry.registry_client import ProvenanceRegistry
 
 
@@ -21,28 +19,16 @@ class TracedRetrievalClient:
 
     @staticmethod
     def traced_retrieval[Target](
-        principal_id: str,
-        session_id: str,
-        sink: Optional[ProvenanceSink] = None,
+        principal_id: str, session_id: str, sink: Optional[ProvenanceSink] = None
     ) -> Callable[[Target], Target]:
         """Apply retrieval provenance tracking to callables and classes."""
 
         def decorator(target: Target) -> Target:
             """Apply tracing to target."""
             if inspect.isclass(target):
-                return cast(
-                    Target,
-                    TracedRetrievalClient._trace_class(
-                        target, principal_id, session_id, sink
-                    ),
-                )
+                return cast(Target, TracedRetrievalClient._trace_class(target, principal_id, session_id, sink))
             elif callable(target):
-                return cast(
-                    Target,
-                    TracedRetrievalClient._trace_callable(
-                        target, principal_id, session_id, sink
-                    ),
-                )
+                return cast(Target, TracedRetrievalClient._trace_callable(target, principal_id, session_id, sink))
             else:
                 raise RetrievalDeclarationError(const.ERR_RETRIEVAL_INVALID_TARGET)
 
@@ -50,10 +36,7 @@ class TracedRetrievalClient:
 
     @staticmethod
     def _trace_callable(
-        function: Callable[..., Any],
-        principal_id: str,
-        session_id: str,
-        sink: Optional[ProvenanceSink],
+        function: Callable[..., Any], principal_id: str, session_id: str, sink: Optional[ProvenanceSink]
     ) -> Callable[..., Any]:
         """Wrap a callable with retrieval provenance tracking."""
         if asyncio.iscoroutinefunction(function):
@@ -63,10 +46,7 @@ class TracedRetrievalClient:
 
     @staticmethod
     def _wrap_sync(
-        function: Callable[..., Any],
-        principal_id: str,
-        session_id: str,
-        sink: Optional[ProvenanceSink],
+        function: Callable[..., Any], principal_id: str, session_id: str, sink: Optional[ProvenanceSink]
     ) -> Callable[..., Any]:
         """Wrap synchronous callable."""
 
@@ -100,13 +80,8 @@ class TracedRetrievalClient:
 
                 occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_success(
-                    query=query_str,
-                    chunk_ids=chunk_ids,
-                    source_document_ids=source_document_ids,
-                    principal_id=principal_id,
-                    session_id=session_id,
-                    duration_ms=duration_ms,
-                    occurred_at=occurred_at,
+                    query=query_str, chunk_ids=chunk_ids, source_document_ids=source_document_ids,
+                    principal_id=principal_id, session_id=session_id, duration_ms=duration_ms, occurred_at=occurred_at
                 )
                 actual_sink.record(provenance)
                 return result
@@ -115,11 +90,8 @@ class TracedRetrievalClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
-                    query=query_str,
-                    principal_id=principal_id,
-                    session_id=session_id,
-                    duration_ms=duration_ms,
-                    occurred_at=provenance_occurred_at,
+                    query=query_str, principal_id=principal_id, session_id=session_id,
+                    duration_ms=duration_ms, occurred_at=provenance_occurred_at
                 )
                 actual_sink.record(provenance)
                 raise
@@ -128,10 +100,7 @@ class TracedRetrievalClient:
 
     @staticmethod
     def _wrap_async(
-        function: Callable[..., Any],
-        principal_id: str,
-        session_id: str,
-        sink: Optional[ProvenanceSink],
+        function: Callable[..., Any], principal_id: str, session_id: str, sink: Optional[ProvenanceSink]
     ) -> Callable[..., Any]:
         """Wrap asynchronous callable."""
 
@@ -165,13 +134,8 @@ class TracedRetrievalClient:
 
                 occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_success(
-                    query=query_str,
-                    chunk_ids=chunk_ids,
-                    source_document_ids=source_document_ids,
-                    principal_id=principal_id,
-                    session_id=session_id,
-                    duration_ms=duration_ms,
-                    occurred_at=occurred_at,
+                    query=query_str, chunk_ids=chunk_ids, source_document_ids=source_document_ids,
+                    principal_id=principal_id, session_id=session_id, duration_ms=duration_ms, occurred_at=occurred_at
                 )
                 actual_sink.record(provenance)
                 return result
@@ -180,11 +144,8 @@ class TracedRetrievalClient:
                 duration_ms = (end_time - start_time).total_seconds() * 1000
                 provenance_occurred_at = end_time.isoformat()
                 provenance = RetrievalProvenance.for_failure(
-                    query=query_str,
-                    principal_id=principal_id,
-                    session_id=session_id,
-                    duration_ms=duration_ms,
-                    occurred_at=provenance_occurred_at,
+                    query=query_str, principal_id=principal_id, session_id=session_id,
+                    duration_ms=duration_ms, occurred_at=provenance_occurred_at
                 )
                 actual_sink.record(provenance)
                 raise
@@ -192,12 +153,7 @@ class TracedRetrievalClient:
         return async_wrapper
 
     @staticmethod
-    def _trace_class(
-        cls: type,
-        principal_id: str,
-        session_id: str,
-        sink: Optional[ProvenanceSink],
-    ) -> type:
+    def _trace_class(cls: type, principal_id: str, session_id: str, sink: Optional[ProvenanceSink]) -> type:
         """Fan out tracing to public methods on a class."""
         public_methods = TracedRetrievalClient._get_public_methods(cls)
 
@@ -206,9 +162,7 @@ class TracedRetrievalClient:
 
         for method_name in public_methods:
             original_method = getattr(cls, method_name)
-            traced_method = TracedRetrievalClient._trace_callable(
-                original_method, principal_id, session_id, sink
-            )
+            traced_method = TracedRetrievalClient._trace_callable(original_method, principal_id, session_id, sink)
             setattr(cls, method_name, traced_method)
 
         return cls

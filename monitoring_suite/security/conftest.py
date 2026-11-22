@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
 
 
 @pytest.fixture(autouse=True)

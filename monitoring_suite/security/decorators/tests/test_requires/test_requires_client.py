@@ -4,17 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
-from monitoring_suite.security.decorators.requires.requires_client import (
-    Requires,
-    requires,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
+from monitoring_suite.security.decorators.requires.requires_client import Requires, requires
 from monitoring_suite.security.errors.security_errors import AuthzError
 
 
@@ -86,9 +78,7 @@ class TestRequires:
         """Decorated function allows when principal has required scope."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -115,9 +105,7 @@ class TestRequires:
         """Requires with custom authorizer respects deny decision."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:test", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:test", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -133,9 +121,7 @@ class TestRequires:
         """Module-level requires handle exists and works."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -151,9 +137,7 @@ class TestRequires:
         """Decorated function forwards args correctly."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -169,9 +153,7 @@ class TestRequires:
         """Decorated function forwards kwargs correctly."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -187,11 +169,7 @@ class TestRequires:
         """Decorated function allows if principal has any required scope."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read", "write", "delete"])
-        principal = Principal(
-            id="user:admin",
-            roles=roles,
-            scopes=scopes,
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 

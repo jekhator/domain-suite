@@ -2,10 +2,7 @@
 
 from typing import Optional
 
-from monitoring_suite.monitoring.services.metrics.metrics_client import (
-    MetricSink,
-    NullSink,
-)
+from monitoring_suite.monitoring.services.metrics.metrics_client import MetricSink, NullSink
 
 
 class MonitorRegistry:

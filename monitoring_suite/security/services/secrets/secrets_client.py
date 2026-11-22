@@ -19,8 +19,5 @@ class SecretRef:
     def resolve(self, backend: objs.SecretsBackend | None = None) -> objs.SecretValue:
         """Fetch the named secret from the backend and wrap it in a SecretValue."""
         if backend is None:
-            raise SecretError(
-                message=const.ERR_SECRETS_NO_BACKEND,
-                secret_name=self.name,
-            )
+            raise SecretError(message=const.ERR_SECRETS_NO_BACKEND, secret_name=self.name)
         return objs.SecretValue(backend.fetch(self.name))

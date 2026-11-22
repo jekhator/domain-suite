@@ -8,10 +8,7 @@ import pytest
 
 import monitoring_suite.aspects
 from monitoring_suite.aspects.errors.aspects_errors import AspectDeclarationError
-from monitoring_suite.aspects.services.aspects import (
-    aspects_client as client_module,
-    aspects_objects as objs,
-)
+from monitoring_suite.aspects.services.aspects import aspects_client as client_module, aspects_objects as objs
 from monitoring_suite.aspects.services.constants import aspects as const
 
 
@@ -43,10 +40,7 @@ class TestAspectsFlatten:
     def test_flatten_single_entries(self) -> None:
         """Flatten single entries into a list."""
         aspects_svc = client_module.Aspects()
-        entries = (
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-        )
+        entries = (objs.Logged(event="test"), objs.Requires(permission="read"))
         result = aspects_svc._flatten(entries)
         assert len(result) == 2
         assert result[0].kind == objs.AspectKind.LOGGED
@@ -55,40 +49,20 @@ class TestAspectsFlatten:
     def test_flatten_frozenset(self) -> None:
         """Flatten a frozenset of entries."""
         aspects_svc = client_module.Aspects()
-        entry_set = frozenset(
-            {
-                objs.Logged(event="test"),
-                objs.Requires(permission="read"),
-            }
-        )
+        entry_set = frozenset({objs.Logged(event="test"), objs.Requires(permission="read")})
         result = aspects_svc._flatten((entry_set,))  # type: ignore[arg-type]
         assert len(result) == 2
-        assert {entry.kind for entry in result} == {
-            objs.AspectKind.LOGGED,
-            objs.AspectKind.REQUIRES,
-        }
+        assert {entry.kind for entry in result} == {objs.AspectKind.LOGGED, objs.AspectKind.REQUIRES}
 
     def test_flatten_mixed(self) -> None:
         """Flatten mixed single entries and frozensets."""
         aspects_svc = client_module.Aspects()
-        entry_set = frozenset(
-            {
-                objs.Requires(permission="read"),
-                objs.Throttled(scope="api", rate="100/hour"),
-            }
-        )
-        entries = (
-            objs.Logged(event="test"),
-            entry_set,
-        )
+        entry_set = frozenset({objs.Requires(permission="read"), objs.Throttled(scope="api", rate="100/hour")})
+        entries = (objs.Logged(event="test"), entry_set)
         result = aspects_svc._flatten(entries)  # type: ignore[arg-type]
         assert len(result) == 3
         kinds = {entry.kind for entry in result}
-        assert kinds == {
-            objs.AspectKind.LOGGED,
-            objs.AspectKind.REQUIRES,
-            objs.AspectKind.THROTTLED,
-        }
+        assert kinds == {objs.AspectKind.LOGGED, objs.AspectKind.REQUIRES, objs.AspectKind.THROTTLED}
 
 
 class TestAspectsValidate:
@@ -97,45 +71,27 @@ class TestAspectsValidate:
     def test_validate_happy_path(self) -> None:
         """Validate valid entries without raising."""
         aspects_svc = client_module.Aspects()
-        entries = [
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-        ]
+        entries = [objs.Logged(event="test"), objs.Requires(permission="read")]
         aspects_svc._validate(entries)  # type: ignore[arg-type]
 
     def test_validate_empty_list_raises(self) -> None:
         """Validate empty list raises AspectDeclarationError."""
         aspects_svc = client_module.Aspects()
-        with pytest.raises(
-            AspectDeclarationError,
-            match=const.ERR_ASPECTS_EMPTY_DECLARATION,
-        ):
+        with pytest.raises(AspectDeclarationError, match=const.ERR_ASPECTS_EMPTY_DECLARATION):
             aspects_svc._validate([])
 
     def test_validate_duplicate_kind_raises(self) -> None:
         """Validate duplicate kinds raises AspectDeclarationError."""
         aspects_svc = client_module.Aspects()
-        entries = [
-            objs.Logged(event="test1"),
-            objs.Logged(event="test2"),
-        ]  # type: ignore[arg-type]
-        with pytest.raises(
-            AspectDeclarationError,
-            match="Duplicate aspect kind",
-        ):
+        entries = [objs.Logged(event="test1"), objs.Logged(event="test2")]  # type: ignore[arg-type]
+        with pytest.raises(AspectDeclarationError, match="Duplicate aspect kind"):
             aspects_svc._validate(entries)  # type: ignore[arg-type]
 
     def test_validate_unknown_type_raises(self) -> None:
         """Validate unknown entry type raises AspectDeclarationError."""
         aspects_svc = client_module.Aspects()
-        entries: list[Any] = [
-            objs.Logged(event="test"),
-            "not_an_entry",
-        ]
-        with pytest.raises(
-            AspectDeclarationError,
-            match="Unknown aspect entry type",
-        ):
+        entries: list[Any] = [objs.Logged(event="test"), "not_an_entry"]
+        with pytest.raises(AspectDeclarationError, match="Unknown aspect entry type"):
             aspects_svc._validate(entries)
 
 
@@ -145,18 +101,10 @@ class TestAspectsSort:
     def test_sort_happy_path(self) -> None:
         """Sort entries by ASPECT_ORDER."""
         aspects_svc = client_module.Aspects()
-        entries = [
-            objs.WrapErrors(as_=ValueError),
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-        ]
+        entries = [objs.WrapErrors(as_=ValueError), objs.Logged(event="test"), objs.Requires(permission="read")]
         result = aspects_svc._sort(entries)  # type: ignore[arg-type]
         kinds = [entry.kind for entry in result]
-        assert kinds == [
-            objs.AspectKind.LOGGED,
-            objs.AspectKind.REQUIRES,
-            objs.AspectKind.WRAP_ERRORS,
-        ]
+        assert kinds == [objs.AspectKind.LOGGED, objs.AspectKind.REQUIRES, objs.AspectKind.WRAP_ERRORS]
 
     def test_sort_preserves_all_entries(self) -> None:
         """Sort preserves all entries."""
@@ -172,12 +120,8 @@ class TestAspectsSort:
         assert len(result) == 6
         kinds = [entry.kind for entry in result]
         assert kinds == [
-            objs.AspectKind.LOGGED,
-            objs.AspectKind.REQUIRES,
-            objs.AspectKind.TENANT_SCOPED,
-            objs.AspectKind.THROTTLED,
-            objs.AspectKind.MONITORED,
-            objs.AspectKind.WRAP_ERRORS,
+            objs.AspectKind.LOGGED, objs.AspectKind.REQUIRES, objs.AspectKind.TENANT_SCOPED,
+            objs.AspectKind.THROTTLED, objs.AspectKind.MONITORED, objs.AspectKind.WRAP_ERRORS
         ]
 
 
@@ -199,12 +143,7 @@ class TestAspectsCall:
     def test_call_with_frozenset(self) -> None:
         """Calling Aspects with frozenset works."""
         aspects_svc = client_module.Aspects()
-        entry_set = frozenset(
-            {
-                objs.Logged(event="test"),
-                objs.Requires(permission="read"),
-            }
-        )
+        entry_set = frozenset({objs.Logged(event="test"), objs.Requires(permission="read")})
         decorator = aspects_svc(entry_set)  # type: ignore[arg-type]
         assert callable(decorator)
 
@@ -212,10 +151,7 @@ class TestAspectsCall:
         """Calling Aspects with both entries and frozensets works."""
         aspects_svc = client_module.Aspects()
         entry_set = frozenset({objs.Requires(permission="read")})
-        decorator = aspects_svc(
-            objs.Logged(event="test"),
-            entry_set,
-        )
+        decorator = aspects_svc(objs.Logged(event="test"), entry_set)
         assert callable(decorator)
 
     def test_call_raises_on_empty_declaration(self) -> None:
@@ -228,10 +164,7 @@ class TestAspectsCall:
         """Calling Aspects with duplicate kinds raises."""
         aspects_svc = client_module.Aspects()
         with pytest.raises(AspectDeclarationError):
-            aspects_svc(
-                objs.Logged(event="test1"),
-                objs.Logged(event="test2"),
-            )
+            aspects_svc(objs.Logged(event="test1"), objs.Logged(event="test2"))
 
     def test_decorator_on_function(self) -> None:
         """Decorator works on a function."""
@@ -261,19 +194,14 @@ class TestAspectsCall:
     def test_monitored_composition_with_logged(self) -> None:
         """Composition of Monitored and Logged aspects works."""
         aspects_svc = client_module.Aspects()
-        decorator = aspects_svc(
-            objs.Monitored(event="test.operation"),
-            objs.Logged(event="test.logging"),
-        )
+        decorator = aspects_svc(objs.Monitored(event="test.operation"), objs.Logged(event="test.logging"))
         assert callable(decorator)
 
     def test_monitored_composition_with_multiple_aspects(self) -> None:
         """Composition of Monitored with multiple aspects works."""
         aspects_svc = client_module.Aspects()
         decorator = aspects_svc(
-            objs.Logged(event="test"),
-            objs.Monitored(event="test.operation"),
-            objs.WrapErrors(as_=ValueError),
+            objs.Logged(event="test"), objs.Monitored(event="test.operation"), objs.WrapErrors(as_=ValueError)
         )
         assert callable(decorator)
 
@@ -294,11 +222,8 @@ class TestAspectsIntegration:
         aspects_svc = client_module.Aspects()
 
         decorator = aspects_svc(
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-            objs.TenantScoped(param_name="tenant_id"),
-            objs.Throttled(scope="api", rate="100/hour"),
-            objs.WrapErrors(as_=ValueError),
+            objs.Logged(event="test"), objs.Requires(permission="read"), objs.TenantScoped(param_name="tenant_id"),
+            objs.Throttled(scope="api", rate="100/hour"), objs.WrapErrors(as_=ValueError)
         )
         assert callable(decorator)
 
@@ -306,11 +231,8 @@ class TestAspectsIntegration:
         """All six aspect kinds can be declared together."""
         aspects_svc = client_module.Aspects()
         decorator = aspects_svc(
-            objs.Logged(event="test"),
-            objs.Requires(permission="read"),
-            objs.TenantScoped(param_name="tenant_id"),
-            objs.Throttled(scope="api", rate="100/hour"),
-            objs.WrapErrors(as_=ValueError),
+            objs.Logged(event="test"), objs.Requires(permission="read"), objs.TenantScoped(param_name="tenant_id"),
+            objs.Throttled(scope="api", rate="100/hour"), objs.WrapErrors(as_=ValueError)
         )
         assert callable(decorator)
 
@@ -318,11 +240,8 @@ class TestAspectsIntegration:
         """Frozenset can contain all six aspect kinds."""
         all_aspects = frozenset(
             {
-                objs.Logged(event="test"),
-                objs.Requires(permission="read"),
-                objs.TenantScoped(param_name="tenant_id"),
-                objs.Throttled(scope="api", rate="100/hour"),
-                objs.WrapErrors(as_=ValueError),
+                objs.Logged(event="test"), objs.Requires(permission="read"), objs.TenantScoped(param_name="tenant_id"),
+                objs.Throttled(scope="api", rate="100/hour"), objs.WrapErrors(as_=ValueError)
             }
         )
         aspects_svc = client_module.Aspects()

@@ -20,10 +20,7 @@ class Aspects:
     Validates duplicate kinds and unknown entry types at decoration time.
     """
 
-    def __call__(
-        self,
-        *entries: objs.AspectEntry | frozenset[objs.AspectEntry],
-    ) -> Callable:
+    def __call__(self, *entries: objs.AspectEntry | frozenset[objs.AspectEntry]) -> Callable:
         """
         Apply aspect decorators to the target function or class.
 
@@ -42,10 +39,7 @@ class Aspects:
 
         return decorator
 
-    def _flatten(
-        self,
-        entries: tuple[objs.AspectEntry | frozenset[objs.AspectEntry], ...],
-    ) -> list[objs.AspectEntry]:
+    def _flatten(self, entries: tuple[objs.AspectEntry | frozenset[objs.AspectEntry], ...]) -> list[objs.AspectEntry]:
         """Flatten mixed single entries and frozensets into a flat list."""
         result: list[objs.AspectEntry] = []
         for entry in entries:
@@ -65,28 +59,16 @@ class Aspects:
             if not isinstance(
                 entry,
                 (
-                    objs.Logged,
-                    objs.Requires,
-                    objs.TenantScoped,
-                    objs.Throttled,
-                    objs.Monitored,
-                    objs.WrapErrors,
-                    objs.Retried,
-                    objs.RequireMixins,
-                ),
-            ):
-                message = const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
-                        entry_type=type(entry).__name__
-                    )
-                raise AspectDeclarationError(
-                    message=message
+                    objs.Logged, objs.Requires, objs.TenantScoped, objs.Throttled,
+                    objs.Monitored, objs.WrapErrors, objs.Retried, objs.RequireMixins
                 )
+            ):
+                message = const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(entry_type=type(entry).__name__)
+                raise AspectDeclarationError(message=message)
             kind = entry.kind
             if kind in seen_kinds:
                 aspect_declaration_error_message = const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
-                raise AspectDeclarationError(
-                    message=aspect_declaration_error_message
-                )
+                raise AspectDeclarationError(message=aspect_declaration_error_message)
             seen_kinds.add(kind)
 
     def _sort(self, entries: list[objs.AspectEntry]) -> list[objs.AspectEntry]:

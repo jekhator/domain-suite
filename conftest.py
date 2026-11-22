@@ -6,12 +6,8 @@ from collections.abc import Generator
 
 import pytest
 
-from monitoring_suite.monitoring.services.registry.registry_client import (
-    MonitorRegistry,
-)
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
+from monitoring_suite.monitoring.services.registry.registry_client import MonitorRegistry
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
 
 
 @pytest.fixture(autouse=True)

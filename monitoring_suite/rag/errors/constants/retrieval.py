@@ -8,9 +8,7 @@ ERR_RETRIEVAL_FAILED: Final[str] = "Retrieval operation failed"
 
 """Invalid decorator targets."""
 
-ERR_RETRIEVAL_INVALID_TARGET: Final[str] = (
-    "Invalid retrieval target: must be a callable or class"
-)
+ERR_RETRIEVAL_INVALID_TARGET: Final[str] = "Invalid retrieval target: must be a callable or class"
 
 """Empty class decoration."""
 

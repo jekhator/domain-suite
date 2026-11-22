@@ -3,9 +3,7 @@
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
 from monitoring_suite.errors.services.chain.chain_client import ErrorChain
 from monitoring_suite.errors.services.chain.chain_objects import ChainVia
-from monitoring_suite.errors.services.tests.test_chain.conftest import (
-    FakeDomainClassifier,
-)
+from monitoring_suite.errors.services.tests.test_chain.conftest import FakeDomainClassifier
 
 
 class CustomDomainError(DomainError):
@@ -49,12 +47,7 @@ class TestErrorChainWrap:
     def test_wrap_stores_context_kwargs(self) -> None:
         """wrap() passes context kwargs to the domain error."""
         cause = ValueError("oops")
-        result = ErrorChain.wrap(
-            cause,
-            as_=CustomDomainError,
-            user_id=123,
-            request_id="abc",
-        )
+        result = ErrorChain.wrap(cause, as_=CustomDomainError, user_id=123, request_id="abc")
         assert result.context["user_id"] == 123
         assert result.context["request_id"] == "abc"
 

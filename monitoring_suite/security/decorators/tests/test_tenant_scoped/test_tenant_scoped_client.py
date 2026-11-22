@@ -4,18 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.decorators.constants import tenant_scoped as const
-from monitoring_suite.security.decorators.tenant_scoped.tenant_scoped_client import (
-    TenantScoped,
-    tenant_scoped,
-)
+from monitoring_suite.security.decorators.tenant_scoped.tenant_scoped_client import TenantScoped, tenant_scoped
 from monitoring_suite.security.errors.security_errors import TenancyError
 
 
@@ -181,9 +173,7 @@ class TestTenantScoped:
 
     def test_decorator_with_custom_guard(self) -> None:
         """TenantScoped can be initialized with custom guard."""
-        from monitoring_suite.security.services.tenancy.tenancy_client import (
-            TenancyGuard,
-        )
+        from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
 
         roles: frozenset[str] = frozenset()
         scopes: frozenset[str] = frozenset()

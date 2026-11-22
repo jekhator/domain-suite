@@ -7,11 +7,7 @@ from types import ModuleType
 from monitoring_suite.api_limiter.decorators.throttled import throttled
 from monitoring_suite.api_limiter.services.constants import policy as const
 from monitoring_suite.api_limiter.services.policy.policy_client import PolicyRegistry
-from monitoring_suite.api_limiter.services.policy.policy_objects import (
-    Period,
-    RateLimit,
-    ThrottlePolicy,
-)
+from monitoring_suite.api_limiter.services.policy.policy_objects import Period, RateLimit, ThrottlePolicy
 
 
 class TestPolicyRegistry:
@@ -24,17 +20,13 @@ class TestPolicyRegistry:
             pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy = ThrottlePolicy(
-            scope="test.scope", rate=rate
-        )
+        policy = ThrottlePolicy(scope="test.scope", rate=rate)
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 
         result = registry.policy_of(decorated_func)
         assert result == policy
 
-    def test_policy_of_returns_none_when_not_declared(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_policy_of_returns_none_when_not_declared(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.policy_of returns None when policy not declared."""
 
         def undecorated_func() -> None:
@@ -43,9 +35,7 @@ class TestPolicyRegistry:
         result = registry.policy_of(undecorated_func)
         assert result is None
 
-    def test_policy_of_returns_none_for_non_policy_attribute(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_policy_of_returns_none_for_non_policy_attribute(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.policy_of returns None when attribute is not a policy."""
 
         def func_with_string_attr() -> None:
@@ -56,9 +46,7 @@ class TestPolicyRegistry:
         result = registry.policy_of(func_with_string_attr)
         assert result is None
 
-    def test_policy_of_returns_none_for_dict_attribute(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_policy_of_returns_none_for_dict_attribute(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.policy_of returns None when attribute is a dict."""
 
         def func_with_dict_attr() -> None:
@@ -69,9 +57,7 @@ class TestPolicyRegistry:
         result = registry.policy_of(func_with_dict_attr)
         assert result is None
 
-    def test_collect_on_class_with_decorated_methods(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_with_decorated_methods(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect returns policies from class methods."""
 
         class TestClass:
@@ -85,13 +71,9 @@ class TestPolicyRegistry:
                 pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy1 = ThrottlePolicy(
-            scope="method1", rate=rate
-        )
+        policy1 = ThrottlePolicy(scope="method1", rate=rate)
         policy2_rate = RateLimit(requests=200, period=Period.HOUR)
-        policy2 = ThrottlePolicy(
-            scope="method2", rate=policy2_rate
-        )
+        policy2 = ThrottlePolicy(scope="method2", rate=policy2_rate)
 
         setattr(TestClass.method1, const.THROTTLE_POLICY_ATTR, policy1)
         setattr(TestClass.method2, const.THROTTLE_POLICY_ATTR, policy2)
@@ -101,9 +83,7 @@ class TestPolicyRegistry:
         assert policy1 in result
         assert policy2 in result
 
-    def test_collect_on_class_definition_order_preserved(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_definition_order_preserved(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect preserves method definition order."""
 
         class TestClass:
@@ -117,17 +97,11 @@ class TestPolicyRegistry:
                 pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy1 = ThrottlePolicy(
-            scope="first", rate=rate
-        )
+        policy1 = ThrottlePolicy(scope="first", rate=rate)
         policy2_rate = RateLimit(requests=200, period=Period.HOUR)
-        policy2 = ThrottlePolicy(
-            scope="second", rate=policy2_rate
-        )
+        policy2 = ThrottlePolicy(scope="second", rate=policy2_rate)
         policy3_rate = RateLimit(requests=300, period=Period.HOUR)
-        policy3 = ThrottlePolicy(
-            scope="third", rate=policy3_rate
-        )
+        policy3 = ThrottlePolicy(scope="third", rate=policy3_rate)
 
         setattr(TestClass.first_method, const.THROTTLE_POLICY_ATTR, policy1)
         setattr(TestClass.second_method, const.THROTTLE_POLICY_ATTR, policy2)
@@ -136,9 +110,7 @@ class TestPolicyRegistry:
         result = registry.collect(TestClass)
         assert result == (policy1, policy2, policy3)
 
-    def test_collect_on_class_skips_undecorated_methods(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_skips_undecorated_methods(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect skips methods without policies."""
 
         class TestClass:
@@ -149,18 +121,14 @@ class TestPolicyRegistry:
                 pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy = ThrottlePolicy(
-            scope="decorated", rate=rate
-        )
+        policy = ThrottlePolicy(scope="decorated", rate=rate)
         setattr(TestClass.decorated_method, const.THROTTLE_POLICY_ATTR, policy)
 
         result = registry.collect(TestClass)
         assert len(result) == 1
         assert policy in result
 
-    def test_collect_on_class_skips_non_callable_members(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_skips_non_callable_members(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect skips non-callable class members."""
 
         class TestClass:
@@ -170,18 +138,14 @@ class TestPolicyRegistry:
                 pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy = ThrottlePolicy(
-            scope="method", rate=rate
-        )
+        policy = ThrottlePolicy(scope="method", rate=rate)
         setattr(TestClass.decorated_method, const.THROTTLE_POLICY_ATTR, policy)
 
         result = registry.collect(TestClass)
         assert len(result) == 1
         assert policy in result
 
-    def test_collect_on_class_empty_when_no_policies(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_empty_when_no_policies(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect returns empty tuple when no policies."""
 
         class TestClass:
@@ -194,9 +158,7 @@ class TestPolicyRegistry:
         result = registry.collect(TestClass)
         assert result == ()
 
-    def test_collect_on_module_with_decorated_functions(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_module_with_decorated_functions(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect returns policies from module functions."""
         module = ModuleType("test_module")
 
@@ -207,13 +169,9 @@ class TestPolicyRegistry:
             pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy1 = ThrottlePolicy(
-            scope="func1", rate=rate
-        )
+        policy1 = ThrottlePolicy(scope="func1", rate=rate)
         policy2_rate = RateLimit(requests=200, period=Period.HOUR)
-        policy2 = ThrottlePolicy(
-            scope="func2", rate=policy2_rate
-        )
+        policy2 = ThrottlePolicy(scope="func2", rate=policy2_rate)
 
         setattr(func1, const.THROTTLE_POLICY_ATTR, policy1)
         setattr(func2, const.THROTTLE_POLICY_ATTR, policy2)
@@ -226,9 +184,7 @@ class TestPolicyRegistry:
         assert policy1 in result
         assert policy2 in result
 
-    def test_collect_on_module_definition_order_preserved(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_module_definition_order_preserved(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect preserves function order in module."""
         module = ModuleType("test_module")
 
@@ -239,13 +195,9 @@ class TestPolicyRegistry:
             pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy1 = ThrottlePolicy(
-            scope="first", rate=rate
-        )
+        policy1 = ThrottlePolicy(scope="first", rate=rate)
         policy2_rate = RateLimit(requests=200, period=Period.HOUR)
-        policy2 = ThrottlePolicy(
-            scope="second", rate=policy2_rate
-        )
+        policy2 = ThrottlePolicy(scope="second", rate=policy2_rate)
 
         setattr(first_func, const.THROTTLE_POLICY_ATTR, policy1)
         setattr(second_func, const.THROTTLE_POLICY_ATTR, policy2)
@@ -256,9 +208,7 @@ class TestPolicyRegistry:
         result = registry.collect(module)
         assert result == (policy1, policy2)
 
-    def test_collect_on_module_skips_undecorated_functions(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_module_skips_undecorated_functions(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect skips undecorated functions."""
         module = ModuleType("test_module")
 
@@ -269,9 +219,7 @@ class TestPolicyRegistry:
             pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy = ThrottlePolicy(
-            scope="decorated", rate=rate
-        )
+        policy = ThrottlePolicy(scope="decorated", rate=rate)
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 
         setattr(module, "decorated_func", decorated_func)
@@ -281,9 +229,7 @@ class TestPolicyRegistry:
         assert len(result) == 1
         assert policy in result
 
-    def test_collect_on_module_skips_non_callable_members(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_module_skips_non_callable_members(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect skips non-callable module members."""
         module = ModuleType("test_module")
 
@@ -291,9 +237,7 @@ class TestPolicyRegistry:
             pass
 
         rate = RateLimit(requests=100, period=Period.HOUR)
-        policy = ThrottlePolicy(
-            scope="func", rate=rate
-        )
+        policy = ThrottlePolicy(scope="func", rate=rate)
         setattr(decorated_func, const.THROTTLE_POLICY_ATTR, policy)
 
         setattr(module, "decorated_func", decorated_func)
@@ -304,9 +248,7 @@ class TestPolicyRegistry:
         assert len(result) == 1
         assert policy in result
 
-    def test_collect_on_module_empty_when_no_policies(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_module_empty_when_no_policies(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect returns empty tuple when no policies in module."""
         module = ModuleType("test_module")
 
@@ -337,9 +279,7 @@ class TestPolicyRegistry:
         result = registry.collect(module)
         assert result == ()
 
-    def test_collect_on_class_level_decorated_class(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_level_decorated_class(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect collects policies from class-level @throttled."""
 
         @throttled(scope="docs", rate="100/hour")
@@ -355,9 +295,7 @@ class TestPolicyRegistry:
         assert result[0].scope == "docs:list_documents"
         assert result[1].scope == "docs:create_document"
 
-    def test_collect_on_class_level_decorated_preserves_order(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_level_decorated_preserves_order(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect preserves method order from class decorator."""
 
         @throttled(scope="docs", rate="100/hour")
@@ -377,9 +315,7 @@ class TestPolicyRegistry:
         assert result[1].scope == "docs:second_method"
         assert result[2].scope == "docs:third_method"
 
-    def test_collect_on_class_level_decorated_with_classmethod(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_level_decorated_with_classmethod(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect includes classmethod from class decorator."""
 
         @throttled(scope="docs", rate="100/hour")
@@ -396,9 +332,7 @@ class TestPolicyRegistry:
         assert result[0].scope == "docs:from_config"
         assert result[1].scope == "docs:list_documents"
 
-    def test_collect_on_class_level_decorated_with_staticmethod(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_class_level_decorated_with_staticmethod(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect includes staticmethod from class decorator."""
 
         @throttled(scope="docs", rate="100/hour")
@@ -416,9 +350,7 @@ class TestPolicyRegistry:
         assert "docs:validate_name" in scopes
         assert "docs:list_documents" in scopes
 
-    def test_collect_on_mixed_method_decorations(
-        self, registry: PolicyRegistry
-    ) -> None:
+    def test_collect_on_mixed_method_decorations(self, registry: PolicyRegistry) -> None:
         """PolicyRegistry.collect handles mix of method and class decorations."""
 
         @throttled(scope="docs", rate="100/hour")

@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.services.authz.authz_objects import Permission
 
 
@@ -62,17 +59,11 @@ def principal_with_multiple_scopes() -> Principal:  # noqa: R004
     """
     roles = frozenset(["admin"])
     scopes = frozenset(["read", "write", "delete"])
-    return Principal(
-        id="user:admin",
-        roles=roles,
-        scopes=scopes,
-    )
+    return Principal(id="user:admin", roles=roles, scopes=scopes)
 
 
 @pytest.fixture
-def context_with_principal(  # noqa: R004
-    principal_with_read_scope: Principal,
-) -> SecurityContext:
+def context_with_principal(principal_with_read_scope: Principal) -> SecurityContext:  # noqa: R004
     """
     Create a security context with a principal.
 

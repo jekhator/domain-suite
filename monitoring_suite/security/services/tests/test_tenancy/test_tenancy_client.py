@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.errors.security_errors import TenancyError
 from monitoring_suite.security.services.constants import tenancy as const
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
@@ -16,16 +13,12 @@ from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGua
 class TestTenancyGuard:
     """TenancyGuard tenant boundary enforcement."""
 
-    def test_check_passes_matching_tenant(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_passes_matching_tenant(self, context_with_tenant: SecurityContext) -> None:
         """check does not raise when context tenant matches requested tenant."""
         guard = TenancyGuard()
         guard.check(context_with_tenant, "tenant:acme")
 
-    def test_check_raises_no_tenant_bound(
-        self, context_without_tenant: SecurityContext
-    ) -> None:
+    def test_check_raises_no_tenant_bound(self, context_without_tenant: SecurityContext) -> None:
         """check raises TenancyError when context has no tenant."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -33,9 +26,7 @@ class TestTenancyGuard:
         assert exc_info.value.code == "tenant_boundary_violation"
         assert exc_info.value.message == const.ERR_TENANCY_NO_TENANT_BOUND
 
-    def test_check_raises_tenant_mismatch(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_raises_tenant_mismatch(self, context_with_tenant: SecurityContext) -> None:
         """check raises TenancyError when context tenant differs from requested."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -43,9 +34,7 @@ class TestTenancyGuard:
         assert exc_info.value.code == "tenant_boundary_violation"
         assert exc_info.value.message == const.ERR_TENANCY_BOUNDARY_VIOLATION
 
-    def test_check_includes_tenant_ids_in_context(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_includes_tenant_ids_in_context(self, context_with_tenant: SecurityContext) -> None:
         """check includes both tenant IDs in error context."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -53,9 +42,7 @@ class TestTenancyGuard:
         assert exc_info.value.context["tenant_id"] == "tenant:widgets"
         assert exc_info.value.context["context_tenant_id"] == "tenant:acme"
 
-    def test_check_no_tenant_bound_includes_requested_tenant(
-        self, context_without_tenant: SecurityContext
-    ) -> None:
+    def test_check_no_tenant_bound_includes_requested_tenant(self, context_without_tenant: SecurityContext) -> None:
         """check includes requested tenant_id when context has none."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:

@@ -1,13 +1,7 @@
 """Tests for ProvenanceSink protocol and implementations."""
 
-from monitoring_suite.rag.services.provenance.provenance_client import (
-    CollectingProvenanceSink,
-    NullProvenanceSink,
-)
-from monitoring_suite.rag.services.provenance.provenance_objects import (
-    ProvenanceOutcome,
-    RetrievalProvenance,
-)
+from monitoring_suite.rag.services.provenance.provenance_client import CollectingProvenanceSink, NullProvenanceSink
+from monitoring_suite.rag.services.provenance.provenance_objects import ProvenanceOutcome, RetrievalProvenance
 
 
 class TestCollectingProvenanceSink:
@@ -17,14 +11,8 @@ class TestCollectingProvenanceSink:
         """Record stores event in collection."""
         sink = CollectingProvenanceSink()
         event = RetrievalProvenance(
-            query="query",
-            chunk_ids=("c1",),
-            source_document_ids=("d1",),
-            principal_id="p1",
-            session_id="s1",
-            outcome=ProvenanceOutcome.SUCCESS,
-            duration_ms=100.0,
-            occurred_at="2026-07-07T12:00:00Z",
+            query="query", chunk_ids=("c1",), source_document_ids=("d1",), principal_id="p1", session_id="s1",
+            outcome=ProvenanceOutcome.SUCCESS, duration_ms=100.0, occurred_at="2026-07-07T12:00:00Z"
         )
 
         sink.record(event)
@@ -36,20 +24,11 @@ class TestCollectingProvenanceSink:
         """Record can be called multiple times."""
         sink = CollectingProvenanceSink()
         event1 = RetrievalProvenance.for_success(
-            query="q1",
-            chunk_ids=("c1",),
-            source_document_ids=("d1",),
-            principal_id="p1",
-            session_id="s1",
-            duration_ms=50.0,
-            occurred_at="2026-07-07T12:00:00Z",
+            query="q1", chunk_ids=("c1",), source_document_ids=("d1",), principal_id="p1",
+            session_id="s1", duration_ms=50.0, occurred_at="2026-07-07T12:00:00Z"
         )
         event2 = RetrievalProvenance.for_failure(
-            query="q2",
-            principal_id="p1",
-            session_id="s1",
-            duration_ms=75.0,
-            occurred_at="2026-07-07T12:00:01Z",
+            query="q2", principal_id="p1", session_id="s1", duration_ms=75.0, occurred_at="2026-07-07T12:00:01Z"
         )
 
         sink.record(event1)
@@ -63,24 +42,15 @@ class TestCollectingProvenanceSink:
         """Events property returns copy, not reference."""
         sink = CollectingProvenanceSink()
         event = RetrievalProvenance.for_success(
-            query="q",
-            chunk_ids=(),
-            source_document_ids=(),
-            principal_id="p1",
-            session_id="s1",
-            duration_ms=100.0,
-            occurred_at="2026-07-07T12:00:00Z",
+            query="q", chunk_ids=(), source_document_ids=(), principal_id="p1",
+            session_id="s1", duration_ms=100.0, occurred_at="2026-07-07T12:00:00Z"
         )
         sink.record(event)
 
         events_copy = sink.events
         events_copy.append(
             RetrievalProvenance.for_failure(
-                query="q2",
-                principal_id="p1",
-                session_id="s1",
-                duration_ms=50.0,
-                occurred_at="2026-07-07T12:00:01Z",
+                query="q2", principal_id="p1", session_id="s1", duration_ms=50.0, occurred_at="2026-07-07T12:00:01Z"
             )
         )
 
@@ -91,22 +61,13 @@ class TestCollectingProvenanceSink:
         sink = CollectingProvenanceSink()
         sink.record(
             RetrievalProvenance.for_success(
-                query="q1",
-                chunk_ids=(),
-                source_document_ids=(),
-                principal_id="p1",
-                session_id="s1",
-                duration_ms=100.0,
-                occurred_at="2026-07-07T12:00:00Z",
+                query="q1", chunk_ids=(), source_document_ids=(), principal_id="p1",
+                session_id="s1", duration_ms=100.0, occurred_at="2026-07-07T12:00:00Z"
             )
         )
         sink.record(
             RetrievalProvenance.for_failure(
-                query="q2",
-                principal_id="p1",
-                session_id="s1",
-                duration_ms=50.0,
-                occurred_at="2026-07-07T12:00:01Z",
+                query="q2", principal_id="p1", session_id="s1", duration_ms=50.0, occurred_at="2026-07-07T12:00:01Z"
             )
         )
 
@@ -124,13 +85,8 @@ class TestNullProvenanceSink:
         """Record does nothing."""
         sink = NullProvenanceSink()
         event = RetrievalProvenance.for_success(
-            query="q",
-            chunk_ids=(),
-            source_document_ids=(),
-            principal_id="p1",
-            session_id="s1",
-            duration_ms=100.0,
-            occurred_at="2026-07-07T12:00:00Z",
+            query="q", chunk_ids=(), source_document_ids=(), principal_id="p1",
+            session_id="s1", duration_ms=100.0, occurred_at="2026-07-07T12:00:00Z"
         )
 
         sink.record(event)

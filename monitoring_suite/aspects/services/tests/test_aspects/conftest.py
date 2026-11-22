@@ -54,10 +54,7 @@ def stub_wrap_errors() -> objs.WrapErrors:
 
     Used by: TestEntryHashability.
     """
-    return objs.WrapErrors(
-        as_=ValueError,
-        catch=(RuntimeError, TypeError),
-    )
+    return objs.WrapErrors(as_=ValueError, catch=(RuntimeError, TypeError))
 
 
 @pytest.fixture

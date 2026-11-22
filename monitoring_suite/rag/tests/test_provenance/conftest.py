@@ -2,9 +2,7 @@
 
 import pytest
 
-from monitoring_suite.rag.services.provenance.provenance_client import (
-    CollectingProvenanceSink,
-)
+from monitoring_suite.rag.services.provenance.provenance_client import CollectingProvenanceSink
 
 
 @pytest.fixture

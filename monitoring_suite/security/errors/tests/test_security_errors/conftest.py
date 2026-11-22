@@ -4,12 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.errors.security_errors import (
-    AuthzError,
-    SecretError,
-    SecurityError,
-    TenancyError,
-)
+from monitoring_suite.security.errors.security_errors import AuthzError, SecretError, SecurityError, TenancyError
 
 
 @pytest.fixture
@@ -39,10 +34,7 @@ def tenancy_error() -> TenancyError:
 
     Used by: no test class yet.
     """
-    return TenancyError(
-        message="Tenant boundary violation",
-        tenant_id="tenant:test",
-    )
+    return TenancyError(message="Tenant boundary violation", tenant_id="tenant:test")
 
 
 @pytest.fixture

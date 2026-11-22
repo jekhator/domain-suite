@@ -3,9 +3,7 @@
 import pytest
 
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
-from monitoring_suite.errors.domains.tests.test_domain_error.conftest import (
-    CustomDomainError,
-)
+from monitoring_suite.errors.domains.tests.test_domain_error.conftest import CustomDomainError
 
 
 class TestDomainErrorConstruction:
@@ -153,11 +151,4 @@ class TestDomainErrorContextPropagation:
         assert links[0].context == {"user_id": 42, "request_id": "xyz"}
         extra = links[0].to_log_extra()
         assert extra["context"] == {"user_id": 42, "request_id": "xyz"}
-        assert set(extra.keys()) == {
-            "type",
-            "message",
-            "code",
-            "domain",
-            "via",
-            "context",
-        }
+        assert set(extra.keys()) == {"type", "message", "code", "domain", "via", "context"}

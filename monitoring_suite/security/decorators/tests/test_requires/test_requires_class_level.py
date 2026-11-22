@@ -4,17 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
-from monitoring_suite.security.decorators.requires.requires_client import (
-    Requires,
-    requires,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
+from monitoring_suite.security.decorators.requires.requires_client import Requires, requires
 from monitoring_suite.security.errors.security_errors import AuthzError
 
 
@@ -25,9 +17,7 @@ class TestRequiresClassLevel:
         """Decorator applied to class wraps all public methods."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -51,9 +41,7 @@ class TestRequiresClassLevel:
         """Decorator skips private methods."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -76,9 +64,7 @@ class TestRequiresClassLevel:
         """Decorator skips dunder methods."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -106,9 +92,7 @@ class TestRequiresClassLevel:
         """Decorator skips properties."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -137,9 +121,7 @@ class TestRequiresClassLevel:
         """Decorator handles classmethods correctly."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -159,9 +141,7 @@ class TestRequiresClassLevel:
         """Decorator handles staticmethods correctly."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -180,9 +160,7 @@ class TestRequiresClassLevel:
         """Decorator applies only to methods in the class dict, not inherited."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -209,9 +187,7 @@ class TestRequiresClassLevel:
         """Decorated class methods deny when permission is missing."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -227,9 +203,7 @@ class TestRequiresClassLevel:
         with pytest.raises(AuthzError):
             service.admin_op()
 
-    def test_class_decorator_with_custom_authorizer(
-        self, always_allow_authorizer
-    ) -> None:
+    def test_class_decorator_with_custom_authorizer(self, always_allow_authorizer) -> None:
         """Class decorator with custom authorizer allows operation."""
 
         @Requires(authorizer=always_allow_authorizer)("anything")
@@ -247,9 +221,7 @@ class TestRequiresClassLevel:
         """Method already decorated with @requires is not re-decorated."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["read"])
-        principal = Principal(
-            id="user:reader", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:reader", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -275,9 +247,7 @@ class TestRequiresClassLevel:
         """Class decorator forwards return values correctly."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -306,9 +276,7 @@ class TestRequiresClassLevel:
         """Class decorator preserves method arguments."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 
@@ -333,9 +301,7 @@ class TestRequiresClassLevel:
         """Decorator skips nested classes."""
         roles: frozenset[str] = frozenset()
         scopes = frozenset(["admin"])
-        principal = Principal(
-            id="user:admin", roles=roles, scopes=scopes
-        )
+        principal = Principal(id="user:admin", roles=roles, scopes=scopes)
         manager = SecurityContextManager()
         manager.set(SecurityContext(principal=principal, tenant_id="tenant:test"))
 

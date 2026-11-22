@@ -25,12 +25,8 @@ class WrapErrorsClient:
 
     @classmethod
     def for_target(
-        cls,
-        as_: type[DomainError],
-        *,
-        catch: tuple[type[Exception], ...] = (Exception,),
-        message: str | None = None,
-        capture: bool = True,
+        cls, as_: type[DomainError], *, catch: tuple[type[Exception], ...] = (Exception,),
+        message: str | None = None, capture: bool = True
     ) -> WrapErrorsClient:
         """Build a wrap_errors decorator targeting the given DomainError type."""
         return cls(as_=as_, catch=catch, message=message, capture=capture)
@@ -48,15 +44,10 @@ class WrapErrorsClient:
             return self._decorate_class(target)
         if callable(target):
             return self._decorate_callable(target)
-        message = (
-            f"@wrap_errors target must be class or callable, "
-            f"got {type(target).__name__}"
-        )
+        message = f"@wrap_errors target must be class or callable, got {type(target).__name__}"
         raise TypeError(message)
 
-    def _decorate_callable[**Params, Return](
-        self, function: Callable[Params, Return]
-    ) -> Callable[Params, Return]:
+    def _decorate_callable[**Params, Return](self, function: Callable[Params, Return]) -> Callable[Params, Return]:
         """Wrap a single callable (function or method)."""
         if inspect.iscoroutinefunction(function):
             async_func = cast("Callable[Params, Awaitable[Any]]", function)
@@ -130,26 +121,12 @@ class WrapErrorsClient:
         return cls
 
     def _as_domain(
-        self,
-        error: Exception,
-        function: Callable[..., Any],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
+        self, error: Exception, function: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
     ) -> DomainError:
         """Wrap error into target DomainError with captured call context."""
-        return ErrorChain.wrap(
-            error,
-            as_=self.as_,
-            message=self.message,
-            **self._capture(function, args, kwargs),
-        )
+        return ErrorChain.wrap(error, as_=self.as_, message=self.message, **self._capture(function, args, kwargs))
 
-    def _capture(
-        self,
-        function: Callable[..., Any],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-    ) -> dict[str, Any]:
+    def _capture(self, function: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> dict[str, Any]:
         """Bind call args to parameter names; empty when capture is off."""
         if not self.capture:
             return {}

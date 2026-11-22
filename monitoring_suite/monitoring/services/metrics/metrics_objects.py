@@ -37,36 +37,20 @@ class MetricEvent:
 
     @classmethod
     def for_success(
-        cls,
-        event: str,
-        duration_ms: float,
-        occurred_at: str,
-        labels: tuple[tuple[str, str], ...] = (),
+        cls, event: str, duration_ms: float, occurred_at: str, labels: tuple[tuple[str, str], ...] = ()
     ) -> Self:
         """Create a success metric event."""
         return cls(
-            event=event,
-            outcome=Outcome.SUCCESS,
-            duration_ms=duration_ms,
-            occurred_at=occurred_at,
-            labels=labels,
+            event=event, outcome=Outcome.SUCCESS, duration_ms=duration_ms, occurred_at=occurred_at, labels=labels
         )
 
     @classmethod
     def for_failure(
-        cls,
-        event: str,
-        duration_ms: float,
-        occurred_at: str,
-        labels: tuple[tuple[str, str], ...] = (),
+        cls, event: str, duration_ms: float, occurred_at: str, labels: tuple[tuple[str, str], ...] = ()
     ) -> Self:
         """Create a failure metric event."""
         return cls(
-            event=event,
-            outcome=Outcome.FAILURE,
-            duration_ms=duration_ms,
-            occurred_at=occurred_at,
-            labels=labels,
+            event=event, outcome=Outcome.FAILURE, duration_ms=duration_ms, occurred_at=occurred_at, labels=labels
         )
 
     @property

@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
 
 

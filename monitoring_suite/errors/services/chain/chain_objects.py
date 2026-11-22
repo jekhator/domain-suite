@@ -60,12 +60,8 @@ class ChainLink:
         """Return the link as a JSON-ready dict for logger extra."""
         return asdict(
             LinkLogExtra(
-                type=self.type_name,
-                message=self.message,
-                code=self.code,
-                domain=self.domain,
-                via=self.via.value,
-                context=self.context,
+                type=self.type_name, message=self.message, code=self.code,
+                domain=self.domain, via=self.via.value, context=self.context
             )
         )
 
@@ -81,9 +77,7 @@ class DomainCrossing:
         """Return the crossing as a JSON-ready dict for logger extra."""
         return asdict(
             CrossingLogExtra(
-                cause_type=self.cause.type_name,
-                cause_domain=self.cause.domain,
-                effect_type=self.effect.type_name,
-                effect_domain=self.effect.domain,
+                cause_type=self.cause.type_name, cause_domain=self.cause.domain,
+                effect_type=self.effect.type_name, effect_domain=self.effect.domain
             )
         )

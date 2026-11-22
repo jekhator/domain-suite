@@ -4,9 +4,7 @@ from collections.abc import Generator
 
 import pytest
 
-from monitoring_suite.monitoring.services.registry.registry_client import (
-    MonitorRegistry,
-)
+from monitoring_suite.monitoring.services.registry.registry_client import MonitorRegistry
 
 
 @pytest.fixture(autouse=True)

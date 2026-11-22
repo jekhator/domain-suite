@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-__all__ = [
-    "HTTP",
-    "HTTP_LIBRARIES",
-]
+__all__ = ["HTTP", "HTTP_LIBRARIES"]
 
 
 """HTTP-layer domain the classifier maps httpx/requests/aiohttp errors to."""

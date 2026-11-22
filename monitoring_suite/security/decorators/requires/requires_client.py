@@ -7,12 +7,8 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import SecurityContext
 from monitoring_suite.security.services.authz.authz_client import Authorizer
 from monitoring_suite.security.services.authz.authz_objects import Permission
 
@@ -27,14 +23,11 @@ class Requires:
         self._authorizer = authorizer or Authorizer()
 
     def __call__[**Params, Return](
-        self,
-        permission: str,
+        self, permission: str
     ) -> Callable[[Callable[Params, Return] | type], Callable[Params, Return] | type]:
         """Return a decorator that enforces the permission before each call or on class methods."""
 
-        def decorate(
-            target: Callable[Params, Return] | type,
-        ) -> Callable[Params, Return] | type:
+        def decorate(target: Callable[Params, Return] | type) -> Callable[Params, Return] | type:
             if inspect.isclass(target):
                 return self._decorate_class(target, permission)
             return self._decorate_callable(target, permission)

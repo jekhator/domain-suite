@@ -1,10 +1,7 @@
 """Tests for the stdlib domain classifier."""
 
 from monitoring_suite.errors.domains.constants import python as const
-from monitoring_suite.errors.domains.python.python_client import (
-    PythonClassifier,
-    python,
-)
+from monitoring_suite.errors.domains.python.python_client import PythonClassifier, python
 
 
 class TestPythonClassifierNetworkFamily:

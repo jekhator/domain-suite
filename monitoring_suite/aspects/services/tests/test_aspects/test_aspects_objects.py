@@ -176,10 +176,7 @@ class TestWrapErrors:
 
     def test_wrap_errors_creation_happy_path(self) -> None:
         """Create WrapErrors with valid exception class and catch tuple."""
-        entry = objs.WrapErrors(
-            as_=ValueError,
-            catch=(RuntimeError, TypeError),
-        )
+        entry = objs.WrapErrors(as_=ValueError, catch=(RuntimeError, TypeError))
         assert entry.as_ is ValueError
         assert entry.catch == (RuntimeError, TypeError)
         assert entry.kind == objs.AspectKind.WRAP_ERRORS
@@ -225,24 +222,12 @@ class TestEntryHashability:
     """Test all entries are hashable and usable in frozensets."""
 
     def test_entries_in_frozenset(
-        self,
-        stub_logged: objs.Logged,
-        stub_requires: objs.Requires,
-        stub_tenant_scoped: objs.TenantScoped,
-        stub_throttled: objs.Throttled,
-        stub_monitored: objs.Monitored,
-        stub_wrap_errors: objs.WrapErrors,
+        self, stub_logged: objs.Logged, stub_requires: objs.Requires, stub_tenant_scoped: objs.TenantScoped,
+        stub_throttled: objs.Throttled, stub_monitored: objs.Monitored, stub_wrap_errors: objs.WrapErrors
     ) -> None:
         """All entries can be members of a frozenset."""
         entry_set = frozenset(
-            {
-                stub_logged,
-                stub_requires,
-                stub_tenant_scoped,
-                stub_throttled,
-                stub_monitored,
-                stub_wrap_errors,
-            }
+            {stub_logged, stub_requires, stub_tenant_scoped, stub_throttled, stub_monitored, stub_wrap_errors}
         )
         assert len(entry_set) == 6
 
@@ -263,11 +248,7 @@ class TestRetried:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.1,
-            backoff_multiplier=2.0,
-            backoff_max_seconds=10.0,
-            jitter=True,
+            max_attempts=3, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=True
         )
         entry = objs.Retried(policy=policy)
         assert entry.policy is policy
@@ -296,11 +277,7 @@ class TestRetried:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.1,
-            backoff_multiplier=2.0,
-            backoff_max_seconds=10.0,
-            jitter=True,
+            max_attempts=3, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=True
         )
 
         def selector(*args: object, **kwargs: object) -> RetryPolicy | None:
@@ -314,11 +291,7 @@ class TestRetried:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.1,
-            backoff_multiplier=2.0,
-            backoff_max_seconds=10.0,
-            jitter=True,
+            max_attempts=3, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=True
         )
         entry = objs.Retried(policy=policy)
         with pytest.raises(AttributeError):
@@ -329,11 +302,7 @@ class TestRetried:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.1,
-            backoff_multiplier=2.0,
-            backoff_max_seconds=10.0,
-            jitter=True,
+            max_attempts=3, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=True
         )
         entry1 = objs.Retried(policy=policy)
         entry2 = objs.Retried(policy=policy)

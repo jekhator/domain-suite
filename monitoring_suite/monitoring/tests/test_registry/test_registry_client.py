@@ -1,12 +1,7 @@
 """Tests for MonitorRegistry."""
 
-from monitoring_suite.monitoring.services.metrics.metrics_client import (
-    CollectingSink,
-    NullSink,
-)
-from monitoring_suite.monitoring.services.registry.registry_client import (
-    MonitorRegistry,
-)
+from monitoring_suite.monitoring.services.metrics.metrics_client import CollectingSink, NullSink
+from monitoring_suite.monitoring.services.registry.registry_client import MonitorRegistry
 
 
 class TestMonitorRegistry:

@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-__all__ = [
-    "ASSERTION",
-    "LOGIC",
-    "NETWORK",
-    "OS",
-]
+__all__ = ["ASSERTION", "LOGIC", "NETWORK", "OS"]
 
 
 """Coarse domains the stdlib classifier maps exception families to."""

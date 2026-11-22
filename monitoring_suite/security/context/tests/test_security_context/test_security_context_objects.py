@@ -6,10 +6,7 @@ import dataclasses
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 
 
 class TestPrincipal:
@@ -46,16 +43,8 @@ class TestPrincipal:
         """Principals with same data are equal."""
         roles = frozenset(["admin"])
         scopes = frozenset(["read"])
-        p1 = Principal(
-            id="user:test",
-            roles=roles,
-            scopes=scopes,
-        )
-        p2 = Principal(
-            id="user:test",
-            roles=roles,
-            scopes=scopes,
-        )
+        p1 = Principal(id="user:test", roles=roles, scopes=scopes)
+        p2 = Principal(id="user:test", roles=roles, scopes=scopes)
         assert p1 == p2
 
     def test_principal_inequality(self) -> None:

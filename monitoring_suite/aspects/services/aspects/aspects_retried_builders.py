@@ -18,9 +18,8 @@ class _RetriedBuilders:
 
     @staticmethod
     def build_retried_wrapper(
-        target: Callable,
-        policy: Optional[RetryPolicy],
-        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
+        target: Callable, policy: Optional[RetryPolicy],
+        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]]
     ) -> Callable:
         """Build retry wrapper for a single callable with optional dynamic policy."""
         from logging_suite.retry import RetryExecutor
@@ -59,9 +58,8 @@ class _RetriedBuilders:
 
     @staticmethod
     def decorate_class_retried(
-        cls: type[object],
-        policy: Optional[RetryPolicy],
-        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]],
+        cls: type[object], policy: Optional[RetryPolicy],
+        policy_from_request: Optional[Callable[..., Optional[RetryPolicy]]]
     ) -> type[object]:
         """
         Fan out @retried over all public methods in the class.
@@ -94,11 +92,7 @@ class _RetriedBuilders:
             if hasattr(unwrapped, RETRIED_MARKER):
                 continue
 
-            decorated = _RetriedBuilders.build_retried_wrapper(
-                unwrapped,
-                policy,
-                policy_from_request,
-            )
+            decorated = _RetriedBuilders.build_retried_wrapper(unwrapped, policy, policy_from_request)
 
             if is_classmethod:
                 setattr(cls, name, classmethod(decorated))

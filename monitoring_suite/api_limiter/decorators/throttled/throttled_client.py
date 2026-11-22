@@ -6,25 +6,16 @@ from collections.abc import Callable, Mapping
 from inspect import isclass
 from typing import Any
 
-from monitoring_suite.api_limiter.errors.api_limiter_errors import (
-    ThrottleDeclarationError,
-)
+from monitoring_suite.api_limiter.errors.api_limiter_errors import ThrottleDeclarationError
 from monitoring_suite.api_limiter.services.constants import policy as const
-from monitoring_suite.api_limiter.services.policy.policy_objects import (
-    RateLimit,
-    ThrottlePolicy,
-    TierRate,
-)
+from monitoring_suite.api_limiter.services.policy.policy_objects import RateLimit, ThrottlePolicy, TierRate
 
 
 class Throttled:
     """Decorator factory attaching validated ThrottlePolicy to callables and classes."""
 
     def __call__[Decorated: Callable[..., Any]](
-        self,
-        scope: str,
-        rate: str,
-        tiers: Mapping[str, str] | None = None,
+        self, scope: str, rate: str, tiers: Mapping[str, str] | None = None
     ) -> Callable[[Decorated | type], Decorated | type]:
         """
         Attach throttle policy to a callable or class.
@@ -35,11 +26,7 @@ class Throttled:
         """
         policy_rate = RateLimit.from_rate(rate)
         tier_rates = self._tier_rates(tiers)
-        policy = ThrottlePolicy(
-            scope=scope,
-            rate=policy_rate,
-            tier_rates=tier_rates,
-        )
+        policy = ThrottlePolicy(scope=scope, rate=policy_rate, tier_rates=tier_rates)
 
         def declare(target: Decorated | type) -> Decorated | type:
             if isclass(target):
@@ -60,21 +47,14 @@ class Throttled:
         public_methods = self._select_public_methods(cls)
 
         if not public_methods:
-            raise ThrottleDeclarationError(
-                message=const.ERR_POLICY_NO_PUBLIC_METHODS,
-                class_name=cls.__name__,
-            )
+            raise ThrottleDeclarationError(message=const.ERR_POLICY_NO_PUBLIC_METHODS, class_name=cls.__name__)
 
         for method_name, method_obj in public_methods:
             if hasattr(method_obj, const.THROTTLE_POLICY_ATTR):
                 continue
 
             method_scope = f"{root_policy.scope}:{method_name}"
-            method_policy = ThrottlePolicy(
-                scope=method_scope,
-                rate=root_policy.rate,
-                tier_rates=root_policy.tier_rates,
-            )
+            method_policy = ThrottlePolicy(scope=method_scope, rate=root_policy.rate, tier_rates=root_policy.tier_rates)
             setattr(method_obj, const.THROTTLE_POLICY_ATTR, method_policy)
 
         return cls
@@ -111,10 +91,7 @@ class Throttled:
         """Build tier overrides from a tier-to-rate mapping."""
         if not tiers:
             return ()
-        return tuple(
-            TierRate(tier=tier, rate=RateLimit.from_rate(rate))
-            for tier, rate in tiers.items()
-        )
+        return tuple(TierRate(tier=tier, rate=RateLimit.from_rate(rate)) for tier, rate in tiers.items())
 
 
 throttled = Throttled()

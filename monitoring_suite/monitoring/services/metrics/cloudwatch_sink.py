@@ -23,9 +23,7 @@ class _MetricDatapoint(TypedDict, total=False):
 class CloudWatchMetricSink:
     """Emit MetricEvent to AWS CloudWatch via boto3."""
 
-    def __init__(
-        self, namespace: str = metrics_const.DEFAULT_CLOUDWATCH_NAMESPACE
-    ) -> None:
+    def __init__(self, namespace: str = metrics_const.DEFAULT_CLOUDWATCH_NAMESPACE) -> None:
         """
         Initialize CloudWatch sink.
 
@@ -52,16 +50,10 @@ class CloudWatchMetricSink:
         timestamp = datetime.fromisoformat(event.occurred_at)
         dimensions = self._build_dimensions(event)
         metric_point: _MetricDatapoint = {
-            "MetricName": event.event,
-            "Value": event.duration_ms,
-            "Unit": metrics_const.CLOUDWATCH_METRIC_UNIT,
-            "Timestamp": timestamp,
-            "Dimensions": dimensions,
+            "MetricName": event.event, "Value": event.duration_ms,
+            "Unit": metrics_const.CLOUDWATCH_METRIC_UNIT, "Timestamp": timestamp, "Dimensions": dimensions
         }
-        self._cloudwatch.put_metric_data(
-            Namespace=self.namespace,
-            MetricData=[metric_point],
-        )
+        self._cloudwatch.put_metric_data(Namespace=self.namespace, MetricData=[metric_point])
 
     @staticmethod
     def _build_dimensions(event: objs.MetricEvent) -> list[dict[str, str]]:
@@ -76,10 +68,7 @@ class CloudWatchMetricSink:
             List of dimension dicts for CloudWatch.
         """
         dimensions: list[dict[str, str]] = [
-            {
-                "Name": metrics_const.CLOUDWATCH_DIMENSION_OUTCOME,
-                "Value": event.outcome.value,
-            }
+            {"Name": metrics_const.CLOUDWATCH_DIMENSION_OUTCOME, "Value": event.outcome.value}
         ]
 
         for label_key, label_value in event.labels:

@@ -15,12 +15,9 @@ class _LoggedBuilders:
 
     @staticmethod
     def build_logged_wrapper(
-        target: Callable,
-        event: str,
-        payload_from_request: Optional[Callable[..., dict]],
+        target: Callable, event: str, payload_from_request: Optional[Callable[..., dict]],
         payload_from_result: Optional[Callable[[object], dict]],
-        payload_from_exc: Optional[Callable[[BaseException], dict]],
-        timed: bool,
+        payload_from_exc: Optional[Callable[[BaseException], dict]], timed: bool
     ) -> Callable:
         """
         Build native wrapper for logging entry/exit/error events.
@@ -47,11 +44,8 @@ class _LoggedBuilders:
                     try:
                         start_payload = payload_from_request(*args, **kwargs) or {}
                     except Exception as error:
-                        log_error_error = str(error)
-                        log_error(
-                            f"Logged: extraction failed for {event}.start",
-                            error=log_error_error,
-                        )
+                        error_text = str(error)
+                        log_error(f"Logged: extraction failed for {event}.start", error=error_text)
                         start_payload = {}
 
                 if logger:
@@ -68,10 +62,7 @@ class _LoggedBuilders:
                             end_payload = payload_from_result(result) or {}
                         except Exception as error:
                             error_text = str(error)
-                            log_error(
-                                f"Logged: extraction failed for {event}.end",
-                                error=error_text,
-                            )
+                            log_error(f"Logged: extraction failed for {event}.end", error=error_text)
                             end_payload = {}
 
                     if clock:
@@ -85,9 +76,7 @@ class _LoggedBuilders:
 
                     return result
                 except BaseException as error:
-                    error_payload: dict = {
-                        "error_type": type(error).__name__,
-                    }
+                    error_payload: dict = {"error_type": type(error).__name__}
                     if clock:
                         measurement = clock.stop()
                         error_payload["latency_ms"] = measurement.duration_ms
@@ -97,10 +86,7 @@ class _LoggedBuilders:
                             error_payload.update(payload_from_exc(error) or {})
                         except Exception as extraction_error:
                             extraction_error_text = str(extraction_error)
-                            log_error(
-                                f"Logged: extraction failed for {event}.error",
-                                error=extraction_error_text,
-                            )
+                            log_error(f"Logged: extraction failed for {event}.error", error=extraction_error_text)
 
                     if logger:
                         logger.log_error(f"{event}.error", **error_payload)
@@ -122,10 +108,8 @@ class _LoggedBuilders:
                 try:
                     start_payload = payload_from_request(*args, **kwargs) or {}
                 except Exception as error:
-                    log_error(
-                        f"Logged: extraction failed for {event}.start",
-                        error=str(error),
-                    )
+                    error_text = str(error)
+                    log_error(f"Logged: extraction failed for {event}.start", error=error_text)
                     start_payload = {}
 
             if logger:
@@ -141,10 +125,8 @@ class _LoggedBuilders:
                     try:
                         end_payload = payload_from_result(result) or {}
                     except Exception as error:
-                        log_error(
-                            f"Logged: extraction failed for {event}.end",
-                            error=str(error),
-                        )
+                        error_text = str(error)
+                        log_error(f"Logged: extraction failed for {event}.end", error=error_text)
                         end_payload = {}
 
                 if clock:
@@ -158,9 +140,7 @@ class _LoggedBuilders:
 
                 return result
             except BaseException as error:
-                error_payload: dict = {
-                    "error_type": type(error).__name__,
-                }
+                error_payload: dict = {"error_type": type(error).__name__}
                 if clock:
                     measurement = clock.stop()
                     error_payload["latency_ms"] = measurement.duration_ms
@@ -169,10 +149,8 @@ class _LoggedBuilders:
                     try:
                         error_payload.update(payload_from_exc(error) or {})
                     except Exception as extraction_error:
-                        log_error(
-                            f"Logged: extraction failed for {event}.error",
-                            error=str(extraction_error),
-                        )
+                        extraction_error_text = str(extraction_error)
+                        log_error(f"Logged: extraction failed for {event}.error", error=extraction_error_text)
 
                 if logger:
                     logger.log_error(f"{event}.error", **error_payload)
@@ -185,12 +163,9 @@ class _LoggedBuilders:
 
     @staticmethod
     def decorate_class_logged(
-        cls: type[object],
-        event: str,
-        payload_from_request: Optional[Callable[..., dict]],
+        cls: type[object], event: str, payload_from_request: Optional[Callable[..., dict]],
         payload_from_result: Optional[Callable[[object], dict]],
-        payload_from_exc: Optional[Callable[[BaseException], dict]],
-        timed: bool,
+        payload_from_exc: Optional[Callable[[BaseException], dict]], timed: bool
     ) -> type[object]:
         """
         Fan out @logged over all public methods in the class.
@@ -224,12 +199,7 @@ class _LoggedBuilders:
                 continue
 
             decorated = _LoggedBuilders.build_logged_wrapper(
-                unwrapped,
-                event,
-                payload_from_request,
-                payload_from_result,
-                payload_from_exc,
-                timed,
+                unwrapped, event, payload_from_request, payload_from_result, payload_from_exc, timed
             )
             setattr(decorated, LOGGED_MARKER, True)
 

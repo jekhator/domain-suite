@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-__all__ = [
-    "CLOUD",
-    "CLOUD_LIBRARIES",
-]
+__all__ = ["CLOUD", "CLOUD_LIBRARIES"]
 
 
 """Cloud-layer domain the classifier maps AWS-SDK (botocore/boto3) errors to."""

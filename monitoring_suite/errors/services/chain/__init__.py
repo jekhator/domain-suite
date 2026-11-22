@@ -4,11 +4,6 @@ value objects).
 """
 
 from monitoring_suite.errors.services.chain.chain_client import ErrorChain
-from monitoring_suite.errors.services.chain.chain_objects import (
-    ChainLink,
-    ChainVia,
-    DomainClassifier,
-    DomainCrossing,
-)
+from monitoring_suite.errors.services.chain.chain_objects import ChainLink, ChainVia, DomainClassifier, DomainCrossing
 
 __all__ = ["ChainLink", "ChainVia", "DomainClassifier", "DomainCrossing", "ErrorChain"]

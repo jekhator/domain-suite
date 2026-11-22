@@ -21,18 +21,14 @@ class TestCloudWatchMetricSink:
         mock_boto3.client.return_value = mock_cw
 
         with patch.dict(sys.modules, {"boto3": mock_boto3}):
-            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import (
-                CloudWatchMetricSink,
-            )
+            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 
             sink = CloudWatchMetricSink(namespace="test-ns")
             now = datetime.now(timezone.utc)
             occurred_at = now.isoformat()
             event = MetricEvent.for_success(
-                event="test.operation",
-                duration_ms=123.45,
-                occurred_at=occurred_at,
-                labels=(("env", "test"), ("version", "1.0")),
+                event="test.operation", duration_ms=123.45, occurred_at=occurred_at,
+                labels=(("env", "test"), ("version", "1.0"))
             )
 
             sink.emit(event)
@@ -58,18 +54,14 @@ class TestCloudWatchMetricSink:
         mock_boto3.client.return_value = mock_cw
 
         with patch.dict(sys.modules, {"boto3": mock_boto3}):
-            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import (
-                CloudWatchMetricSink,
-            )
+            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 
             sink = CloudWatchMetricSink(namespace="prod-ns")
             now = datetime.now(timezone.utc)
             occurred_at = now.isoformat()
             event = MetricEvent.for_failure(
-                event="test.failed_operation",
-                duration_ms=456.78,
-                occurred_at=occurred_at,
-                labels=(("error_type", "ValueError"),),
+                event="test.failed_operation", duration_ms=456.78,
+                occurred_at=occurred_at, labels=(("error_type", "ValueError"),)
             )
 
             sink.emit(event)
@@ -89,18 +81,12 @@ class TestCloudWatchMetricSink:
         mock_boto3.client.return_value = mock_cw
 
         with patch.dict(sys.modules, {"boto3": mock_boto3}):
-            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import (
-                CloudWatchMetricSink,
-            )
+            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 
             sink = CloudWatchMetricSink()
             now = datetime.now(timezone.utc)
             occurred_at = now.isoformat()
-            event = MetricEvent.for_success(
-                event="test.no_labels",
-                duration_ms=100.0,
-                occurred_at=occurred_at,
-            )
+            event = MetricEvent.for_success(event="test.no_labels", duration_ms=100.0, occurred_at=occurred_at)
 
             sink.emit(event)
 
@@ -112,17 +98,13 @@ class TestCloudWatchMetricSink:
 
     def test_cloudwatch_sink_missing_boto3(self) -> None:
         """CloudWatchMetricSink raises clear error when boto3 missing."""
-        from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import (
-            CloudWatchMetricSink,
-        )
+        from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 
         def init_no_boto3(self, namespace: str = "monitoring-suite") -> None:
             try:
                 raise ImportError("No module named 'boto3'")
             except ImportError as error:
-                from monitoring_suite.monitoring.errors.constants import (
-                    monitoring as const,
-                )
+                from monitoring_suite.monitoring.errors.constants import monitoring as const
 
                 raise ImportError(const.ERR_MONITORING_BOTO3_MISSING) from error
 
@@ -137,9 +119,7 @@ class TestCloudWatchMetricSink:
         mock_boto3.client.return_value = mock_cw
 
         with patch.dict(sys.modules, {"boto3": mock_boto3}):
-            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import (
-                CloudWatchMetricSink,
-            )
+            from monitoring_suite.monitoring.services.metrics.cloudwatch_sink import CloudWatchMetricSink
 
             sink = CloudWatchMetricSink()
             assert sink.namespace == "monitoring-suite"

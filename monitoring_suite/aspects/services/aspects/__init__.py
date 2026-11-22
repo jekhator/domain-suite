@@ -16,14 +16,6 @@ from monitoring_suite.aspects.services.aspects.aspects_objects import (
 )
 
 __all__ = [
-    "aspects",
-    "AspectEntry",
-    "AspectKind",
-    "Logged",
-    "RequireMixins",
-    "Requires",
-    "Retried",
-    "TenantScoped",
-    "Throttled",
-    "WrapErrors",
+    "aspects", "AspectEntry", "AspectKind", "Logged", "RequireMixins",
+    "Requires", "Retried", "TenantScoped", "Throttled", "WrapErrors"
 ]

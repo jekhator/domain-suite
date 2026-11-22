@@ -7,14 +7,10 @@ import pytest
 from logging_suite.logging import clear_correlation_id, set_correlation_id
 
 from monitoring_suite.monitoring.decorators.monitored.monitored_client import monitored
-from monitoring_suite.monitoring.errors.monitoring_errors import (
-    MonitoringDeclarationError,
-)
+from monitoring_suite.monitoring.errors.monitoring_errors import MonitoringDeclarationError
 from monitoring_suite.monitoring.services.metrics.metrics_client import CollectingSink
 from monitoring_suite.monitoring.services.metrics.metrics_objects import Outcome
-from monitoring_suite.monitoring.services.registry.registry_client import (
-    MonitorRegistry,
-)
+from monitoring_suite.monitoring.services.registry.registry_client import MonitorRegistry
 
 
 class TestMonitoredOnCallable:
@@ -215,11 +211,7 @@ class TestMonitoredLabels:
                 return (("status", result.get("status", "unknown")),)
             return ()
 
-        @monitored(
-            "test.with_labels",
-            sink=sink,
-            labels_from_result=extract_labels,
-        )
+        @monitored("test.with_labels", sink=sink, labels_from_result=extract_labels)
         def fn_success() -> dict:
             return {"status": "completed", "items": 5}
 
@@ -236,11 +228,7 @@ class TestMonitoredLabels:
         def extract_error_labels(error: BaseException) -> tuple[tuple[str, str], ...]:
             return (("error_type", type(error).__name__),)
 
-        @monitored(
-            "test.with_error_labels",
-            sink=sink,
-            labels_from_exc=extract_error_labels,
-        )
+        @monitored("test.with_error_labels", sink=sink, labels_from_exc=extract_error_labels)
         def fn_failure() -> None:
             raise ValueError("test error message")
 
@@ -272,11 +260,7 @@ class TestMonitoredLabels:
                 return (("length", str(len(result))),)
             return ()
 
-        @monitored(
-            "test.async_labels",
-            sink=sink,
-            labels_from_result=extract_labels,
-        )
+        @monitored("test.async_labels", sink=sink, labels_from_result=extract_labels)
         async def async_fn() -> str:
             await asyncio.sleep(0.001)
             return "hello"
@@ -293,11 +277,7 @@ class TestMonitoredLabels:
         def extract_error_labels(error: BaseException) -> tuple[tuple[str, str], ...]:
             return (("error_type", type(error).__name__),)
 
-        @monitored(
-            "test.async_error_labels",
-            sink=sink,
-            labels_from_exc=extract_error_labels,
-        )
+        @monitored("test.async_error_labels", sink=sink, labels_from_exc=extract_error_labels)
         async def async_fn_failure() -> None:
             await asyncio.sleep(0.001)
             raise RuntimeError("async error")
@@ -317,11 +297,7 @@ class TestMonitoredLabels:
                 return (("status", "ok"),)
             return ()
 
-        @monitored(
-            "service",
-            sink=sink,
-            labels_from_result=extract_labels,
-        )
+        @monitored("service", sink=sink, labels_from_result=extract_labels)
         @dataclass(frozen=True, slots=True)
         class Service:
             """Service with label extraction."""
@@ -440,9 +416,7 @@ class TestCorrelationStamping:
             assert len(sink.events) == 1
             labels_dict = dict(sink.events[0].labels)
             assert labels_dict.get("correlation_id") == scenario_id
-            assert (
-                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
-            )
+            assert (labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring")
         finally:
             clear_correlation_id()
 
@@ -470,14 +444,9 @@ class TestCorrelationStamping:
         try:
 
             def labels_from_result(result: object) -> tuple[tuple[str, str], ...]:
-                return (
-                    ("correlation_id", "consumer-value"),
-                    ("custom_key", "custom_value"),
-                )
+                return (("correlation_id", "consumer-value"), ("custom_key", "custom_value"))
 
-            @monitored(
-                "test.operation", sink=sink, labels_from_result=labels_from_result
-            )
+            @monitored("test.operation", sink=sink, labels_from_result=labels_from_result)
             def fn_with_labels() -> str:
                 return "result"
 
@@ -486,9 +455,7 @@ class TestCorrelationStamping:
             assert len(sink.events) == 1
             labels_dict = dict(sink.events[0].labels)
             assert labels_dict.get("correlation_id") == "consumer-value"
-            assert (
-                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
-            )
+            assert (labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring")
             assert labels_dict.get("custom_key") == "custom_value"
         finally:
             clear_correlation_id()
@@ -511,9 +478,7 @@ class TestCorrelationStamping:
             assert len(sink.events) == 1
             labels_dict = dict(sink.events[0].labels)
             assert labels_dict.get("correlation_id") == scenario_id
-            assert (
-                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
-            )
+            assert (labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring")
         finally:
             clear_correlation_id()
 
@@ -535,9 +500,7 @@ class TestCorrelationStamping:
             assert len(sink.events) == 1
             labels_dict = dict(sink.events[0].labels)
             assert labels_dict.get("correlation_id") == scenario_id
-            assert (
-                labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring"
-            )
+            assert (labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring")
             assert sink.events[0].outcome == Outcome.FAILURE
         finally:
             clear_correlation_id()

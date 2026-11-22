@@ -7,18 +7,11 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import SecurityContext
 from monitoring_suite.security.decorators.constants import tenant_scoped as const
 from monitoring_suite.security.errors.constants import security_errors as errors_const
-from monitoring_suite.security.errors.security_errors import (
-    SecurityDeclarationError,
-    TenancyError,
-)
+from monitoring_suite.security.errors.security_errors import SecurityDeclarationError, TenancyError
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
 
 _TENANT_SCOPED_DECORATED_MARKER = "__tenant_scoped_decorated__"
@@ -32,14 +25,11 @@ class TenantScoped:
         self._guard = guard or TenancyGuard()
 
     def __call__[**Params, Return](
-        self,
-        param_name: str,
+        self, param_name: str
     ) -> Callable[[Callable[Params, Return] | type], Callable[Params, Return] | type]:
         """Return a decorator that checks the named tenant argument before each call or on class methods."""
 
-        def decorate(
-            target: Callable[Params, Return] | type,
-        ) -> Callable[Params, Return] | type:
+        def decorate(target: Callable[Params, Return] | type) -> Callable[Params, Return] | type:
             if inspect.isclass(target):
                 return self._decorate_class(target, param_name)
             return self._decorate_callable(target, param_name)
@@ -82,22 +72,14 @@ class TenantScoped:
             return False
         return callable(member) or isinstance(member, (classmethod, staticmethod))
 
-    def _validate_tenant_param(
-        self, method: Any, param_name: str, method_name: str
-    ) -> None:
+    def _validate_tenant_param(self, method: Any, param_name: str, method_name: str) -> None:
         """Validate that a method has the tenant parameter at declaration time."""
-        function = (
-            method.__func__
-            if isinstance(method, (classmethod, staticmethod))
-            else method
-        )
+        function = method.__func__ if isinstance(method, (classmethod, staticmethod)) else method
         signature = inspect.signature(function)
         if param_name != const.SELF_TENANT_ID:
             if param_name not in signature.parameters:
                 raise SecurityDeclarationError(
-                    message=errors_const.ERR_SECURITY_DECLARATION_FAILED,
-                    method_name=method_name,
-                    param_name=param_name,
+                    message=errors_const.ERR_SECURITY_DECLARATION_FAILED, method_name=method_name, param_name=param_name
                 )
 
     def _apply_to_method(self, method: Any, param_name: str) -> Any:
@@ -110,10 +92,7 @@ class TenantScoped:
 
     @staticmethod
     def _tenant_argument(
-        function: Callable[..., Any],
-        param_name: str,
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
+        function: Callable[..., Any], param_name: str, args: tuple[Any, ...], kwargs: dict[str, Any]
     ) -> str:
         """Extract the tenant id from the call arguments or the instance attribute."""
         if param_name == const.SELF_TENANT_ID:
@@ -122,10 +101,7 @@ class TenantScoped:
             return str(args[0].tenant_id)
         bound = inspect.signature(function).bind(*args, **kwargs)
         if param_name not in bound.arguments:
-            raise TenancyError(
-                message=const.ERR_TENANT_SCOPED_PARAM_MISSING,
-                param_name=param_name,
-            )
+            raise TenancyError(message=const.ERR_TENANT_SCOPED_PARAM_MISSING, param_name=param_name)
         return str(bound.arguments[param_name])
 
     @staticmethod

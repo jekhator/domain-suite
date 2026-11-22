@@ -7,10 +7,7 @@ import inspect
 
 import pytest
 
-from monitoring_suite.errors.decorators.wrap_errors.wrap_errors_client import (
-    WrapErrorsClient,
-    wrap_errors,
-)
+from monitoring_suite.errors.decorators.wrap_errors.wrap_errors_client import WrapErrorsClient, wrap_errors
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
 
 
@@ -318,9 +315,7 @@ class TestWrapErrorsFunctoolsWraps:
             """This is a documented async function."""
             return 42
 
-        assert (
-            documented_async_function.__doc__ == "This is a documented async function."
-        )
+        assert (documented_async_function.__doc__ == "This is a documented async function.")
 
 
 class TestWrapErrorsModuleLevelFactory:
@@ -337,12 +332,7 @@ class TestWrapErrorsModuleLevelFactory:
 
     def test_wrap_errors_factory_with_all_params(self) -> None:
         """wrap_errors factory accepts all constructor parameters."""
-        client = wrap_errors(
-            DemoError,
-            catch=(ValueError, KeyError),
-            message="factory message",
-            capture=False,
-        )
+        client = wrap_errors(DemoError, catch=(ValueError, KeyError), message="factory message", capture=False)
         assert client.as_ is DemoError
         assert client.catch == (ValueError, KeyError)
         assert client.message == "factory message"
@@ -872,7 +862,5 @@ class TestWrapErrorsClassLevel:
         """Non-class, non-callable targets raise TypeError."""
         client = WrapErrorsClient.for_target(DemoError)
 
-        with pytest.raises(
-            TypeError, match=r"@wrap_errors target must be class or callable"
-        ):
+        with pytest.raises(TypeError, match=r"@wrap_errors target must be class or callable"):
             client(42)

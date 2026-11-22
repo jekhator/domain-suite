@@ -5,12 +5,7 @@ from __future__ import annotations
 import pytest
 
 from monitoring_suite.api_limiter.services.policy.policy_client import PolicyRegistry
-from monitoring_suite.api_limiter.services.policy.policy_objects import (
-    Period,
-    RateLimit,
-    ThrottlePolicy,
-    TierRate,
-)
+from monitoring_suite.api_limiter.services.policy.policy_objects import Period, RateLimit, ThrottlePolicy, TierRate
 
 
 @pytest.fixture
@@ -62,9 +57,7 @@ def tier_rate_enterprise() -> TierRate:  # noqa: R004
     Used by: no test class yet.
     """
     rate = RateLimit(requests=10000, period=Period.HOUR)
-    return TierRate(
-        tier="enterprise", rate=rate
-    )
+    return TierRate(tier="enterprise", rate=rate)
 
 
 @pytest.fixture
@@ -75,10 +68,7 @@ def throttle_policy_base() -> ThrottlePolicy:  # noqa: R004
     Used by: no test class yet.
     """
     rate = RateLimit(requests=100, period=Period.HOUR)
-    return ThrottlePolicy(
-        scope="api.users.list",
-        rate=rate,
-    )
+    return ThrottlePolicy(scope="api.users.list", rate=rate)
 
 
 @pytest.fixture
@@ -91,11 +81,7 @@ def throttle_policy_with_tiers(  # noqa: R004
     Used by: no test class yet.
     """
     rate = RateLimit(requests=10, period=Period.HOUR)
-    return ThrottlePolicy(
-        scope="api.data.export",
-        rate=rate,
-        tier_rates=(tier_rate_premium, tier_rate_enterprise),
-    )
+    return ThrottlePolicy(scope="api.data.export", rate=rate, tier_rates=(tier_rate_premium, tier_rate_enterprise))
 
 
 @pytest.fixture
