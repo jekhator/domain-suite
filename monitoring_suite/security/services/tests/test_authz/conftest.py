@@ -13,31 +13,51 @@ from monitoring_suite.security.services.authz.authz_objects import Permission
 
 @pytest.fixture
 def permission() -> Permission:  # noqa: R004
-    """Create a permission."""
+    """
+    Create a permission.
+
+    Used by: TestAuthorizer.
+    """
     return Permission(value="read")
 
 
 @pytest.fixture
 def write_permission() -> Permission:  # noqa: R004
-    """Create a write permission."""
+    """
+    Create a write permission.
+
+    Used by: TestAuthorizer.
+    """
     return Permission(value="write")
 
 
 @pytest.fixture
 def delete_permission() -> Permission:  # noqa: R004
-    """Create a delete permission."""
+    """
+    Create a delete permission.
+
+    Used by: no test class yet.
+    """
     return Permission(value="delete")
 
 
 @pytest.fixture
 def principal_with_read_scope() -> Principal:  # noqa: R004
-    """Create a principal with read scope."""
+    """
+    Create a principal with read scope.
+
+    Used by: TestAuthorizer.
+    """
     return Principal(id="user:reader", roles=frozenset(), scopes=frozenset(["read"]))
 
 
 @pytest.fixture
 def principal_with_multiple_scopes() -> Principal:  # noqa: R004
-    """Create a principal with multiple scopes."""
+    """
+    Create a principal with multiple scopes.
+
+    Used by: TestAuthorizer.
+    """
     return Principal(
         id="user:admin",
         roles=frozenset(["admin"]),
@@ -49,5 +69,9 @@ def principal_with_multiple_scopes() -> Principal:  # noqa: R004
 def context_with_principal(  # noqa: R004
     principal_with_read_scope: Principal,
 ) -> SecurityContext:
-    """Create a security context with a principal."""
+    """
+    Create a security context with a principal.
+
+    Used by: no test class yet.
+    """
     return SecurityContext(principal=principal_with_read_scope, tenant_id="tenant:test")

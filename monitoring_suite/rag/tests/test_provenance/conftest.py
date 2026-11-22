@@ -9,5 +9,9 @@ from monitoring_suite.rag.services.provenance.provenance_client import (
 
 @pytest.fixture
 def collecting_sink() -> CollectingProvenanceSink:
-    """Provide a collecting provenance sink."""
+    """
+    Provide a collecting provenance sink.
+
+    Used by: no test class yet.
+    """
     return CollectingProvenanceSink()

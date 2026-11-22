@@ -11,5 +11,9 @@ from monitoring_suite.security.context.security_context.security_context_client 
 
 @pytest.fixture(autouse=True)
 def reset_security_context() -> None:
-    """Reset security context to clean state before each test."""
+    """
+    Reset security context to clean state before each test.
+
+    Used by: every test class under monitoring_suite/security/ (autouse).
+    """
     SecurityContextManager._context.set(None)

@@ -33,17 +33,29 @@ class AlwaysDenyAuthorizer(Authorizer):
 
 @pytest.fixture
 def principal_with_read_scope() -> Principal:
-    """Create a principal with read scope."""
+    """
+    Create a principal with read scope.
+
+    Used by: no test class yet.
+    """
     return Principal(id="user:reader", roles=frozenset(), scopes=frozenset(["read"]))
 
 
 @pytest.fixture
 def always_allow_authorizer() -> Authorizer:
-    """Create an authorizer that always allows."""
+    """
+    Create an authorizer that always allows.
+
+    Used by: TestRequires, TestRequiresClassLevel.
+    """
     return AlwaysAllowAuthorizer()
 
 
 @pytest.fixture
 def always_deny_authorizer() -> Authorizer:
-    """Create an authorizer that always denies."""
+    """
+    Create an authorizer that always denies.
+
+    Used by: TestRequires.
+    """
     return AlwaysDenyAuthorizer()

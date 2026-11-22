@@ -21,7 +21,11 @@ class FakeSecretsBackend:
 
 @pytest.fixture
 def fake_backend() -> FakeSecretsBackend:  # noqa: R004
-    """Create a fake secrets backend."""
+    """
+    Create a fake secrets backend.
+
+    Used by: TestSecretRef.
+    """
     return FakeSecretsBackend(
         {"db_password": "super_secret_123", "api_key": "key_abc_xyz"}
     )
@@ -29,5 +33,9 @@ def fake_backend() -> FakeSecretsBackend:  # noqa: R004
 
 @pytest.fixture
 def failing_backend() -> FakeSecretsBackend:  # noqa: R004
-    """Create a backend with no secrets configured."""
+    """
+    Create a backend with no secrets configured.
+
+    Used by: TestSecretRef.
+    """
     return FakeSecretsBackend({})

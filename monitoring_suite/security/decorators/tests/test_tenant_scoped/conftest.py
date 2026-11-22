@@ -29,13 +29,21 @@ class StrictTenancyGuard(TenancyGuard):
 
 @pytest.fixture
 def principal() -> Principal:
-    """Create a principal."""
+    """
+    Create a principal.
+
+    Used by: no test class yet.
+    """
     return Principal(id="user:test", roles=frozenset(), scopes=frozenset())
 
 
 @pytest.fixture
 def principal_with_tenant_id() -> type:
-    """Create a class with a tenant_id attribute and decorated method."""
+    """
+    Create a class with a tenant_id attribute and decorated method.
+
+    Used by: no test class yet.
+    """
 
     class Entity:
         """Entity with tenant-scoped method."""

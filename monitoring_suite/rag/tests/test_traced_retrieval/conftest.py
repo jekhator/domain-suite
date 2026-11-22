@@ -12,13 +12,22 @@ from monitoring_suite.rag.services.registry.registry_client import ProvenanceReg
 
 @pytest.fixture
 def collecting_sink() -> CollectingProvenanceSink:
-    """Provide a collecting provenance sink."""
+    """
+    Provide a collecting provenance sink.
+
+    Used by: TestTracedRetrievalAsyncEdgeCases, TestTracedRetrievalEdgeCases, TestTracedRetrievalOnCallable,
+    TestTracedRetrievalOnClass.
+    """
     return CollectingProvenanceSink()
 
 
 @pytest.fixture(autouse=True)
 def clear_registry() -> Generator[None, None, None]:
-    """Clear registry before and after each test."""
+    """
+    Clear registry before and after each test.
+
+    Used by: every test class under monitoring_suite/rag/tests/test_traced_retrieval/ (autouse).
+    """
     ProvenanceRegistry.clear_default_sink()
     yield
     ProvenanceRegistry.clear_default_sink()
