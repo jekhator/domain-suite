@@ -55,14 +55,6 @@ WrapErrors(as_: type, catch: tuple[type[BaseException], ...] = (Exception,))
 
 Translate exceptions to a target exception type via monitoring_suite.errors.
 
-### Sensitive
-
-```python
-Sensitive()
-```
-
-Mask sensitive fields in repr via logging-suite.
-
 ## Usage
 
 ### Single Entry
@@ -79,7 +71,6 @@ def method(self) -> None:
 @aspects(frozenset({
     Logged(event="service.method"),
     Requires(permission="admin.read"),
-    Sensitive(),
 }))
 def method(self) -> None:
     pass
@@ -91,7 +82,7 @@ def method(self) -> None:
 @aspects(
     Logged(event="service.method"),
     frozenset({Requires(permission="admin.read")}),
-    Sensitive(),
+    WrapErrors(as_=ValueError),
 )
 def method(self) -> None:
     pass
@@ -137,13 +128,14 @@ pip install monitoring_suite.aspects[all]
 
 ## Ordering
 
-Aspects apply in this canonical order (innermost-to-outermost):
+Aspects apply in this canonical order (outermost-to-innermost):
 
 1. LOGGED (outermost: emits start/exit events)
 2. REQUIRES (permission check)
 3. TENANT_SCOPED (tenant boundary enforcement)
 4. THROTTLED (rate limiting)
-5. SENSITIVE (sensitive field masking)
-6. WRAP_ERRORS (innermost: exception translation)
+5. MONITORED (metric emission)
+6. WRAP_ERRORS (exception translation)
+7. RETRIED (innermost: retries see raw exceptions)
 
 This order is enforced by the Aspects service during composition, regardless of the order you declare entries.
