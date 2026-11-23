@@ -38,7 +38,7 @@ Event monitoring and telemetry for cross-cutting concerns.
 
 ### [monitoring_suite.aspects](monitoring_suite/aspects/)
 
-Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking.
+Composable decorators for logging, auth, throttling, monitoring, retries, and error wrapping.
 
 - **Key concepts**: Aspect composition, cross-cutting concerns, decorator stacking
 - **Use when**: Applying multiple concerns to a function (logging + auth + throttling), reducing boilerplate

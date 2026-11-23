@@ -25,5 +25,6 @@ class TestVersionConsistency:
         }
 
         unique_versions = set(versions.values())
-        assert (len(unique_versions) == 1), f"Version mismatch: {versions}"
-        assert versions["monitoring_suite.errors"] == "0.3.1"
+        assert unique_versions == {monitoring_suite.errors.__version__}, (
+            f"Version mismatch: {versions}"
+        )

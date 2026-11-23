@@ -17,21 +17,21 @@ Consolidated domain packages for Python services: typed errors, security context
 - **monitoring_suite.security**: Security context management and authorization checks
 - **monitoring_suite.api_limiter**: Request rate limiting and quota enforcement
 - **monitoring_suite.monitoring**: Event monitoring and telemetry
-- **monitoring_suite.aspects**: Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking
+- **monitoring_suite.aspects**: Composable decorators for logging, auth, throttling, monitoring, retries, and error wrapping
 
 Each package keeps its API under the single `monitoring_suite` import root; the consolidation is organizational (single distribution, unified testing).
 
 ## Installation
 
 ```bash
-# Base install
+# Base install (every package imports; no correlation labels on metrics)
 uv add monitoring-suite
 
 # With all optional extras (logging + sensitivity)
 uv add "monitoring-suite[all]"
 
 # Or select extras
-uv add "monitoring-suite[logging]"    # for logging-suite support
+uv add "monitoring-suite[logging]"    # for logging-suite support (Logged, Retried, correlation labels)
 uv add "monitoring-suite[sensitivity]" # for logging-suite support
 ```
 
@@ -42,7 +42,7 @@ pip install monitoring-suite
 pip install "monitoring-suite[all]"
 ```
 
-Requires Python 3.11+.
+Requires Python 3.12+.
 
 ## Packages
 
@@ -172,10 +172,10 @@ See `docs/monitoring_suite/monitoring/` for full documentation.
 
 ### monitoring_suite.aspects
 
-Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking.
+Composable decorators for logging, auth, throttling, monitoring, retries, and error wrapping.
 
 **Public API:**
-`aspects`, `Logged`, `Requires`, `Throttled`, `TenantScoped`, `WrapErrors`, `Sensitive`, `AspectEntry`, `AspectKind`, aspect error classes.
+`aspects`, `Logged`, `Monitored`, `Requires`, `Retried`, `RequireMixins`, `Throttled`, `TenantScoped`, `WrapErrors`, `AspectEntry`, `AspectKind`, aspect error classes.
 
 **Example:**
 

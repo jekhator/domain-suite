@@ -1,6 +1,7 @@
 """Tests for @monitored decorator."""
 
 import asyncio
+import sys
 from dataclasses import dataclass
 
 import pytest
@@ -418,6 +419,26 @@ class TestCorrelationStamping:
             assert labels_dict.get("correlation_id") == scenario_id
             assert (labels_dict.get("domain_correlation_id") == f"{scenario_id}/monitoring")
         finally:
+            clear_correlation_id()
+
+    def test_correlation_stamping_without_logging_suite(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """@monitored stamps nothing and still emits when logging-suite is absent."""
+        sink = CollectingSink()
+        set_correlation_id("scn-abc123def456")
+        monkeypatch.setitem(sys.modules, "logging_suite.logging", None)
+
+        try:
+
+            @monitored(event="test.operation", sink=sink)
+            def fn_without_logging_suite() -> str:
+                return "result"
+
+            assert fn_without_logging_suite() == "result"
+            assert sink.events[0].labels == ()
+        finally:
+            monkeypatch.undo()
             clear_correlation_id()
 
     def test_correlation_stamping_without_ambient_id(self) -> None:
