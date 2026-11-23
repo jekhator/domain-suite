@@ -14,16 +14,15 @@ if TYPE_CHECKING:
 
 
 class Aspects:
-    """Compose and apply aspect decorators in canonical order.
+    """
+    Compose and apply aspect decorators in canonical order.
 
     Validates duplicate kinds and unknown entry types at decoration time.
     """
 
-    def __call__(
-        self,
-        *entries: objs.AspectEntry | frozenset[objs.AspectEntry],
-    ) -> Callable:
-        """Apply aspect decorators to the target function or class.
+    def __call__(self, *entries: objs.AspectEntry | frozenset[objs.AspectEntry]) -> Callable:
+        """
+        Apply aspect decorators to the target function or class.
 
         Flattens frozensets, validates, sorts by ASPECT_ORDER, applies innermost-first.
         """
@@ -40,10 +39,7 @@ class Aspects:
 
         return decorator
 
-    def _flatten(
-        self,
-        entries: tuple[objs.AspectEntry | frozenset[objs.AspectEntry], ...],
-    ) -> list[objs.AspectEntry]:
+    def _flatten(self, entries: tuple[objs.AspectEntry | frozenset[objs.AspectEntry], ...]) -> list[objs.AspectEntry]:
         """Flatten mixed single entries and frozensets into a flat list."""
         result: list[objs.AspectEntry] = []
         for entry in entries:
@@ -63,32 +59,22 @@ class Aspects:
             if not isinstance(
                 entry,
                 (
-                    objs.Logged,
-                    objs.Requires,
-                    objs.TenantScoped,
-                    objs.Throttled,
-                    objs.Monitored,
-                    objs.WrapErrors,
-                    objs.Retried,
-                    objs.RequireMixins,
-                ),
-            ):
-                raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(
-                        entry_type=type(entry).__name__
-                    )
+                    objs.Logged, objs.Requires, objs.TenantScoped, objs.Throttled,
+                    objs.Monitored, objs.WrapErrors, objs.Retried, objs.RequireMixins
                 )
+            ):
+                message = const.ERR_ASPECTS_UNKNOWN_ENTRY_TYPE.format(entry_type=type(entry).__name__)
+                raise AspectDeclarationError(message=message)
             kind = entry.kind
             if kind in seen_kinds:
-                raise AspectDeclarationError(
-                    message=const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
-                )
+                aspect_declaration_error_message = const.ERR_ASPECTS_DUPLICATE_KIND.format(kind=kind)
+                raise AspectDeclarationError(message=aspect_declaration_error_message)
             seen_kinds.add(kind)
 
     def _sort(self, entries: list[objs.AspectEntry]) -> list[objs.AspectEntry]:
         """Sort entries by ASPECT_ORDER."""
-        order_map = {kind: i for i, kind in enumerate(const.ASPECT_ORDER)}
-        return sorted(entries, key=lambda e: order_map.get(e.kind, 999))
+        order_map = {kind: index for index, kind in enumerate(const.ASPECT_ORDER)}
+        return sorted(entries, key=lambda entry: order_map.get(entry.kind, const.UNKNOWN_KIND_ORDER))
 
 
 aspects: Final = Aspects()

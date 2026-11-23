@@ -3,9 +3,7 @@
 import pytest
 
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
-from monitoring_suite.errors.domains.tests.test_domain_error.conftest import (
-    CustomDomainError,
-)
+from monitoring_suite.errors.domains.tests.test_domain_error.conftest import CustomDomainError
 
 
 class TestDomainErrorConstruction:
@@ -13,56 +11,56 @@ class TestDomainErrorConstruction:
 
     def test_construction_with_message(self) -> None:
         """DomainError can be constructed with a message."""
-        err = DomainError(message="custom message")
-        assert err.message == "custom message"
+        error = DomainError(message="custom message")
+        assert error.message == "custom message"
 
     def test_construction_with_none_message_uses_default(self) -> None:
         """DomainError with message=None uses default_message."""
-        err = DomainError(message=None)
-        assert err.message == DomainError.default_message
+        error = DomainError(message=None)
+        assert error.message == DomainError.default_message
 
     def test_construction_without_message_arg_uses_default(self) -> None:
         """DomainError without message arg uses default_message."""
-        err = DomainError()
-        assert err.message == DomainError.default_message
+        error = DomainError()
+        assert error.message == DomainError.default_message
 
     def test_construction_stores_context_kwargs(self) -> None:
         """DomainError stores context kwargs in self.context dict."""
-        err = DomainError(message="msg", user_id=42, request_id="abc")
-        assert err.context == {"user_id": 42, "request_id": "abc"}
+        error = DomainError(message="msg", user_id=42, request_id="abc")
+        assert error.context == {"user_id": 42, "request_id": "abc"}
 
     def test_construction_empty_context(self) -> None:
         """DomainError with no context kwargs has an empty context dict."""
-        err = DomainError(message="msg")
-        assert err.context == {}
+        error = DomainError(message="msg")
+        assert error.context == {}
 
     def test_message_in_args(self) -> None:
         """DomainError stores message in Exception.args."""
-        err = DomainError(message="test message")
-        assert err.args[0] == "test message"
+        error = DomainError(message="test message")
+        assert error.args[0] == "test message"
 
     def test_message_retrievable_via_str(self) -> None:
         """str(DomainError) returns the message."""
-        err = DomainError(message="error text")
-        assert str(err) == "error text"
+        error = DomainError(message="error text")
+        assert str(error) == "error text"
 
     def test_custom_subclass_default_message(self) -> None:
         """DomainError subclass with custom default_message uses it."""
-        err = CustomDomainError()
-        assert err.message == "Custom domain error."
+        error = CustomDomainError()
+        assert error.message == "Custom domain error."
 
     def test_custom_subclass_message_override(self) -> None:
         """DomainError subclass with explicit message overrides default."""
-        err = CustomDomainError(message="override")
-        assert err.message == "override"
+        error = CustomDomainError(message="override")
+        assert error.message == "override"
 
     def test_context_stored_in_instance_dict(self) -> None:
         """DomainError context and message are in __dict__, not __slots__."""
-        err = DomainError(message="msg", key="value")
-        assert "message" in err.__dict__
-        assert "context" in err.__dict__
-        assert err.__dict__["message"] == "msg"
-        assert err.__dict__["context"] == {"key": "value"}
+        error = DomainError(message="msg", key="value")
+        assert "message" in error.__dict__
+        assert "context" in error.__dict__
+        assert error.__dict__["message"] == "msg"
+        assert error.__dict__["context"] == {"key": "value"}
 
 
 class TestDomainErrorClassVars:
@@ -110,11 +108,11 @@ class TestDomainErrorClassVars:
 
     def test_instance_retrieves_subclass_classvars(self) -> None:
         """DomainError instance has access to subclass classvars."""
-        err = CustomDomainError()
-        assert err.code == "CUSTOM_CODE"
-        assert err.domain == "custom_domain"
-        assert err.http_status == 403
-        assert err.retryable is True
+        error = CustomDomainError()
+        assert error.code == "CUSTOM_CODE"
+        assert error.domain == "custom_domain"
+        assert error.http_status == 403
+        assert error.retryable is True
 
 
 class TestDomainErrorChainingBehavior:
@@ -122,8 +120,8 @@ class TestDomainErrorChainingBehavior:
 
     def test_is_exception(self) -> None:
         """DomainError is an Exception subclass."""
-        err = DomainError()
-        assert isinstance(err, Exception)
+        error = DomainError()
+        assert isinstance(error, Exception)
 
     def test_can_be_raised(self) -> None:
         """DomainError can be raised and caught."""
@@ -146,20 +144,11 @@ class TestDomainErrorContextPropagation:
         """context stored on DomainError propagates into ChainLink.context (Phase 16)."""
         from monitoring_suite.errors.services.chain.chain_client import ErrorChain
 
-        err = DomainError(message="error", user_id=42, request_id="xyz")
-        assert err.context == {"user_id": 42, "request_id": "xyz"}
-        links = ErrorChain.history(err)
+        error = DomainError(message="error", user_id=42, request_id="xyz")
+        assert error.context == {"user_id": 42, "request_id": "xyz"}
+        links = ErrorChain.history(error)
         assert len(links) == 1
-        # context IS propagated into the link
         assert links[0].context == {"user_id": 42, "request_id": "xyz"}
         extra = links[0].to_log_extra()
-        # and appears in to_log_extra output
         assert extra["context"] == {"user_id": 42, "request_id": "xyz"}
-        assert set(extra.keys()) == {
-            "type",
-            "message",
-            "code",
-            "domain",
-            "via",
-            "context",
-        }
+        assert set(extra.keys()) == {"type", "message", "code", "domain", "via", "context"}

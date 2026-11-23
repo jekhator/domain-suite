@@ -5,25 +5,17 @@ from dataclasses import dataclass
 
 import pytest
 
-from monitoring_suite.rag.decorators.traced_retrieval.traced_retrieval_client import (
-    traced_retrieval,
-)
+from monitoring_suite.rag.decorators.traced_retrieval.traced_retrieval_client import traced_retrieval
 from monitoring_suite.rag.errors.retrieval_errors import RetrievalDeclarationError
-from monitoring_suite.rag.services.provenance.provenance_client import (
-    CollectingProvenanceSink,
-)
-from monitoring_suite.rag.services.provenance.provenance_objects import (
-    ProvenanceOutcome,
-)
+from monitoring_suite.rag.services.provenance.provenance_client import CollectingProvenanceSink
+from monitoring_suite.rag.services.provenance.provenance_objects import ProvenanceOutcome
 from monitoring_suite.rag.services.registry.registry_client import ProvenanceRegistry
 
 
 class TestTracedRetrievalOnCallable:
     """@traced_retrieval on functions and methods."""
 
-    def test_traced_sync_callable_success(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_sync_callable_success(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on sync callable emits SUCCESS event."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -40,9 +32,7 @@ class TestTracedRetrievalOnCallable:
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.SUCCESS
         assert collecting_sink.events[0].duration_ms >= 0
 
-    def test_traced_sync_callable_failure(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_sync_callable_failure(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on sync callable emits FAILURE event on exception."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -59,9 +49,7 @@ class TestTracedRetrievalOnCallable:
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.FAILURE
         assert collecting_sink.events[0].is_failure
 
-    def test_traced_async_callable_success(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_async_callable_success(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on async callable emits SUCCESS event."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -78,9 +66,7 @@ class TestTracedRetrievalOnCallable:
         assert collecting_sink.events[0].session_id == "sess_456"
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.SUCCESS
 
-    def test_traced_async_callable_failure(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_async_callable_failure(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on async callable emits FAILURE event on exception."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -97,9 +83,7 @@ class TestTracedRetrievalOnCallable:
         assert collecting_sink.events[0].session_id == "sess_456"
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.FAILURE
 
-    def test_traced_with_registry_sink(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_with_registry_sink(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval resolves sink from registry when None."""
         ProvenanceRegistry.set_default_sink(collecting_sink)
 
@@ -113,36 +97,26 @@ class TestTracedRetrievalOnCallable:
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].query == "query"
 
-    def test_traced_with_dict_result(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_with_dict_result(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval extracts chunk_ids and source_document_ids from dict result."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         def retrieve(query: str) -> dict:
-            return {
-                "chunk_ids": ["c1", "c2"],
-                "source_document_ids": ["d1", "d2"],
-            }
+            return {"chunk_ids": ["c1", "c2"], "source_document_ids": ["d1", "d2"]}
 
         result = retrieve("query")
 
-        assert result == {
-            "chunk_ids": ["c1", "c2"],
-            "source_document_ids": ["d1", "d2"],
-        }
+        assert result == {"chunk_ids": ["c1", "c2"], "source_document_ids": ["d1", "d2"]}
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].chunk_ids == ("c1", "c2")
         assert collecting_sink.events[0].source_document_ids == ("d1", "d2")
 
-    def test_traced_with_args_and_kwargs(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_with_args_and_kwargs(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval preserves function args and kwargs."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         def retrieve(query: str, top_k: int = 5) -> list[str]:
-            return [f"chunk_{i}" for i in range(top_k)]
+            return [f"chunk_{index}" for index in range(top_k)]
 
         result = retrieve("test query", top_k=3)
 
@@ -153,9 +127,7 @@ class TestTracedRetrievalOnCallable:
 class TestTracedRetrievalOnClass:
     """@traced_retrieval on classes fans out to public methods."""
 
-    def test_traced_class_public_methods(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_class_public_methods(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on class fans out to public methods."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -187,9 +159,7 @@ class TestTracedRetrievalOnClass:
         assert collecting_sink.events[0].query == "test"
         assert collecting_sink.events[1].query == "['a', 'c', 'b']"
 
-    def test_traced_class_failure_on_method(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_class_failure_on_method(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on class emits failure event from method exception."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -235,18 +205,13 @@ class TestTracedRetrievalOnClass:
 class TestTracedRetrievalAsyncEdgeCases:
     """Async edge cases and special scenarios."""
 
-    def test_traced_async_with_dict_result(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_async_with_dict_result(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval async callable extracts chunk/source from dict."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         async def retrieve(query: str) -> dict:
             await asyncio.sleep(0.01)
-            return {
-                "chunk_ids": ["c1", "c2"],
-                "source_document_ids": ["d1", "d2"],
-            }
+            return {"chunk_ids": ["c1", "c2"], "source_document_ids": ["d1", "d2"]}
 
         asyncio.run(retrieve("async query"))
 
@@ -255,17 +220,12 @@ class TestTracedRetrievalAsyncEdgeCases:
         assert collecting_sink.events[0].chunk_ids == ("c1", "c2")
         assert collecting_sink.events[0].source_document_ids == ("d1", "d2")
 
-    def test_traced_sync_with_dict_result(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_sync_with_dict_result(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval sync callable extracts chunk/source from dict."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         def retrieve(query: str) -> dict:
-            return {
-                "chunk_ids": ["c1"],
-                "source_document_ids": ["d1"],
-            }
+            return {"chunk_ids": ["c1"], "source_document_ids": ["d1"]}
 
         result = retrieve("test query")
 
@@ -275,27 +235,20 @@ class TestTracedRetrievalAsyncEdgeCases:
         assert collecting_sink.events[0].chunk_ids == ("c1",)
         assert collecting_sink.events[0].source_document_ids == ("d1",)
 
-    def test_traced_async_with_kwargs_query(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_async_with_kwargs_query(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval async with kwargs query parameter."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
         async def retrieve(query: str) -> dict:
             await asyncio.sleep(0.01)
-            return {
-                "chunk_ids": ["c1"],
-                "source_document_ids": ["d1"],
-            }
+            return {"chunk_ids": ["c1"], "source_document_ids": ["d1"]}
 
         asyncio.run(retrieve(query="kwargs query"))
 
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].query == "kwargs query"
 
-    def test_traced_async_method_success(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_async_method_success(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on async class method extracts query from second arg."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -307,10 +260,7 @@ class TestTracedRetrievalAsyncEdgeCases:
 
             async def search(self, query: str) -> dict:
                 await asyncio.sleep(0.01)
-                return {
-                    "chunk_ids": ["async_c1"],
-                    "source_document_ids": ["async_d1"],
-                }
+                return {"chunk_ids": ["async_c1"], "source_document_ids": ["async_d1"]}
 
         service = AsyncRetrievalService(name="async_service")
         asyncio.run(service.search("async method query"))
@@ -332,9 +282,7 @@ class TestTracedRetrievalEdgeCases:
 
         assert my_retrieval_function.__name__ == "my_retrieval_function"
 
-    def test_traced_with_return_value_and_exception(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_with_return_value_and_exception(self, collecting_sink: CollectingProvenanceSink) -> None:
         """Multiple calls track separate success/failure events."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -354,9 +302,7 @@ class TestTracedRetrievalEdgeCases:
         assert len(collecting_sink.events) == 2
         assert collecting_sink.events[1].outcome == ProvenanceOutcome.FAILURE
 
-    def test_traced_class_with_classmethod(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_class_with_classmethod(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on class with classmethod includes it in public methods."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)
@@ -368,15 +314,13 @@ class TestTracedRetrievalEdgeCases:
                 """Factory method."""
                 return cls()
 
-        obj = RetrievalFactory.create("test query")
-        assert obj is not None
+        instance = RetrievalFactory.create("test query")
+        assert instance is not None
         assert len(collecting_sink.events) == 1
         assert collecting_sink.events[0].query == "test query"
         assert collecting_sink.events[0].outcome == ProvenanceOutcome.SUCCESS
 
-    def test_traced_class_with_staticmethod(
-        self, collecting_sink: CollectingProvenanceSink
-    ) -> None:
+    def test_traced_class_with_staticmethod(self, collecting_sink: CollectingProvenanceSink) -> None:
         """@traced_retrieval on class with staticmethod includes it in public methods."""
 
         @traced_retrieval("user_123", "sess_456", sink=collecting_sink)

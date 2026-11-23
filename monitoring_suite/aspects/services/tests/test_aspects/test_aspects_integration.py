@@ -1,4 +1,5 @@
-"""Integration tests for aspect composition with real dependencies.
+"""
+Integration tests for aspect composition with real dependencies.
 
 Tests all six aspects with REAL packages from [all] extra. Verifies aspects compose
 correctly on function and class targets, catching the bug that existed in 0.1.0
@@ -80,8 +81,7 @@ class TestRealDepsIntegration:
             frozenset(
                 {
                     objs.Logged(event="multi.test"),
-                    objs.Throttled(scope="multi", rate="50/hour"),
-                    objs.WrapErrors(as_=TestError),
+                    objs.Throttled(scope="multi", rate="50/hour"), objs.WrapErrors(as_=TestError)
                 }
             )
         )
@@ -162,10 +162,7 @@ class TestRealDepsIntegration:
         """Monitored and Logged compose together without conflict."""
         from logging_suite.logging import LoggingMixin
 
-        @aspects(
-            objs.Logged(event="test.event"),
-            objs.Monitored(event="test.operation"),
-        )
+        @aspects(objs.Logged(event="test.event"), objs.Monitored(event="test.operation"))
         @dataclass(frozen=True, slots=True)
         class Service(LoggingMixin):
             def process(self) -> str:
@@ -177,9 +174,7 @@ class TestRealDepsIntegration:
 
     def test_monitored_aspect_labels_from_result(self) -> None:
         """Monitored aspect-path supports labels_from_result parity with decorator."""
-        from monitoring_suite.monitoring.services.metrics.metrics_objects import (
-            MetricEvent,
-        )
+        from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
 
         collected_events: list[MetricEvent] = []
 
@@ -187,11 +182,10 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
+        sink = CollectingSink()
         @aspects(
             objs.Monitored(
-                event="test.result_labels",
-                sink=CollectingSink(),
-                labels_from_result=lambda r: (("tokens", str(r)),),
+                event="test.result_labels", sink=sink, labels_from_result=lambda value: (("tokens", str(value)),)
             )
         )
         @dataclass(frozen=True, slots=True)
@@ -208,9 +202,7 @@ class TestRealDepsIntegration:
 
     def test_monitored_aspect_labels_from_exc(self) -> None:
         """Monitored aspect-path supports labels_from_exc parity with decorator."""
-        from monitoring_suite.monitoring.services.metrics.metrics_objects import (
-            MetricEvent,
-        )
+        from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
 
         collected_events: list[MetricEvent] = []
 
@@ -218,11 +210,11 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
+        sink = CollectingSink()
         @aspects(
             objs.Monitored(
-                event="test.exc_labels",
-                sink=CollectingSink(),
-                labels_from_exc=lambda e: (("error_type", type(e).__name__),),
+                event="test.exc_labels", sink=sink,
+                labels_from_exc=lambda entry: (("error_type", type(entry).__name__),)
             )
         )
         @dataclass(frozen=True, slots=True)
@@ -239,9 +231,7 @@ class TestRealDepsIntegration:
 
     def test_monitored_aspect_no_callbacks_empty_labels(self) -> None:
         """Monitored aspect without callbacks produces empty labels tuple."""
-        from monitoring_suite.monitoring.services.metrics.metrics_objects import (
-            MetricEvent,
-        )
+        from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
 
         collected_events: list[MetricEvent] = []
 
@@ -249,7 +239,8 @@ class TestRealDepsIntegration:
             def emit(self, event: MetricEvent) -> None:
                 collected_events.append(event)
 
-        @aspects(objs.Monitored(event="test.no_labels", sink=CollectingSink()))
+        sink = CollectingSink()
+        @aspects(objs.Monitored(event="test.no_labels", sink=sink))
         @dataclass(frozen=True, slots=True)
         class Service:
             def process(self) -> str:
@@ -263,7 +254,8 @@ class TestRealDepsIntegration:
         assert event.labels == ()
 
     def test_stacked_retried_wrap_errors_plain_class(self) -> None:
-        """Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
+        """
+        Stacked Retried+WrapErrors on plain class: retries succeed, exhaustion wraps.
 
         Verifies the composition defect fix: Retried must wrap class methods, not
         replace the class. Retried sees raw ValueError, retries succeed on attempt 3,
@@ -280,19 +272,15 @@ class TestRealDepsIntegration:
             http_status = 500
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            max_attempts=3, backoff_base_seconds=0.0, backoff_multiplier=1.0, backoff_max_seconds=0.0,
+            jitter=False, should_retry=lambda entry: isinstance(entry, ValueError)
         )
         calls = {"n": 0}
 
         @aspects(
-            objs.Logged("test_retried"),
-            objs.Retried(policy=policy),
-            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
+            objs.Logged("test_retried"), objs.Retried(policy=policy), objs.WrapErrors(
+                as_=TestError, catch=(ValueError,)
+            )
         )
         class Service:
             def flaky(self) -> str:
@@ -318,19 +306,12 @@ class TestRealDepsIntegration:
             http_status = 500
 
         policy = RetryPolicy(
-            max_attempts=2,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            max_attempts=2, backoff_base_seconds=0.0, backoff_multiplier=1.0, backoff_max_seconds=0.0,
+            jitter=False, should_retry=lambda entry: isinstance(entry, ValueError)
         )
         calls = {"n": 0}
 
-        @aspects(
-            objs.Retried(policy=policy),
-            objs.WrapErrors(as_=TestError, catch=(ValueError,)),
-        )
+        @aspects(objs.Retried(policy=policy), objs.WrapErrors(as_=TestError, catch=(ValueError,)))
         class Service:
             def always_fails(self) -> str:
                 calls["n"] += 1
@@ -350,19 +331,12 @@ class TestRealDepsIntegration:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: isinstance(e, ValueError),
+            max_attempts=3, backoff_base_seconds=0.0, backoff_multiplier=1.0, backoff_max_seconds=0.0,
+            jitter=False, should_retry=lambda entry: isinstance(entry, ValueError)
         )
         calls = {"n": 0}
 
-        @aspects(
-            objs.Logged("async_test"),
-            objs.Retried(policy=policy),
-        )
+        @aspects(objs.Logged("async_test"), objs.Retried(policy=policy))
         class Service(LoggingMixin):
             async def flaky_async(self) -> str:
                 calls["n"] += 1
@@ -379,9 +353,7 @@ class TestRealDepsIntegration:
         """Retried with policy_from_request=None on class: single-attempt passthrough."""
         calls = {"n": 0}
 
-        @aspects(
-            objs.Retried(policy_from_request=lambda *a, **k: None),
-        )
+        @aspects(objs.Retried(policy_from_request=lambda *argument, **key: None))
         class Service:
             def no_retry(self) -> str:
                 calls["n"] += 1
@@ -442,12 +414,8 @@ class TestRealDepsIntegration:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
+            max_attempts=1, backoff_base_seconds=0.0, backoff_multiplier=1.0,
+            backoff_max_seconds=0.0, jitter=False, should_retry=lambda entry: False
         )
 
         @aspects(objs.Retried(policy=policy))
@@ -478,12 +446,8 @@ class TestRealDepsIntegration:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
+            max_attempts=1, backoff_base_seconds=0.0, backoff_multiplier=1.0,
+            backoff_max_seconds=0.0, jitter=False, should_retry=lambda entry: False
         )
 
         @aspects(objs.Retried(policy=policy))
@@ -518,12 +482,8 @@ class TestRealDepsIntegration:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=1,
-            backoff_base_seconds=0.0,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=0.0,
-            jitter=False,
-            should_retry=lambda e: False,
+            max_attempts=1, backoff_base_seconds=0.0, backoff_multiplier=1.0,
+            backoff_max_seconds=0.0, jitter=False, should_retry=lambda entry: False
         )
 
         @aspects(objs.Retried(policy=policy))

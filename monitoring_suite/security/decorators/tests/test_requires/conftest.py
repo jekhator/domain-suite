@@ -4,15 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.services.authz.authz_client import Authorizer
-from monitoring_suite.security.services.authz.authz_objects import (
-    Permission,
-    PolicyDecision,
-)
+from monitoring_suite.security.services.authz.authz_objects import Permission, PolicyDecision
 
 
 class AlwaysAllowAuthorizer(Authorizer):
@@ -33,17 +27,31 @@ class AlwaysDenyAuthorizer(Authorizer):
 
 @pytest.fixture
 def principal_with_read_scope() -> Principal:
-    """Create a principal with read scope."""
-    return Principal(id="user:reader", roles=frozenset(), scopes=frozenset(["read"]))
+    """
+    Create a principal with read scope.
+
+    Used by: no test class yet.
+    """
+    roles: frozenset[str] = frozenset()
+    scopes = frozenset(["read"])
+    return Principal(id="user:reader", roles=roles, scopes=scopes)
 
 
 @pytest.fixture
 def always_allow_authorizer() -> Authorizer:
-    """Create an authorizer that always allows."""
+    """
+    Create an authorizer that always allows.
+
+    Used by: TestRequires, TestRequiresClassLevel.
+    """
     return AlwaysAllowAuthorizer()
 
 
 @pytest.fixture
 def always_deny_authorizer() -> Authorizer:
-    """Create an authorizer that always denies."""
+    """
+    Create an authorizer that always denies.
+
+    Used by: TestRequires.
+    """
     return AlwaysDenyAuthorizer()

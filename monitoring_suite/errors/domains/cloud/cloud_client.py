@@ -10,7 +10,7 @@ class CloudClassifier:
 
     def classify(self, err: BaseException) -> str | None:
         """Return const.CLOUD when err originates in an AWS-SDK library, else None."""
-        if type(err).__module__.split(".")[0] in const.CLOUD_LIBRARIES:
+        if type(err).__module__.split(const.MODULE_SEPARATOR)[0] in const.CLOUD_LIBRARIES:
             return const.CLOUD
         return None
 

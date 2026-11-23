@@ -7,7 +7,9 @@ import functools
 from collections.abc import Callable
 from typing import Optional
 
-LOGGED_MARKER = "__logged_applied__"
+from monitoring_suite.aspects.services.constants import aspects as const
+
+LOGGED_MARKER = const.LOGGED_MARKER
 
 
 class _LoggedBuilders:
@@ -15,14 +17,12 @@ class _LoggedBuilders:
 
     @staticmethod
     def build_logged_wrapper(
-        target: Callable,
-        event: str,
-        payload_from_request: Optional[Callable[..., dict]],
+        target: Callable, event: str, payload_from_request: Optional[Callable[..., dict]],
         payload_from_result: Optional[Callable[[object], dict]],
-        payload_from_exc: Optional[Callable[[BaseException], dict]],
-        timed: bool,
+        payload_from_exc: Optional[Callable[[BaseException], dict]], timed: bool
     ) -> Callable:
-        """Build native wrapper for logging entry/exit/error events.
+        """
+        Build native wrapper for logging entry/exit/error events.
 
         Emits via instance's LoggingMixin.log_* if available, else ambient log_* functions.
         Extractions are guarded: errors log WARNING, operation continues.
@@ -46,16 +46,16 @@ class _LoggedBuilders:
                     try:
                         start_payload = payload_from_request(*args, **kwargs) or {}
                     except Exception as error:
+                        error_text = str(error)
                         log_error(
-                            f"Logged: extraction failed for {event}.start",
-                            error=str(error),
+                            f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_START}", error=error_text
                         )
                         start_payload = {}
 
                 if logger:
-                    logger.log_info(f"{event}.start", **start_payload)
+                    logger.log_info(f"{event}{const.EVENT_SUFFIX_START}", **start_payload)
                 else:
-                    log_info(f"{event}.start", **start_payload)
+                    log_info(f"{event}{const.EVENT_SUFFIX_START}", **start_payload)
 
                 clock = LatencyClock.start() if timed else None
                 try:
@@ -65,43 +65,42 @@ class _LoggedBuilders:
                         try:
                             end_payload = payload_from_result(result) or {}
                         except Exception as error:
+                            error_text = str(error)
                             log_error(
-                                f"Logged: extraction failed for {event}.end",
-                                error=str(error),
+                                f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_END}", error=error_text
                             )
                             end_payload = {}
 
                     if clock:
                         measurement = clock.stop()
-                        end_payload["latency_ms"] = measurement.duration_ms
+                        end_payload[const.PAYLOAD_KEY_LATENCY_MS] = measurement.duration_ms
 
                     if logger:
-                        logger.log_info(f"{event}.end", **end_payload)
+                        logger.log_info(f"{event}{const.EVENT_SUFFIX_END}", **end_payload)
                     else:
-                        log_info(f"{event}.end", **end_payload)
+                        log_info(f"{event}{const.EVENT_SUFFIX_END}", **end_payload)
 
                     return result
                 except BaseException as error:
-                    error_payload: dict = {
-                        "error_type": type(error).__name__,
-                    }
+                    error_payload: dict = {"error_type": type(error).__name__}
                     if clock:
                         measurement = clock.stop()
-                        error_payload["latency_ms"] = measurement.duration_ms
+                        error_payload[const.PAYLOAD_KEY_LATENCY_MS] = measurement.duration_ms
 
                     if payload_from_exc:
                         try:
                             error_payload.update(payload_from_exc(error) or {})
                         except Exception as extraction_error:
+                            extraction_error_text = str(extraction_error)
                             log_error(
-                                f"Logged: extraction failed for {event}.error",
-                                error=str(extraction_error),
+                                f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_ERROR}",
+                                error=extraction_error_text
                             )
 
                     if logger:
-                        logger.log_error(f"{event}.error", **error_payload)
+                        logger.log_error(f"{event}{const.EVENT_SUFFIX_ERROR}", **error_payload)
                     else:
-                        log_error(f"{event}.error", **error_payload)
+                        log_error(f"{event}{const.EVENT_SUFFIX_ERROR}", **error_payload)
 
                     raise
 
@@ -118,16 +117,16 @@ class _LoggedBuilders:
                 try:
                     start_payload = payload_from_request(*args, **kwargs) or {}
                 except Exception as error:
+                    error_text = str(error)
                     log_error(
-                        f"Logged: extraction failed for {event}.start",
-                        error=str(error),
+                        f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_START}", error=error_text
                     )
                     start_payload = {}
 
             if logger:
-                logger.log_info(f"{event}.start", **start_payload)
+                logger.log_info(f"{event}{const.EVENT_SUFFIX_START}", **start_payload)
             else:
-                log_info(f"{event}.start", **start_payload)
+                log_info(f"{event}{const.EVENT_SUFFIX_START}", **start_payload)
 
             clock = LatencyClock.start() if timed else None
             try:
@@ -137,43 +136,42 @@ class _LoggedBuilders:
                     try:
                         end_payload = payload_from_result(result) or {}
                     except Exception as error:
+                        error_text = str(error)
                         log_error(
-                            f"Logged: extraction failed for {event}.end",
-                            error=str(error),
+                            f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_END}", error=error_text
                         )
                         end_payload = {}
 
                 if clock:
                     measurement = clock.stop()
-                    end_payload["latency_ms"] = measurement.duration_ms
+                    end_payload[const.PAYLOAD_KEY_LATENCY_MS] = measurement.duration_ms
 
                 if logger:
-                    logger.log_info(f"{event}.end", **end_payload)
+                    logger.log_info(f"{event}{const.EVENT_SUFFIX_END}", **end_payload)
                 else:
-                    log_info(f"{event}.end", **end_payload)
+                    log_info(f"{event}{const.EVENT_SUFFIX_END}", **end_payload)
 
                 return result
             except BaseException as error:
-                error_payload: dict = {
-                    "error_type": type(error).__name__,
-                }
+                error_payload: dict = {"error_type": type(error).__name__}
                 if clock:
                     measurement = clock.stop()
-                    error_payload["latency_ms"] = measurement.duration_ms
+                    error_payload[const.PAYLOAD_KEY_LATENCY_MS] = measurement.duration_ms
 
                 if payload_from_exc:
                     try:
                         error_payload.update(payload_from_exc(error) or {})
                     except Exception as extraction_error:
+                        extraction_error_text = str(extraction_error)
                         log_error(
-                            f"Logged: extraction failed for {event}.error",
-                            error=str(extraction_error),
+                            f"{const.LOG_EXTRACTION_FAILED_PREFIX}{event}{const.EVENT_SUFFIX_ERROR}",
+                            error=extraction_error_text
                         )
 
                 if logger:
-                    logger.log_error(f"{event}.error", **error_payload)
+                    logger.log_error(f"{event}{const.EVENT_SUFFIX_ERROR}", **error_payload)
                 else:
-                    log_error(f"{event}.error", **error_payload)
+                    log_error(f"{event}{const.EVENT_SUFFIX_ERROR}", **error_payload)
 
                 raise
 
@@ -181,14 +179,12 @@ class _LoggedBuilders:
 
     @staticmethod
     def decorate_class_logged(
-        cls: type[object],
-        event: str,
-        payload_from_request: Optional[Callable[..., dict]],
+        cls: type[object], event: str, payload_from_request: Optional[Callable[..., dict]],
         payload_from_result: Optional[Callable[[object], dict]],
-        payload_from_exc: Optional[Callable[[BaseException], dict]],
-        timed: bool,
+        payload_from_exc: Optional[Callable[[BaseException], dict]], timed: bool
     ) -> type[object]:
-        """Fan out @logged over all public methods in the class.
+        """
+        Fan out @logged over all public methods in the class.
 
         Rules:
         - Only methods in cls.__dict__ (not inherited)
@@ -197,7 +193,7 @@ class _LoggedBuilders:
         - Override: methods already marked with LOGGED_MARKER are left untouched
         """
         for name, method in list(cls.__dict__.items()):
-            if name.startswith("_"):
+            if name.startswith(const.PRIVATE_PREFIX):
                 continue
             if isinstance(method, property):
                 continue
@@ -219,12 +215,7 @@ class _LoggedBuilders:
                 continue
 
             decorated = _LoggedBuilders.build_logged_wrapper(
-                unwrapped,
-                event,
-                payload_from_request,
-                payload_from_result,
-                payload_from_exc,
-                timed,
+                unwrapped, event, payload_from_request, payload_from_result, payload_from_exc, timed
             )
             setattr(decorated, LOGGED_MARKER, True)
 

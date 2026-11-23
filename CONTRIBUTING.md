@@ -40,11 +40,14 @@ uv run pytest --cov=monitoring_suite.api_limiter,monitoring_suite.aspects,monito
 
 ## Linting and Code Style
 
-Format and lint your code before committing:
+Lint your code before committing:
 ```bash
 uv run ruff check --fix .
-uv run ruff format .
 ```
+
+Do not run `ruff format`. Layout follows the grouped canon: a call, literal or signature that fits in 120
+columns stays on one line; otherwise the opening bracket ends the first line, the arguments are packed by
+fit, the closing bracket stands alone and there is no trailing comma.
 
 ## Submitting Changes
 

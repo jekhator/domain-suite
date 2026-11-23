@@ -1,9 +1,6 @@
 """Tests for ProvenanceRegistry."""
 
-from monitoring_suite.rag.services.provenance.provenance_client import (
-    CollectingProvenanceSink,
-    NullProvenanceSink,
-)
+from monitoring_suite.rag.services.provenance.provenance_client import CollectingProvenanceSink, NullProvenanceSink
 from monitoring_suite.rag.services.registry.registry_client import ProvenanceRegistry
 
 

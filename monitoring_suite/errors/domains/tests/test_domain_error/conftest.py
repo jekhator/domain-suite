@@ -17,5 +17,9 @@ class CustomDomainError(DomainError):
 
 @pytest.fixture
 def custom_error_class() -> type[CustomDomainError]:
-    """Provide a custom DomainError subclass for testing."""
+    """
+    Provide a custom DomainError subclass for testing.
+
+    Used by: no test class yet.
+    """
     return CustomDomainError

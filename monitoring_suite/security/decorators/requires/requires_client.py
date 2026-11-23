@@ -7,16 +7,13 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import SecurityContext
+from monitoring_suite.security.decorators.constants import requires as const
 from monitoring_suite.security.services.authz.authz_client import Authorizer
 from monitoring_suite.security.services.authz.authz_objects import Permission
 
-_REQUIRES_DECORATED_MARKER = "__requires_decorated__"
+_REQUIRES_DECORATED_MARKER = const.REQUIRES_DECORATED_MARKER
 
 
 class Requires:
@@ -27,14 +24,11 @@ class Requires:
         self._authorizer = authorizer or Authorizer()
 
     def __call__[**Params, Return](
-        self,
-        permission: str,
+        self, permission: str
     ) -> Callable[[Callable[Params, Return] | type], Callable[Params, Return] | type]:
         """Return a decorator that enforces the permission before each call or on class methods."""
 
-        def decorate(
-            target: Callable[Params, Return] | type,
-        ) -> Callable[Params, Return] | type:
+        def decorate(target: Callable[Params, Return] | type) -> Callable[Params, Return] | type:
             if inspect.isclass(target):
                 return self._decorate_class(target, permission)
             return self._decorate_callable(target, permission)
@@ -42,14 +36,14 @@ class Requires:
         return decorate
 
     def _decorate_callable[**Params, Return](
-        self, func: Callable[Params, Return], permission: str
+        self, function: Callable[Params, Return], permission: str
     ) -> Callable[Params, Return]:
         """Decorate a single callable."""
 
-        @functools.wraps(func)
+        @functools.wraps(function)
         def wrapper(*args: Params.args, **kwargs: Params.kwargs) -> Return:
             self._authorizer.require(self._current_context(), Permission(permission))
-            return func(*args, **kwargs)
+            return function(*args, **kwargs)
 
         setattr(wrapper, _REQUIRES_DECORATED_MARKER, True)
         return wrapper
@@ -63,17 +57,17 @@ class Requires:
         return cls
 
     @staticmethod
-    def _should_decorate(name: str, obj: Any) -> bool:
+    def _should_decorate(name: str, member: Any) -> bool:
         """Check if an object should be decorated."""
-        if name.startswith("_") or inspect.isbuiltin(obj):
+        if name.startswith(const.PRIVATE_PREFIX) or inspect.isbuiltin(member):
             return False
-        if isinstance(obj, property):
+        if isinstance(member, property):
             return False
-        if inspect.isclass(obj):
+        if inspect.isclass(member):
             return False
-        if hasattr(obj, _REQUIRES_DECORATED_MARKER):
+        if hasattr(member, _REQUIRES_DECORATED_MARKER):
             return False
-        return callable(obj) or isinstance(obj, (classmethod, staticmethod))
+        return callable(member) or isinstance(member, (classmethod, staticmethod))
 
     def _apply_to_method(self, method: Any, permission: str) -> Any:
         """Apply decorator to a method, handling classmethod and staticmethod."""

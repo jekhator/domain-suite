@@ -31,13 +31,9 @@ class TestImportMissingSafe:
 
         monkeypatch.setitem(sys.modules, "monitoring_suite.security", None)
         monkeypatch.setitem(sys.modules, "monitoring_suite.security.decorators", None)
-        monkeypatch.setitem(
-            sys.modules, "monitoring_suite.security.decorators.requires", None
-        )
+        monkeypatch.setitem(sys.modules, "monitoring_suite.security.decorators.requires", None)
 
-        with pytest.raises(
-            ImportError, match="monitoring_suite.security not installed"
-        ):
+        with pytest.raises(ImportError, match="monitoring_suite.security not installed"):
             entry.build()
 
     def test_tenant_scoped_build_missing_security(self, monkeypatch) -> None:
@@ -46,13 +42,9 @@ class TestImportMissingSafe:
 
         monkeypatch.setitem(sys.modules, "monitoring_suite.security", None)
         monkeypatch.setitem(sys.modules, "monitoring_suite.security.decorators", None)
-        monkeypatch.setitem(
-            sys.modules, "monitoring_suite.security.decorators.tenant_scoped", None
-        )
+        monkeypatch.setitem(sys.modules, "monitoring_suite.security.decorators.tenant_scoped", None)
 
-        with pytest.raises(
-            ImportError, match="monitoring_suite.security not installed"
-        ):
+        with pytest.raises(ImportError, match="monitoring_suite.security not installed"):
             entry.build()
 
     def test_throttled_build_missing_api_limiter(self, monkeypatch) -> None:
@@ -60,16 +52,10 @@ class TestImportMissingSafe:
         entry = objs.Throttled(scope="api", rate="100/hour")
 
         monkeypatch.setitem(sys.modules, "monitoring_suite.api_limiter", None)
-        monkeypatch.setitem(
-            sys.modules, "monitoring_suite.api_limiter.decorators", None
-        )
-        monkeypatch.setitem(
-            sys.modules, "monitoring_suite.api_limiter.decorators.throttled", None
-        )
+        monkeypatch.setitem(sys.modules, "monitoring_suite.api_limiter.decorators", None)
+        monkeypatch.setitem(sys.modules, "monitoring_suite.api_limiter.decorators.throttled", None)
 
-        with pytest.raises(
-            ImportError, match="monitoring_suite.api_limiter not installed"
-        ):
+        with pytest.raises(ImportError, match="monitoring_suite.api_limiter not installed"):
             entry.build()
 
     def test_wrap_errors_build_missing_errors(self, monkeypatch) -> None:
@@ -87,18 +73,10 @@ class TestImportMissingSafe:
 
         monkeypatch.setitem(sys.modules, "monitoring_suite.monitoring", None)
         monkeypatch.setitem(sys.modules, "monitoring_suite.monitoring.decorators", None)
-        monkeypatch.setitem(
-            sys.modules, "monitoring_suite.monitoring.decorators.monitored", None
-        )
-        monkeypatch.setitem(
-            sys.modules,
-            "monitoring_suite.monitoring.decorators.monitored.monitored_client",
-            None,
-        )
+        monkeypatch.setitem(sys.modules, "monitoring_suite.monitoring.decorators.monitored", None)
+        monkeypatch.setitem(sys.modules, "monitoring_suite.monitoring.decorators.monitored.monitored_client", None)
 
-        with pytest.raises(
-            ImportError, match="monitoring_suite.monitoring not installed"
-        ):
+        with pytest.raises(ImportError, match="monitoring_suite.monitoring not installed"):
             entry.build()
 
     def test_retried_build_missing_logging_suite_retry(self, monkeypatch) -> None:
@@ -106,11 +84,7 @@ class TestImportMissingSafe:
         from logging_suite.retry import RetryPolicy
 
         policy = RetryPolicy(
-            max_attempts=2,
-            backoff_base_seconds=0.1,
-            backoff_multiplier=2.0,
-            backoff_max_seconds=10.0,
-            jitter=False,
+            max_attempts=2, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=False
         )
         entry = objs.Retried(policy=policy)
         decorator = entry.build()

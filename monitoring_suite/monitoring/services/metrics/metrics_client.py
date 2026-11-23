@@ -2,13 +2,13 @@
 
 from typing import Protocol
 
-from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent
+from monitoring_suite.monitoring.services.metrics import metrics_objects as objs
 
 
 class MetricSink(Protocol):
     """Protocol for metric event sinks."""
 
-    def emit(self, event: MetricEvent) -> None:
+    def emit(self, event: objs.MetricEvent) -> None:
         """Emit a metric event."""
         ...
 
@@ -18,14 +18,14 @@ class CollectingSink:
 
     def __init__(self) -> None:
         """Initialize empty collector."""
-        self._events: list[MetricEvent] = []
+        self._events: list[objs.MetricEvent] = []
 
-    def emit(self, event: MetricEvent) -> None:
+    def emit(self, event: objs.MetricEvent) -> None:
         """Collect a metric event."""
         self._events.append(event)
 
     @property
-    def events(self) -> list[MetricEvent]:
+    def events(self) -> list[objs.MetricEvent]:
         """Retrieve all collected events."""
         return self._events.copy()
 
@@ -37,6 +37,6 @@ class CollectingSink:
 class NullSink:
     """No-op sink for unbound monitoring."""
 
-    def emit(self, event: MetricEvent) -> None:
+    def emit(self, event: objs.MetricEvent) -> None:
         """No-op emit."""
         pass

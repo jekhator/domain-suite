@@ -1,7 +1,7 @@
 name: Ruff
 
-# Ruff lint + format check. Pinned to 0.15.14 to match local version.
-# Format drift was previously undetected; this gate prevents future drift.
+# Ruff lint. Pinned to 0.15.14 to match local version.
+# The format check is off: layout follows the grouped canon, which the formatter would undo.
 
 on:
   pull_request:
@@ -26,5 +26,3 @@ jobs:
           enable-cache: true
       - name: Ruff lint
         run: uvx ruff@0.15.14 check .
-      - name: Ruff format check
-        run: uvx ruff@0.15.14 format --check . --exclude test_version_consistency.py

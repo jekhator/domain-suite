@@ -8,15 +8,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
-from monitoring_suite.aspects.services.aspects.aspects_logged_builders import (
-    _LoggedBuilders,
-)
-from monitoring_suite.aspects.services.aspects.aspects_require_mixins import (
-    RequireMixins,
-)
-from monitoring_suite.aspects.services.aspects.aspects_retried_builders import (
-    _RetriedBuilders,
-)
+from monitoring_suite.aspects.services.aspects.aspects_logged_builders import _LoggedBuilders
+from monitoring_suite.aspects.services.aspects.aspects_require_mixins import RequireMixins
+from monitoring_suite.aspects.services.aspects.aspects_retried_builders import _RetriedBuilders
 from monitoring_suite.aspects.services.constants import aspects as const
 
 if TYPE_CHECKING:
@@ -28,19 +22,20 @@ if TYPE_CHECKING:
 class AspectKind(StrEnum):
     """Aspect classification kinds."""
 
-    LOGGED = "LOGGED"
-    REQUIRES = "REQUIRES"
-    TENANT_SCOPED = "TENANT_SCOPED"
-    THROTTLED = "THROTTLED"
-    MONITORED = "MONITORED"
-    WRAP_ERRORS = "WRAP_ERRORS"
-    RETRIED = "RETRIED"
-    REQUIRE_MIXINS = "REQUIRE_MIXINS"
+    LOGGED = const.KIND_LOGGED
+    REQUIRES = const.KIND_REQUIRES
+    TENANT_SCOPED = const.KIND_TENANT_SCOPED
+    THROTTLED = const.KIND_THROTTLED
+    MONITORED = const.KIND_MONITORED
+    WRAP_ERRORS = const.KIND_WRAP_ERRORS
+    RETRIED = const.KIND_RETRIED
+    REQUIRE_MIXINS = const.KIND_REQUIRE_MIXINS
 
 
 @dataclass(frozen=True, slots=True)
 class Logged:
-    """Native event logging with entry/exit/error emissions and optional timing.
+    """
+    Native event logging with entry/exit/error emissions and optional timing.
 
     Emits structured events via instance LoggingMixin.log_* or ambient logging_suite.logging functions.
     """
@@ -70,20 +65,10 @@ class Logged:
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
                 return _LoggedBuilders.decorate_class_logged(
-                    target,
-                    event,
-                    payload_from_request,
-                    payload_from_result,
-                    payload_from_exc,
-                    timed,
+                    target, event, payload_from_request, payload_from_result, payload_from_exc, timed
                 )
             return _LoggedBuilders.build_logged_wrapper(
-                target,
-                event,
-                payload_from_request,
-                payload_from_result,
-                payload_from_exc,
-                timed,
+                target, event, payload_from_request, payload_from_result, payload_from_exc, timed
             )
 
         return decorator
@@ -116,7 +101,7 @@ class Requires:
 class TenantScoped:
     """Tenant isolation enforcement via monitoring_suite.security."""
 
-    param_name: str = "tenant_id"
+    param_name: str = const.DEFAULT_TENANT_PARAM_NAME
 
     def __post_init__(self) -> None:
         if not self.param_name or not isinstance(self.param_name, str):
@@ -198,9 +183,7 @@ class Monitored:
     event: str
     sink: Optional[MetricSink] = None
     labels_from_result: Optional[Callable[[object], tuple[tuple[str, str], ...]]] = None
-    labels_from_exc: Optional[
-        Callable[[BaseException], tuple[tuple[str, str], ...]]
-    ] = None
+    labels_from_exc: Optional[Callable[[BaseException], tuple[tuple[str, str], ...]]] = None
 
     def __post_init__(self) -> None:
         if not self.event or not isinstance(self.event, str):
@@ -213,22 +196,18 @@ class Monitored:
     def build(self) -> Callable:
         """Lazily import and apply monitored decorator."""
         try:
-            from monitoring_suite.monitoring.decorators.monitored.monitored_client import (
-                monitored,
-            )
+            from monitoring_suite.monitoring.decorators.monitored.monitored_client import monitored
         except ImportError as error:  # pragma: no cover
             raise ImportError(const.ERR_ASPECT_MONITORED_IMPORT_MISSING) from error
         return monitored(
-            self.event,
-            sink=self.sink,
-            labels_from_result=self.labels_from_result,
-            labels_from_exc=self.labels_from_exc,
+            self.event, sink=self.sink, labels_from_result=self.labels_from_result, labels_from_exc=self.labels_from_exc
         )
 
 
 @dataclass(frozen=True, slots=True)
 class Retried:
-    """Exponential backoff retry with static or dynamic policy selection.
+    """
+    Exponential backoff retry with static or dynamic policy selection.
 
     Exactly one of policy or policy_from_request must be provided (not both, not neither).
     Retries see raw exceptions for predicate matching before WRAP_ERRORS converts them.
@@ -257,28 +236,11 @@ class Retried:
 
         def decorator(target: Callable) -> Callable:
             if inspect.isclass(target):
-                return _RetriedBuilders.decorate_class_retried(
-                    target,
-                    policy,
-                    policy_from_request,
-                )
-            return _RetriedBuilders.build_retried_wrapper(
-                target,
-                policy,
-                policy_from_request,
-            )
+                return _RetriedBuilders.decorate_class_retried(target, policy, policy_from_request)
+            return _RetriedBuilders.build_retried_wrapper(target, policy, policy_from_request)
 
         return decorator
 
 
-AspectEntry = (
-    Logged
-    | Requires
-    | TenantScoped
-    | Throttled
-    | Monitored
-    | WrapErrors
-    | Retried
-    | RequireMixins
-)
+AspectEntry = Logged | Requires | TenantScoped | Throttled | Monitored | WrapErrors | Retried | RequireMixins
 """Union type alias for all aspect entry types."""

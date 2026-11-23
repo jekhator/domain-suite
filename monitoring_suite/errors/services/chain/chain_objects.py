@@ -6,13 +6,15 @@ from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Protocol
 
+from monitoring_suite.errors.services.constants import chain as const
+
 
 class ChainVia(StrEnum):
     """How a link entered the chain."""
 
-    ROOT = "root"
-    CAUSE = "cause"
-    CONTEXT = "context"
+    ROOT = const.VIA_ROOT
+    CAUSE = const.VIA_CAUSE
+    CONTEXT = const.VIA_CONTEXT
 
 
 class DomainClassifier(Protocol):
@@ -60,12 +62,8 @@ class ChainLink:
         """Return the link as a JSON-ready dict for logger extra."""
         return asdict(
             LinkLogExtra(
-                type=self.type_name,
-                message=self.message,
-                code=self.code,
-                domain=self.domain,
-                via=self.via.value,
-                context=self.context,
+                type=self.type_name, message=self.message, code=self.code,
+                domain=self.domain, via=self.via.value, context=self.context
             )
         )
 
@@ -81,9 +79,7 @@ class DomainCrossing:
         """Return the crossing as a JSON-ready dict for logger extra."""
         return asdict(
             CrossingLogExtra(
-                cause_type=self.cause.type_name,
-                cause_domain=self.cause.domain,
-                effect_type=self.effect.type_name,
-                effect_domain=self.effect.domain,
+                cause_type=self.cause.type_name, cause_domain=self.cause.domain,
+                effect_type=self.effect.type_name, effect_domain=self.effect.domain
             )
         )

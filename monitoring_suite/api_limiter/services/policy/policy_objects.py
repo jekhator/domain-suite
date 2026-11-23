@@ -6,19 +6,17 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Self
 
-from monitoring_suite.api_limiter.errors.api_limiter_errors import (
-    ThrottleDeclarationError,
-)
+from monitoring_suite.api_limiter.errors.api_limiter_errors import ThrottleDeclarationError
 from monitoring_suite.api_limiter.services.constants import policy as const
 
 
 class Period(StrEnum):
     """Rate period vocabulary, mirroring framework rate strings."""
 
-    SECOND = "second"
-    MINUTE = "minute"
-    HOUR = "hour"
-    DAY = "day"
+    SECOND = const.PERIOD_SECOND
+    MINUTE = const.PERIOD_MINUTE
+    HOUR = const.PERIOD_HOUR
+    DAY = const.PERIOD_DAY
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,29 +29,20 @@ class RateLimit:
     def __post_init__(self) -> None:
         """Reject non-positive request counts."""
         if self.requests <= 0:
-            raise ThrottleDeclarationError(
-                message=const.ERR_POLICY_REQUESTS_NOT_POSITIVE,
-                requests=self.requests,
-            )
+            raise ThrottleDeclarationError(message=const.ERR_POLICY_REQUESTS_NOT_POSITIVE, requests=self.requests)
 
     @classmethod
     def from_rate(cls, rate: str) -> Self:
         """Parse an N/period rate string into a RateLimit."""
-        head, separator, tail = rate.partition("/")
+        head, separator, tail = rate.partition(const.RATE_SEPARATOR)
         if not separator or not head.isdigit():
-            raise ThrottleDeclarationError(
-                message=const.ERR_POLICY_RATE_FORMAT,
-                rate=rate,
-            )
+            raise ThrottleDeclarationError(message=const.ERR_POLICY_RATE_FORMAT, rate=rate)
         try:
             period = Period(tail)
         except ValueError as error:
-            raise ThrottleDeclarationError(
-                message=const.ERR_POLICY_UNKNOWN_PERIOD,
-                rate=rate,
-                period=tail,
-            ) from error
-        return cls(requests=int(head), period=period)
+            raise ThrottleDeclarationError(message=const.ERR_POLICY_UNKNOWN_PERIOD, rate=rate, period=tail) from error
+        requests = int(head)
+        return cls(requests=requests, period=period)
 
     @property
     def period_seconds(self) -> int:
@@ -70,7 +59,7 @@ class RateLimit:
 
     def as_rate(self) -> str:
         """Serialize back to the N/period form."""
-        return f"{self.requests}/{self.period.value}"
+        return f"{self.requests}{const.RATE_SEPARATOR}{self.period.value}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,10 +89,7 @@ class ThrottlePolicy:
             raise ThrottleDeclarationError(message=const.ERR_POLICY_EMPTY_SCOPE)
         tiers = [tier_rate.tier for tier_rate in self.tier_rates]
         if len(tiers) != len(set(tiers)):
-            raise ThrottleDeclarationError(
-                message=const.ERR_POLICY_DUPLICATE_TIERS,
-                scope=self.scope,
-            )
+            raise ThrottleDeclarationError(message=const.ERR_POLICY_DUPLICATE_TIERS, scope=self.scope)
 
     @property
     def has_tiers(self) -> bool:

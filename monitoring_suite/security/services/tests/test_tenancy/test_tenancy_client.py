@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.errors.security_errors import TenancyError
 from monitoring_suite.security.services.constants import tenancy as const
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
@@ -16,16 +13,12 @@ from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGua
 class TestTenancyGuard:
     """TenancyGuard tenant boundary enforcement."""
 
-    def test_check_passes_matching_tenant(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_passes_matching_tenant(self, context_with_tenant: SecurityContext) -> None:
         """check does not raise when context tenant matches requested tenant."""
         guard = TenancyGuard()
         guard.check(context_with_tenant, "tenant:acme")
 
-    def test_check_raises_no_tenant_bound(
-        self, context_without_tenant: SecurityContext
-    ) -> None:
+    def test_check_raises_no_tenant_bound(self, context_without_tenant: SecurityContext) -> None:
         """check raises TenancyError when context has no tenant."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -33,9 +26,7 @@ class TestTenancyGuard:
         assert exc_info.value.code == "tenant_boundary_violation"
         assert exc_info.value.message == const.ERR_TENANCY_NO_TENANT_BOUND
 
-    def test_check_raises_tenant_mismatch(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_raises_tenant_mismatch(self, context_with_tenant: SecurityContext) -> None:
         """check raises TenancyError when context tenant differs from requested."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -43,9 +34,7 @@ class TestTenancyGuard:
         assert exc_info.value.code == "tenant_boundary_violation"
         assert exc_info.value.message == const.ERR_TENANCY_BOUNDARY_VIOLATION
 
-    def test_check_includes_tenant_ids_in_context(
-        self, context_with_tenant: SecurityContext
-    ) -> None:
+    def test_check_includes_tenant_ids_in_context(self, context_with_tenant: SecurityContext) -> None:
         """check includes both tenant IDs in error context."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -53,9 +42,7 @@ class TestTenancyGuard:
         assert exc_info.value.context["tenant_id"] == "tenant:widgets"
         assert exc_info.value.context["context_tenant_id"] == "tenant:acme"
 
-    def test_check_no_tenant_bound_includes_requested_tenant(
-        self, context_without_tenant: SecurityContext
-    ) -> None:
+    def test_check_no_tenant_bound_includes_requested_tenant(self, context_without_tenant: SecurityContext) -> None:
         """check includes requested tenant_id when context has none."""
         guard = TenancyGuard()
         with pytest.raises(TenancyError) as exc_info:
@@ -67,25 +54,25 @@ class TestTenancyGuard:
         guard = TenancyGuard()
         tenant_ids = ["tenant:123", "org:abc", "workspace:xyz", "simple"]
         for tenant_id in tenant_ids:
-            ctx = SecurityContext(principal=principal, tenant_id=tenant_id)
-            guard.check(ctx, tenant_id)
+            context = SecurityContext(principal=principal, tenant_id=tenant_id)
+            guard.check(context, tenant_id)
 
     def test_check_case_sensitive_tenant_comparison(self, principal: Principal) -> None:
         """check tenant comparison is case-sensitive."""
         guard = TenancyGuard()
-        ctx = SecurityContext(principal=principal, tenant_id="TENANT:ACME")
+        context = SecurityContext(principal=principal, tenant_id="TENANT:ACME")
         with pytest.raises(TenancyError):
-            guard.check(ctx, "tenant:acme")
+            guard.check(context, "tenant:acme")
 
     def test_check_with_anonymous_principal(self) -> None:
         """check works with anonymous principal."""
         guard = TenancyGuard()
-        ctx = SecurityContext(principal=None, tenant_id="tenant:acme")
-        guard.check(ctx, "tenant:acme")
+        context = SecurityContext(principal=None, tenant_id="tenant:acme")
+        guard.check(context, "tenant:acme")
 
     def test_check_multiline_tenant_ids(self, principal: Principal) -> None:
         """check handles complex tenant identifiers."""
         guard = TenancyGuard()
         complex_tenant = "tenant:multi:part:identifier"
-        ctx = SecurityContext(principal=principal, tenant_id=complex_tenant)
-        guard.check(ctx, complex_tenant)
+        context = SecurityContext(principal=principal, tenant_id=complex_tenant)
+        guard.check(context, complex_tenant)

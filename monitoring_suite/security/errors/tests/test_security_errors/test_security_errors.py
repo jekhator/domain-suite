@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from monitoring_suite.errors import DomainError
 from monitoring_suite.security.errors.constants import security_errors as const
-from monitoring_suite.security.errors.security_errors import (
-    AuthzError,
-    SecretError,
-    SecurityError,
-    TenancyError,
-)
+from monitoring_suite.security.errors.security_errors import AuthzError, SecretError, SecurityError, TenancyError
 
 
 class TestSecurityError:
@@ -128,9 +123,7 @@ class TestTenancyError:
 
     def test_tenancy_error_with_tenant_context(self) -> None:
         """TenancyError can store tenant IDs in context."""
-        error = TenancyError(
-            message="test", tenant_id="tenant:acme", context_tenant_id="tenant:widgets"
-        )
+        error = TenancyError(message="test", tenant_id="tenant:acme", context_tenant_id="tenant:widgets")
         assert error.context["tenant_id"] == "tenant:acme"
         assert error.context["context_tenant_id"] == "tenant:widgets"
 
@@ -190,22 +183,12 @@ class TestErrorHierarchy:
 
     def test_error_codes_are_unique(self) -> None:
         """Each error class has a unique code."""
-        codes = {
-            SecurityError().code,
-            AuthzError().code,
-            TenancyError().code,
-            SecretError().code,
-        }
+        codes = {SecurityError().code, AuthzError().code, TenancyError().code, SecretError().code}
         assert len(codes) == 4
 
     def test_error_domain_consistency(self) -> None:
         """All errors have domain 'security'."""
-        errors = [
-            SecurityError(),
-            AuthzError(),
-            TenancyError(),
-            SecretError(),
-        ]
+        errors = [SecurityError(), AuthzError(), TenancyError(), SecretError()]
         for error in errors:
             assert error.domain == "security"
 

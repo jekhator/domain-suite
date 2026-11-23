@@ -36,9 +36,7 @@ class TestThrottleError:
 
     def test_default_message_attribute(self) -> None:
         """ThrottleError has default_message."""
-        assert (
-            ThrottleError.default_message == const.ERR_API_LIMITER_CONSTRAINT_VIOLATED
-        )
+        assert (ThrottleError.default_message == const.ERR_API_LIMITER_CONSTRAINT_VIOLATED)
 
     def test_constructor_with_message(self) -> None:
         """ThrottleError constructor accepts message."""
@@ -123,27 +121,17 @@ class TestThrottleDeclarationError:
 
     def test_default_message_attribute(self) -> None:
         """ThrottleDeclarationError has default_message."""
-        assert (
-            ThrottleDeclarationError.default_message
-            == const.ERR_API_LIMITER_DECLARATION_INVALID
-        )
+        assert (ThrottleDeclarationError.default_message == const.ERR_API_LIMITER_DECLARATION_INVALID)
 
     def test_constructor_with_message_and_context(self) -> None:
         """ThrottleDeclarationError captures message and context."""
-        error = ThrottleDeclarationError(
-            message="Bad rate", rate="invalid", period="unknown"
-        )
+        error = ThrottleDeclarationError(message="Bad rate", rate="invalid", period="unknown")
         assert error.message == "Bad rate"
         assert error.context == {"rate": "invalid", "period": "unknown"}
 
     def test_constructor_preserves_context_keys(self) -> None:
         """ThrottleDeclarationError preserves all context keys."""
-        error = ThrottleDeclarationError(
-            message="Test",
-            requests=0,
-            scope="",
-            tier="",
-        )
+        error = ThrottleDeclarationError(message="Test", requests=0, scope="", tier="")
         assert "requests" in error.context
         assert "scope" in error.context
         assert "tier" in error.context

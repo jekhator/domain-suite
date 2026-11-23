@@ -48,9 +48,7 @@ class TestLoggedWrapperSync:
             return {"output": result}
 
         logged = objs.Logged(
-            event="test.operation",
-            payload_from_request=extract_request,
-            payload_from_result=extract_result,
+            event="test.operation", payload_from_request=extract_request, payload_from_result=extract_result
         )
         wrapper_factory = logged.build()
 
@@ -68,10 +66,7 @@ class TestLoggedWrapperSync:
         def bad_extractor(x: int) -> dict:
             raise RuntimeError("extraction failed")
 
-        logged = objs.Logged(
-            event="test.operation",
-            payload_from_request=bad_extractor,
-        )
+        logged = objs.Logged(event="test.operation", payload_from_request=bad_extractor)
         wrapper_factory = logged.build()
 
         def operation(x: int) -> int:
@@ -129,11 +124,7 @@ class TestLoggedWrapperTimed:
         def extract_result(result: object) -> dict:
             return {"value": result}
 
-        logged = objs.Logged(
-            event="test.operation",
-            payload_from_result=extract_result,
-            timed=True,
-        )
+        logged = objs.Logged(event="test.operation", payload_from_result=extract_result, timed=True)
         wrapper_factory = logged.build()
 
         def operation(x: int) -> int:

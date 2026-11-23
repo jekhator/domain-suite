@@ -7,10 +7,7 @@ import inspect
 
 import pytest
 
-from monitoring_suite.errors.decorators.wrap_errors.wrap_errors_client import (
-    WrapErrorsClient,
-    wrap_errors,
-)
+from monitoring_suite.errors.decorators.wrap_errors.wrap_errors_client import WrapErrorsClient, wrap_errors
 from monitoring_suite.errors.domains.domain_error.domain_error import DomainError
 
 
@@ -222,7 +219,6 @@ class TestWrapErrorsDomainErrorPassthrough:
 
         with pytest.raises(CustomError) as exc_info:
             fail_with_domain_error()
-        # Verify it's the same instance, not wrapped
         assert exc_info.value.__cause__ is None
         assert exc_info.value.message == "original domain error"
 
@@ -238,7 +234,6 @@ class TestWrapErrorsDomainErrorPassthrough:
 
         with pytest.raises(CustomError) as exc_info:
             asyncio.run(async_fail_with_domain_error())
-        # Verify it's the same instance, not wrapped
         assert exc_info.value.__cause__ is None
         assert exc_info.value.message == "original domain error"
 
@@ -320,9 +315,7 @@ class TestWrapErrorsFunctoolsWraps:
             """This is a documented async function."""
             return 42
 
-        assert (
-            documented_async_function.__doc__ == "This is a documented async function."
-        )
+        assert (documented_async_function.__doc__ == "This is a documented async function.")
 
 
 class TestWrapErrorsModuleLevelFactory:
@@ -339,12 +332,7 @@ class TestWrapErrorsModuleLevelFactory:
 
     def test_wrap_errors_factory_with_all_params(self) -> None:
         """wrap_errors factory accepts all constructor parameters."""
-        client = wrap_errors(
-            DemoError,
-            catch=(ValueError, KeyError),
-            message="factory message",
-            capture=False,
-        )
+        client = wrap_errors(DemoError, catch=(ValueError, KeyError), message="factory message", capture=False)
         assert client.as_ is DemoError
         assert client.catch == (ValueError, KeyError)
         assert client.message == "factory message"
@@ -393,7 +381,6 @@ class TestWrapErrorsClientDirect:
 
     def test_client_is_dataclass(self) -> None:
         """WrapErrorsClient is a dataclass with slots."""
-        # Verify slots behavior: __slots__ should exist (frozen dataclass with slots)
         assert hasattr(WrapErrorsClient, "__slots__")
 
 
@@ -469,7 +456,6 @@ class TestWrapErrorsSignatureBinding:
 
         with pytest.raises(DemoError) as exc_info:
             func(1, c=30)
-        # apply_defaults fills in b=10
         assert exc_info.value.context == {"a": 1, "b": 10, "c": 30}
 
     def test_no_args_function_captured(self) -> None:
@@ -537,7 +523,6 @@ class TestWrapErrorsMessageNone:
 
         with pytest.raises(DemoError) as exc_info:
             fail()
-        # DemoError.default_message is the default value
         assert exc_info.value.message == DemoError.default_message
 
 
@@ -877,7 +862,5 @@ class TestWrapErrorsClassLevel:
         """Non-class, non-callable targets raise TypeError."""
         client = WrapErrorsClient.for_target(DemoError)
 
-        with pytest.raises(
-            TypeError, match=r"@wrap_errors target must be class or callable"
-        ):
+        with pytest.raises(TypeError, match=r"@wrap_errors target must be class or callable"):
             client(42)

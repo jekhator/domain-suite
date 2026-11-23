@@ -1,13 +1,7 @@
 """Tests for MetricSink protocol and implementations."""
 
-from monitoring_suite.monitoring.services.metrics.metrics_client import (
-    CollectingSink,
-    NullSink,
-)
-from monitoring_suite.monitoring.services.metrics.metrics_objects import (
-    MetricEvent,
-    Outcome,
-)
+from monitoring_suite.monitoring.services.metrics.metrics_client import CollectingSink, NullSink
+from monitoring_suite.monitoring.services.metrics.metrics_objects import MetricEvent, Outcome
 
 
 class TestCollectingSink:
@@ -17,10 +11,7 @@ class TestCollectingSink:
         """Emit stores event in collection."""
         sink = CollectingSink()
         event = MetricEvent(
-            event="test.method",
-            outcome=Outcome.SUCCESS,
-            duration_ms=100.0,
-            occurred_at="2026-07-07T12:00:00Z",
+            event="test.method", outcome=Outcome.SUCCESS, duration_ms=100.0, occurred_at="2026-07-07T12:00:00Z"
         )
 
         sink.emit(event)
@@ -48,9 +39,7 @@ class TestCollectingSink:
         sink.emit(event)
 
         events_copy = sink.events
-        events_copy.append(
-            MetricEvent.for_failure("test.other", 50.0, "2026-07-07T12:00:01Z")
-        )
+        events_copy.append(MetricEvent.for_failure("test.other", 50.0, "2026-07-07T12:00:01Z"))
 
         assert len(sink.events) == 1
 

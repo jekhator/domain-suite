@@ -137,10 +137,7 @@ class TestAmbientLoggingSync:
         def extract_result(result) -> dict:
             raise RuntimeError("extraction broke")
 
-        logged = objs.Logged(
-            event="ambient.sync.result.extract",
-            payload_from_result=extract_result,
-        )
+        logged = objs.Logged(event="ambient.sync.result.extract", payload_from_result=extract_result)
         wrapper_factory = logged.build()
 
         def plain_fn(value: int) -> int:
@@ -153,13 +150,10 @@ class TestAmbientLoggingSync:
     def test_logged_sync_ambient_with_bad_error_extractor(self) -> None:
         """Logged sync ambient logs extraction failure in .error path."""
 
-        def extract_exc(exc: BaseException) -> dict:
+        def extract_exc(error: BaseException) -> dict:
             raise RuntimeError("error extraction broke")
 
-        logged = objs.Logged(
-            event="ambient.sync.error.extract",
-            payload_from_exc=extract_exc,
-        )
+        logged = objs.Logged(event="ambient.sync.error.extract", payload_from_exc=extract_exc)
         wrapper_factory = logged.build()
 
         def failing_fn() -> int:
@@ -180,10 +174,7 @@ class TestSyncExtractionFailures:
         def bad_result_extractor(result) -> dict:
             raise RuntimeError("extraction failure")
 
-        logged = objs.Logged(
-            event="sync.result.extract",
-            payload_from_result=bad_result_extractor,
-        )
+        logged = objs.Logged(event="sync.result.extract", payload_from_result=bad_result_extractor)
         wrapper_factory = logged.build()
 
         def op(value: int) -> int:
@@ -200,10 +191,7 @@ class TestSyncExtractionFailures:
         def bad_extractor(result) -> dict:
             raise RuntimeError("extraction error")
 
-        logged = objs.Logged(
-            event="sync.end.ambient",
-            payload_from_result=bad_extractor,
-        )
+        logged = objs.Logged(event="sync.end.ambient", payload_from_result=bad_extractor)
         wrapper_factory = logged.build()
 
         def op(value: int) -> int:
@@ -217,13 +205,10 @@ class TestSyncExtractionFailures:
     def test_logged_sync_error_extraction_failure_ambient(self) -> None:
         """Sync logged .error emitted even when payload_from_exc fails (line 409 ambient)."""
 
-        def bad_error_extractor(exc: BaseException) -> dict:
+        def bad_error_extractor(error: BaseException) -> dict:
             raise RuntimeError("error extraction error")
 
-        logged = objs.Logged(
-            event="sync.error.ambient",
-            payload_from_exc=bad_error_extractor,
-        )
+        logged = objs.Logged(event="sync.error.ambient", payload_from_exc=bad_error_extractor)
         wrapper_factory = logged.build()
 
         def failing_op() -> int:
@@ -319,10 +304,7 @@ class TestAsyncExtractionFailures:
         def bad_result_extractor(result) -> dict:
             raise RuntimeError("result extraction failed")
 
-        logged = objs.Logged(
-            event="async.result.extract",
-            payload_from_result=bad_result_extractor,
-        )
+        logged = objs.Logged(event="async.result.extract", payload_from_result=bad_result_extractor)
         wrapper_factory = logged.build()
 
         async def op(value: int) -> int:
@@ -340,13 +322,10 @@ class TestAsyncExtractionFailures:
     def test_logged_async_error_extraction_failure(self) -> None:
         """Async logged handles payload_from_exc exception."""
 
-        def bad_error_extractor(exc: BaseException) -> dict:
+        def bad_error_extractor(error: BaseException) -> dict:
             raise RuntimeError("error extraction failed")
 
-        logged = objs.Logged(
-            event="async.error.extract",
-            payload_from_exc=bad_error_extractor,
-        )
+        logged = objs.Logged(event="async.error.extract", payload_from_exc=bad_error_extractor)
         wrapper_factory = logged.build()
 
         async def failing_op() -> int:

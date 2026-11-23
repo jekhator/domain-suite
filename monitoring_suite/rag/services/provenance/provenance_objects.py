@@ -12,8 +12,8 @@ from monitoring_suite.rag.services.constants import provenance as const
 class ProvenanceOutcome(StrEnum):
     """Retrieval provenance outcome enumeration."""
 
-    SUCCESS = "success"
-    FAILURE = "failure"
+    SUCCESS = const.OUTCOME_SUCCESS
+    FAILURE = const.OUTCOME_FAILURE
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,46 +44,21 @@ class RetrievalProvenance:
 
     @classmethod
     def for_success(
-        cls,
-        query: str,
-        chunk_ids: tuple[str, ...],
-        source_document_ids: tuple[str, ...],
-        principal_id: str,
-        session_id: str,
-        duration_ms: float,
-        occurred_at: str,
+        cls, query: str, chunk_ids: tuple[str, ...], source_document_ids: tuple[str, ...],
+        principal_id: str, session_id: str, duration_ms: float, occurred_at: str
     ) -> Self:
         """Create a success retrieval provenance event."""
         return cls(
-            query=query,
-            chunk_ids=chunk_ids,
-            source_document_ids=source_document_ids,
-            principal_id=principal_id,
-            session_id=session_id,
-            outcome=ProvenanceOutcome.SUCCESS,
-            duration_ms=duration_ms,
-            occurred_at=occurred_at,
+            query=query, chunk_ids=chunk_ids, source_document_ids=source_document_ids, principal_id=principal_id,
+            session_id=session_id, outcome=ProvenanceOutcome.SUCCESS, duration_ms=duration_ms, occurred_at=occurred_at
         )
 
     @classmethod
-    def for_failure(
-        cls,
-        query: str,
-        principal_id: str,
-        session_id: str,
-        duration_ms: float,
-        occurred_at: str,
-    ) -> Self:
+    def for_failure(cls, query: str, principal_id: str, session_id: str, duration_ms: float, occurred_at: str) -> Self:
         """Create a failure retrieval provenance event."""
         return cls(
-            query=query,
-            chunk_ids=(),
-            source_document_ids=(),
-            principal_id=principal_id,
-            session_id=session_id,
-            outcome=ProvenanceOutcome.FAILURE,
-            duration_ms=duration_ms,
-            occurred_at=occurred_at,
+            query=query, chunk_ids=(), source_document_ids=(), principal_id=principal_id, session_id=session_id,
+            outcome=ProvenanceOutcome.FAILURE, duration_ms=duration_ms, occurred_at=occurred_at
         )
 
     @property

@@ -9,10 +9,8 @@ class PythonClassifier:
     """Classify stdlib exceptions into coarse domains."""
 
     _FAMILIES: tuple[tuple[tuple[type[BaseException], ...], str], ...] = (
-        ((ConnectionError, TimeoutError), const.NETWORK),
-        ((FileNotFoundError, PermissionError, OSError), const.OS),
-        ((ValueError, KeyError, TypeError), const.LOGIC),
-        ((AssertionError,), const.ASSERTION),
+        ((ConnectionError, TimeoutError), const.NETWORK), ((FileNotFoundError, PermissionError, OSError), const.OS),
+        ((ValueError, KeyError, TypeError), const.LOGIC), ((AssertionError,), const.ASSERTION)
     )
 
     def classify(self, err: BaseException) -> str | None:

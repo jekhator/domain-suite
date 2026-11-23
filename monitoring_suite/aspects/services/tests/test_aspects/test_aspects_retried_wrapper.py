@@ -11,11 +11,7 @@ from monitoring_suite.aspects.services.aspects import aspects_objects as objs
 def _make_policy() -> RetryPolicy:
     """Create a test retry policy."""
     return RetryPolicy(
-        max_attempts=3,
-        backoff_base_seconds=0.1,
-        backoff_multiplier=2.0,
-        backoff_max_seconds=10.0,
-        jitter=False,
+        max_attempts=3, backoff_base_seconds=0.1, backoff_multiplier=2.0, backoff_max_seconds=10.0, jitter=False
     )
 
 
@@ -39,16 +35,12 @@ class TestRetriedWrapperSync:
     def test_retried_wrapper_retries_on_predicate_match(self) -> None:
         """Retried wrapper retries when predicate matches."""
 
-        def should_retry(exc: BaseException) -> bool:
-            return isinstance(exc, ValueError)
+        def should_retry(error: BaseException) -> bool:
+            return isinstance(error, ValueError)
 
         policy = RetryPolicy(
-            max_attempts=3,
-            backoff_base_seconds=0.001,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=1.0,
-            jitter=False,
-            should_retry=should_retry,
+            max_attempts=3, backoff_base_seconds=0.001, backoff_multiplier=1.0,
+            backoff_max_seconds=1.0, jitter=False, should_retry=should_retry
         )
         retried = objs.Retried(policy=policy)
         wrapper_factory = retried.build()
@@ -71,16 +63,12 @@ class TestRetriedWrapperSync:
     def test_retried_wrapper_exhausts_retries(self) -> None:
         """Retried wrapper raises after exhausting retries."""
 
-        def should_retry(exc: BaseException) -> bool:
-            return isinstance(exc, ValueError)
+        def should_retry(error: BaseException) -> bool:
+            return isinstance(error, ValueError)
 
         policy = RetryPolicy(
-            max_attempts=2,
-            backoff_base_seconds=0.001,
-            backoff_multiplier=1.0,
-            backoff_max_seconds=1.0,
-            jitter=False,
-            should_retry=should_retry,
+            max_attempts=2, backoff_base_seconds=0.001, backoff_multiplier=1.0,
+            backoff_max_seconds=1.0, jitter=False, should_retry=should_retry
         )
         retried = objs.Retried(policy=policy)
         wrapper_factory = retried.build()
@@ -99,12 +87,8 @@ class TestRetriedWrapperSync:
         def policy_selector(value: int) -> RetryPolicy | None:
             if value > 0:
                 return RetryPolicy(
-                    max_attempts=3,
-                    backoff_base_seconds=0.001,
-                    backoff_multiplier=1.0,
-                    backoff_max_seconds=1.0,
-                    jitter=False,
-                    should_retry=lambda e: isinstance(e, ValueError),
+                    max_attempts=3, backoff_base_seconds=0.001, backoff_multiplier=1.0, backoff_max_seconds=1.0,
+                    jitter=False, should_retry=lambda error: isinstance(error, ValueError)
                 )
             return None
 

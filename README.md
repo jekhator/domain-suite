@@ -239,7 +239,6 @@ Run linting and type checking:
 
 ```bash
 ruff check .
-ruff format --check .
 mypy
 ```
 

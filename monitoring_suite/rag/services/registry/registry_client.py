@@ -2,10 +2,7 @@
 
 from typing import Optional
 
-from monitoring_suite.rag.services.provenance.provenance_client import (
-    NullProvenanceSink,
-    ProvenanceSink,
-)
+from monitoring_suite.rag.services.provenance.provenance_client import NullProvenanceSink, ProvenanceSink
 
 
 class ProvenanceRegistry:

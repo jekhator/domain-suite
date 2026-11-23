@@ -17,5 +17,9 @@ class FakeDomainClassifier:
 
 @pytest.fixture
 def fake_classifier() -> FakeDomainClassifier:  # noqa: R004
-    """Provide a concrete classifier for testing."""
+    """
+    Provide a concrete classifier for testing.
+
+    Used by: no test class yet.
+    """
     return FakeDomainClassifier()

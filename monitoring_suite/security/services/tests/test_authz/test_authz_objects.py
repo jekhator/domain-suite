@@ -6,10 +6,7 @@ import dataclasses
 
 import pytest
 
-from monitoring_suite.security.services.authz.authz_objects import (
-    Permission,
-    PolicyDecision,
-)
+from monitoring_suite.security.services.authz.authz_objects import Permission, PolicyDecision
 
 
 class TestPermission:

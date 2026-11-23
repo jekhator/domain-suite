@@ -9,9 +9,9 @@ from monitoring_suite.errors import DomainError
 class ThrottleError(DomainError):
     """Base error for all rate-limit domain failures."""
 
-    domain = "api_limiter"
-    code = "throttle_error"
-    http_status = 429
+    domain = const.DOMAIN_API_LIMITER
+    code = const.CODE_THROTTLE_ERROR
+    http_status = const.HTTP_STATUS_TOO_MANY_REQUESTS
     retryable = True
     default_message = const.ERR_API_LIMITER_CONSTRAINT_VIOLATED
 
@@ -19,14 +19,14 @@ class ThrottleError(DomainError):
 class RateLimitExceeded(ThrottleError):
     """Request rejected because a rate limit was exceeded."""
 
-    code = "rate_limit_exceeded"
+    code = const.CODE_RATE_LIMIT_EXCEEDED
     default_message = const.ERR_API_LIMITER_RATE_EXCEEDED
 
 
 class ThrottleDeclarationError(ThrottleError):
     """Invalid throttle declaration detected at import time."""
 
-    code = "throttle_declaration_invalid"
-    http_status = 500
+    code = const.CODE_THROTTLE_DECLARATION_INVALID
+    http_status = const.HTTP_STATUS_INTERNAL_SERVER_ERROR
     retryable = False
     default_message = const.ERR_API_LIMITER_DECLARATION_INVALID

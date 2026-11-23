@@ -4,13 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_client import (
-    SecurityContextManager,
-)
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_client import SecurityContextManager
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 
 
 class TestSecurityContextManager:
@@ -55,14 +50,10 @@ class TestSecurityContextManager:
         manager.clear(token2)
         assert manager.get() == anonymous_context
 
-    def test_bind_context_manager_sets_context(
-        self, security_context: SecurityContext
-    ) -> None:
+    def test_bind_context_manager_sets_context(self, security_context: SecurityContext) -> None:
         """bind sets the context for the with-block."""
         manager = SecurityContextManager()
-        with manager.bind(
-            principal=security_context.principal, tenant_id=security_context.tenant_id
-        ):
+        with manager.bind(principal=security_context.principal, tenant_id=security_context.tenant_id):
             assert manager.get() == security_context
 
     def test_bind_restores_prior_after_exit(
@@ -71,9 +62,7 @@ class TestSecurityContextManager:
         """bind restores the prior context after the with-block exits."""
         manager = SecurityContextManager()
         manager.set(anonymous_context)
-        with manager.bind(
-            principal=security_context.principal, tenant_id=security_context.tenant_id
-        ):
+        with manager.bind(principal=security_context.principal, tenant_id=security_context.tenant_id):
             assert manager.get() == security_context
         assert manager.get() == anonymous_context
 
@@ -84,10 +73,7 @@ class TestSecurityContextManager:
         manager = SecurityContextManager()
         manager.set(anonymous_context)
         with pytest.raises(ValueError):
-            with manager.bind(
-                principal=security_context.principal,
-                tenant_id=security_context.tenant_id,
-            ):
+            with manager.bind(principal=security_context.principal, tenant_id=security_context.tenant_id):
                 assert manager.get() == security_context
                 raise ValueError("test error")
         assert manager.get() == anonymous_context
@@ -96,34 +82,28 @@ class TestSecurityContextManager:
         """bind accepts None principal for anonymous binding."""
         manager = SecurityContextManager()
         with manager.bind(principal=None, tenant_id="tenant:test"):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal is None
-            assert ctx.tenant_id == "tenant:test"
+            context = manager.get()
+            assert context is not None
+            assert context.principal is None
+            assert context.tenant_id == "tenant:test"
 
     def test_bind_with_none_tenant_id(self, principal: Principal) -> None:
         """bind accepts None tenant_id for unscoped binding."""
         manager = SecurityContextManager()
         with manager.bind(principal=principal, tenant_id=None):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal == principal
-            assert ctx.tenant_id is None
+            context = manager.get()
+            assert context is not None
+            assert context.principal == principal
+            assert context.tenant_id is None
 
     def test_nested_bind_operations(
         self, security_context: SecurityContext, anonymous_context: SecurityContext
     ) -> None:
         """nested bind operations maintain stack discipline."""
         manager = SecurityContextManager()
-        with manager.bind(
-            principal=anonymous_context.principal,
-            tenant_id=anonymous_context.tenant_id,
-        ):
+        with manager.bind(principal=anonymous_context.principal, tenant_id=anonymous_context.tenant_id):
             assert manager.get() == anonymous_context
-            with manager.bind(
-                principal=security_context.principal,
-                tenant_id=security_context.tenant_id,
-            ):
+            with manager.bind(principal=security_context.principal, tenant_id=security_context.tenant_id):
                 assert manager.get() == security_context
             assert manager.get() == anonymous_context
 
@@ -133,24 +113,19 @@ class TestSecurityContextManager:
         """bind replaces context entirely, not merging with existing."""
         manager = SecurityContextManager()
         manager.set(security_context)
-        other_principal = Principal(
-            id="user:other", roles=frozenset(), scopes=frozenset()
-        )
+        roles: frozenset[str] = frozenset()
+        scopes: frozenset[str] = frozenset()
+        other_principal = Principal(id="user:other", roles=roles, scopes=scopes)
         with manager.bind(principal=other_principal, tenant_id="tenant:other"):
-            ctx = manager.get()
-            assert ctx is not None
-            assert ctx.principal == other_principal
-            assert ctx.tenant_id == "tenant:other"
-            assert ctx != security_context
+            context = manager.get()
+            assert context is not None
+            assert context.principal == other_principal
+            assert context.tenant_id == "tenant:other"
+            assert context != security_context
 
-    def test_bind_returns_context_manager(
-        self, security_context: SecurityContext
-    ) -> None:
+    def test_bind_returns_context_manager(self, security_context: SecurityContext) -> None:
         """bind returns an AbstractContextManager."""
         manager = SecurityContextManager()
-        cm = manager.bind(
-            principal=security_context.principal,
-            tenant_id=security_context.tenant_id,
-        )
+        cm = manager.bind(principal=security_context.principal, tenant_id=security_context.tenant_id)
         assert hasattr(cm, "__enter__")
         assert hasattr(cm, "__exit__")

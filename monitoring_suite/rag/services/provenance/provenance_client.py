@@ -2,15 +2,13 @@
 
 from typing import Protocol
 
-from monitoring_suite.rag.services.provenance.provenance_objects import (
-    RetrievalProvenance,
-)
+from monitoring_suite.rag.services.provenance import provenance_objects as objs
 
 
 class ProvenanceSink(Protocol):
     """Protocol for retrieval provenance event sinks."""
 
-    def record(self, event: RetrievalProvenance) -> None:
+    def record(self, event: objs.RetrievalProvenance) -> None:
         """Record a retrieval provenance event."""
         ...
 
@@ -20,14 +18,14 @@ class CollectingProvenanceSink:
 
     def __init__(self) -> None:
         """Initialize empty collector."""
-        self._events: list[RetrievalProvenance] = []
+        self._events: list[objs.RetrievalProvenance] = []
 
-    def record(self, event: RetrievalProvenance) -> None:
+    def record(self, event: objs.RetrievalProvenance) -> None:
         """Collect a retrieval provenance event."""
         self._events.append(event)
 
     @property
-    def events(self) -> list[RetrievalProvenance]:
+    def events(self) -> list[objs.RetrievalProvenance]:
         """Retrieve all collected events."""
         return self._events.copy()
 
@@ -39,6 +37,6 @@ class CollectingProvenanceSink:
 class NullProvenanceSink:
     """No-op sink for unbound retrieval provenance."""
 
-    def record(self, event: RetrievalProvenance) -> None:
+    def record(self, event: objs.RetrievalProvenance) -> None:
         """No-op record."""
         pass

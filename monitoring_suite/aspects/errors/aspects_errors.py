@@ -9,9 +9,9 @@ from monitoring_suite.errors import DomainError
 class AspectsError(DomainError):
     """Base error for all aspect-composition failures."""
 
-    domain = "aspects"
-    code = "aspects_error"
-    http_status = 500
+    domain = const.DOMAIN_ASPECTS
+    code = const.CODE_ASPECTS_ERROR
+    http_status = const.HTTP_STATUS_INTERNAL_SERVER_ERROR
     retryable = False
     default_message = const.ERR_ASPECTS_COMPOSITION_FAILED
 
@@ -19,7 +19,7 @@ class AspectsError(DomainError):
 class AspectDeclarationError(AspectsError):
     """Decorator declaration-time validation failure."""
 
-    code = "aspect_declaration_failed"
-    http_status = 500
+    code = const.CODE_ASPECT_DECLARATION_FAILED
+    http_status = const.HTTP_STATUS_INTERNAL_SERVER_ERROR
     retryable = False
     default_message = const.ERR_ASPECTS_DECLARATION_FAILED

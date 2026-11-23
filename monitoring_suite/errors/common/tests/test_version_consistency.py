@@ -21,7 +21,7 @@ class TestVersionConsistency:
             "monitoring_suite.errors": monitoring_suite.errors.__version__,
             "monitoring_suite.monitoring": monitoring_suite.monitoring.__version__,
             "monitoring_suite.rag": monitoring_suite.rag.__version__,
-            "monitoring_suite.security": monitoring_suite.security.__version__,
+            "monitoring_suite.security": monitoring_suite.security.__version__
         }
 
         unique_versions = set(versions.values())

@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from monitoring_suite.security.context.security_context.security_context_objects import (
-    Principal,
-    SecurityContext,
-)
+from monitoring_suite.security.context.security_context.security_context_objects import Principal, SecurityContext
 from monitoring_suite.security.services.tenancy.tenancy_client import TenancyGuard
 
 
@@ -29,13 +26,23 @@ class StrictTenancyGuard(TenancyGuard):
 
 @pytest.fixture
 def principal() -> Principal:
-    """Create a principal."""
-    return Principal(id="user:test", roles=frozenset(), scopes=frozenset())
+    """
+    Create a principal.
+
+    Used by: no test class yet.
+    """
+    roles: frozenset[str] = frozenset()
+    scopes: frozenset[str] = frozenset()
+    return Principal(id="user:test", roles=roles, scopes=scopes)
 
 
 @pytest.fixture
 def principal_with_tenant_id() -> type:
-    """Create a class with a tenant_id attribute and decorated method."""
+    """
+    Create a class with a tenant_id attribute and decorated method.
+
+    Used by: no test class yet.
+    """
 
     class Entity:
         """Entity with tenant-scoped method."""

@@ -7,14 +7,9 @@ import re
 import pytest
 
 from monitoring_suite.api_limiter.decorators.throttled.throttled_client import throttled
-from monitoring_suite.api_limiter.errors.api_limiter_errors import (
-    ThrottleDeclarationError,
-)
+from monitoring_suite.api_limiter.errors.api_limiter_errors import ThrottleDeclarationError
 from monitoring_suite.api_limiter.services.constants import policy as const
-from monitoring_suite.api_limiter.services.policy.policy_objects import (
-    Period,
-    ThrottlePolicy,
-)
+from monitoring_suite.api_limiter.services.policy.policy_objects import Period, ThrottlePolicy
 
 
 class TestThrottledDecoratorIdentityContract:
@@ -162,10 +157,7 @@ class TestThrottledDecoratorWithTiers:
         def my_function() -> None:
             pass
 
-        tiers = {
-            "premium": "500/hour",
-            "enterprise": "5000/hour",
-        }
+        tiers = {"premium": "500/hour", "enterprise": "5000/hour"}
         decorated = throttled(scope="test", rate="100/hour", tiers=tiers)(my_function)
         policy = getattr(decorated, const.THROTTLE_POLICY_ATTR)
 
@@ -188,13 +180,8 @@ class TestThrottledDecoratorWithTiers:
         def my_function() -> None:
             pass
 
-        tiers = {
-            "basic": "100/hour",
-            "pro": "1000/hour",
-        }
-        decorated = throttled(scope="api.data", rate="10/hour", tiers=tiers)(
-            my_function
-        )
+        tiers = {"basic": "100/hour", "pro": "1000/hour"}
+        decorated = throttled(scope="api.data", rate="10/hour", tiers=tiers)(my_function)
         policy = getattr(decorated, const.THROTTLE_POLICY_ATTR)
 
         tier_dict = {tr.tier: tr.rate.requests for tr in policy.tier_rates}
@@ -211,10 +198,8 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
-        ):
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="test", rate="invalid")(my_function)
 
     def test_unknown_period_raises_at_decoration(self) -> None:
@@ -223,10 +208,8 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_UNKNOWN_PERIOD),
-        ):
+        match = re.escape(const.ERR_POLICY_UNKNOWN_PERIOD)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="test", rate="100/week")(my_function)
 
     def test_zero_rate_raises_at_decoration(self) -> None:
@@ -235,10 +218,8 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE),
-        ):
+        match = re.escape(const.ERR_POLICY_REQUESTS_NOT_POSITIVE)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="test", rate="0/hour")(my_function)
 
     def test_invalid_tier_rate_raises_at_decoration(self) -> None:
@@ -247,13 +228,9 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
-        ):
-            throttled(scope="test", rate="100/hour", tiers={"premium": "bad_rate"})(
-                my_function
-            )
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
+        with pytest.raises(ThrottleDeclarationError, match=match):
+            throttled(scope="test", rate="100/hour", tiers={"premium": "bad_rate"})(my_function)
 
     def test_empty_scope_raises_at_decoration(self) -> None:
         """Throttled decorator raises on empty scope."""
@@ -261,10 +238,8 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_SCOPE),
-        ):
+        match = re.escape(const.ERR_POLICY_EMPTY_SCOPE)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="", rate="100/hour")(my_function)
 
     def test_all_tier_rate_periods_validated(self) -> None:
@@ -273,10 +248,7 @@ class TestThrottledDecoratorValidation:
         def my_function() -> None:
             pass
 
-        tiers = {
-            "premium": "100/second",
-            "enterprise": "1000/minute",
-        }
+        tiers = {"premium": "100/second", "enterprise": "1000/minute"}
 
         decorated = throttled(scope="test", rate="100/hour", tiers=tiers)(my_function)
         policy = getattr(decorated, const.THROTTLE_POLICY_ATTR)
@@ -291,10 +263,8 @@ class TestThrottledDecoratorValidation:
 
         tiers = {"": "500/hour"}
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_EMPTY_TIER),
-        ):
+        match = re.escape(const.ERR_POLICY_EMPTY_TIER)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="test", rate="100/hour", tiers=tiers)(my_function)
 
 
@@ -411,16 +381,10 @@ class TestThrottledComplexScenarios:
         def complex_func(x: int, y: str) -> tuple[int, str]:
             return x, y
 
-        tiers = {
-            "free": "100/day",
-            "premium": "10000/day",
-            "enterprise": "unlimited_practically",
-        }
+        tiers = {"free": "100/day", "premium": "10000/day", "enterprise": "unlimited_practically"}
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_RATE_FORMAT),
-        ):
+        match = re.escape(const.ERR_POLICY_RATE_FORMAT)
+        with pytest.raises(ThrottleDeclarationError, match=match):
             throttled(scope="api.complex", rate="1000/hour", tiers=tiers)(complex_func)
 
     def test_valid_complex_decoration(self) -> None:
@@ -429,15 +393,9 @@ class TestThrottledComplexScenarios:
         def complex_func(x: int, y: str) -> tuple[int, str]:
             return x, y
 
-        tiers = {
-            "free": "100/day",
-            "premium": "10000/day",
-            "enterprise": "100000/day",
-        }
+        tiers = {"free": "100/day", "premium": "10000/day", "enterprise": "100000/day"}
 
-        decorated = throttled(scope="api.complex", rate="1000/hour", tiers=tiers)(
-            complex_func
-        )
+        decorated = throttled(scope="api.complex", rate="1000/hour", tiers=tiers)(complex_func)
 
         policy = getattr(decorated, const.THROTTLE_POLICY_ATTR)
 
@@ -469,15 +427,10 @@ class TestThrottledComplexScenarios:
             pass
 
         tiers = {
-            "per_second": "10/second",
-            "per_minute": "600/minute",
-            "per_hour": "36000/hour",
-            "per_day": "864000/day",
+            "per_second": "10/second", "per_minute": "600/minute", "per_hour": "36000/hour", "per_day": "864000/day"
         }
 
-        decorated = throttled(scope="multi_period", rate="1/second", tiers=tiers)(
-            my_func
-        )
+        decorated = throttled(scope="multi_period", rate="1/second", tiers=tiers)(my_func)
 
         policy = getattr(decorated, const.THROTTLE_POLICY_ATTR)
         assert len(policy.tier_rates) == 4
@@ -513,12 +466,8 @@ class TestThrottledClassLevelDecoration:
             def create_document(self, name: str) -> str:
                 return name
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        create_policy = getattr(
-            DocumentService.create_document, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        create_policy = getattr(DocumentService.create_document, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy is not None
         assert create_policy is not None
@@ -534,12 +483,8 @@ class TestThrottledClassLevelDecoration:
             def create_document(self, name: str) -> str:
                 return name
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        create_policy = getattr(
-            DocumentService.create_document, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        create_policy = getattr(DocumentService.create_document, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy.scope == "docs:list_documents"
         assert create_policy.scope == "docs:create_document"
@@ -555,12 +500,8 @@ class TestThrottledClassLevelDecoration:
             def create_document(self, name: str) -> str:
                 return name
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        create_policy = getattr(
-            DocumentService.create_document, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        create_policy = getattr(DocumentService.create_document, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy.rate.requests == 250
         assert list_policy.rate.period == Period.MINUTE
@@ -570,10 +511,7 @@ class TestThrottledClassLevelDecoration:
     def test_class_decoration_propagates_tiers_to_methods(self) -> None:
         """Class-level @throttled tiers apply uniformly to all methods."""
 
-        tiers = {
-            "free": "100/hour",
-            "premium": "1000/hour",
-        }
+        tiers = {"free": "100/hour", "premium": "1000/hour"}
 
         @throttled(scope="docs", rate="100/hour", tiers=tiers)
         class DocumentService:
@@ -583,12 +521,8 @@ class TestThrottledClassLevelDecoration:
             def create_document(self, name: str) -> str:
                 return name
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        create_policy = getattr(
-            DocumentService.create_document, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        create_policy = getattr(DocumentService.create_document, const.THROTTLE_POLICY_ATTR)
 
         assert len(list_policy.tier_rates) == 2
         assert len(create_policy.tier_rates) == 2
@@ -606,12 +540,8 @@ class TestThrottledClassLevelDecoration:
             def _internal_helper(self) -> None:
                 pass
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        helper_policy = getattr(
-            DocumentService._internal_helper, const.THROTTLE_POLICY_ATTR, None
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        helper_policy = getattr(DocumentService._internal_helper, const.THROTTLE_POLICY_ATTR, None)
 
         assert list_policy is not None
         assert helper_policy is None
@@ -627,9 +557,7 @@ class TestThrottledClassLevelDecoration:
             def __str__(self) -> str:
                 return "DocumentService"
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
         str_policy = getattr(DocumentService.__str__, const.THROTTLE_POLICY_ATTR, None)
 
         assert list_policy is not None
@@ -646,9 +574,7 @@ class TestThrottledClassLevelDecoration:
             def list_documents(self) -> list[str]:
                 return []
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy is not None
         assert not hasattr(DocumentService.Config, const.THROTTLE_POLICY_ATTR)
@@ -665,12 +591,8 @@ class TestThrottledClassLevelDecoration:
             def create_document(self, name: str) -> str:
                 return name
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
-        create_policy = getattr(
-            DocumentService.create_document, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
+        create_policy = getattr(DocumentService.create_document, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy.scope == "custom"
         assert create_policy.scope == "docs:create_document"
@@ -688,13 +610,9 @@ class TestThrottledClassLevelDecoration:
                 return []
 
         from_policy = getattr(
-            DocumentService.from_config.__func__,  # type: ignore[attr-defined]
-            const.THROTTLE_POLICY_ATTR,
-            None,
+            DocumentService.from_config.__func__, const.THROTTLE_POLICY_ATTR, None  # type: ignore[attr-defined]
         )
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
 
         assert from_policy is not None
         assert from_policy.scope == "docs:from_config"
@@ -712,12 +630,8 @@ class TestThrottledClassLevelDecoration:
             def list_documents(self) -> list[str]:
                 return []
 
-        validate_policy = getattr(
-            DocumentService.validate_name, const.THROTTLE_POLICY_ATTR, None
-        )
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        validate_policy = getattr(DocumentService.validate_name, const.THROTTLE_POLICY_ATTR, None)
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
 
         assert validate_policy is not None
         assert validate_policy.scope == "docs:validate_name"
@@ -735,23 +649,16 @@ class TestThrottledClassLevelDecoration:
             def list_documents(self) -> list[str]:
                 return []
 
-        list_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        list_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
 
         assert list_policy is not None
-        assert not hasattr(
-            DocumentService.count.fget,  # type: ignore[attr-defined]
-            const.THROTTLE_POLICY_ATTR,
-        )
+        assert not hasattr(DocumentService.count.fget, const.THROTTLE_POLICY_ATTR)  # type: ignore[attr-defined]
 
     def test_class_decoration_raises_on_empty_class(self) -> None:
         """Class-level @throttled raises ThrottleDeclarationError for empty class."""
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS),
-        ):
+        match = re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS)
+        with pytest.raises(ThrottleDeclarationError, match=match):
 
             @throttled(scope="docs", rate="100/hour")
             class DocumentService:
@@ -760,10 +667,8 @@ class TestThrottledClassLevelDecoration:
     def test_class_decoration_raises_on_private_only_class(self) -> None:
         """Class-level @throttled raises if class has only private methods."""
 
-        with pytest.raises(
-            ThrottleDeclarationError,
-            match=re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS),
-        ):
+        match = re.escape(const.ERR_POLICY_NO_PUBLIC_METHODS)
+        with pytest.raises(ThrottleDeclarationError, match=match):
 
             @throttled(scope="docs", rate="100/hour")
             class DocumentService:
@@ -782,9 +687,7 @@ class TestThrottledClassLevelDecoration:
             def validate(self) -> bool:
                 return bool(self.name)
 
-        validate_policy = getattr(
-            DocumentRequest.validate, const.THROTTLE_POLICY_ATTR, None
-        )
+        validate_policy = getattr(DocumentRequest.validate, const.THROTTLE_POLICY_ATTR, None)
         assert validate_policy is not None
         assert validate_policy.scope == "docs:validate"
 
@@ -800,9 +703,7 @@ class TestThrottledClassLevelDecoration:
             def validate(self) -> bool:
                 return bool(self.name)
 
-        validate_policy = getattr(
-            DocumentRequest.validate, const.THROTTLE_POLICY_ATTR, None
-        )
+        validate_policy = getattr(DocumentRequest.validate, const.THROTTLE_POLICY_ATTR, None)
         assert validate_policy is not None
         assert validate_policy.scope == "docs:validate"
 
@@ -820,9 +721,7 @@ class TestThrottledClassLevelDecoration:
         decorated_func = throttled(scope="func", rate="200/hour")(standalone_func)
 
         func_policy = getattr(decorated_func, const.THROTTLE_POLICY_ATTR)
-        class_policy = getattr(
-            DocumentService.list_documents, const.THROTTLE_POLICY_ATTR
-        )
+        class_policy = getattr(DocumentService.list_documents, const.THROTTLE_POLICY_ATTR)
 
         assert func_policy.scope == "func"
         assert class_policy.scope == "docs:list_documents"
