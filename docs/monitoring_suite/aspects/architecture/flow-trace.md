@@ -2,7 +2,7 @@
 
 ## Overview
 
-Cross-cutting aspect composition service for stacking decorators in canonical order. Entry types (`Logged`, `Requires`, `TenantScoped`, `Throttled`, `Monitored`, `WrapErrors`, `Sensitive`) are frozen value objects that lazily import their underlying decorators and apply them innermost-first (reverse sort by `ASPECT_ORDER`). Validates duplicate kinds and empty declarations.
+Cross-cutting aspect composition service for stacking decorators in canonical order. Entry types (`Logged`, `Requires`, `TenantScoped`, `Throttled`, `Monitored`, `WrapErrors`, `Retried`) are frozen value objects that lazily import their underlying decorators and apply them innermost-first (reverse sort by `ASPECT_ORDER`). Validates duplicate kinds and empty declarations.
 
 ## Entry Unit
 
@@ -18,9 +18,8 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
    Throttled(scope="api:fetch", rate="100/hour", tiers=())  ← from monitoring_suite.api_limiter
    Monitored(event="fetch", sink=None)  ← from monitoring_suite.monitoring
    WrapErrors(as_=ValidationError, catch=(Exception,))  ← from monitoring_suite.errors
-   Sensitive()  ← from logging_suite.sensitivity
 
-   AspectKind ← StrEnum: LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, SENSITIVE
+   AspectKind ← StrEnum: LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, RETRIED, REQUIRE_MIXINS
 
 ② COMPOSE aspects(...)
    @aspects(
@@ -56,8 +55,6 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
    WRAPPING ORDER (innermost to outermost):
    ├─ WRAP_ERRORS innermost  ← wraps original target
    │  └─ @wrap_errors(as_=ValidationError, catch=(Exception,))
-   ├─ SENSITIVE
-   │  └─ @sensitive  ← from logging_suite.sensitivity
    ├─ MONITORED
    │  └─ @monitored(event="...", sink=...)  ← MetricSink.emit() on success/failure
    ├─ THROTTLED
@@ -80,8 +77,6 @@ Cross-cutting aspect composition service for stacking decorators in canonical or
    │  └─ policy declared but not enforced here (middleware/integration checks at call time)
    ├─ MONITORED layer
    │  └─ start_time, try/except, emit MetricEvent.for_success/for_failure, raise on exception
-   ├─ SENSITIVE layer
-   │  └─ mask sensitive fields on logged values
    └─ WRAP_ERRORS innermost
       ├─ try: return original_function(...)
       ├─ except DomainError: raise (pass-through)
@@ -111,7 +106,7 @@ REAL OUTPUT (composed call, with permission):
 
 ## Key Constants
 
-- `ASPECT_ORDER` = ("LOGGED", "REQUIRES", "TENANT_SCOPED", "THROTTLED", "MONITORED", "SENSITIVE", "WRAP_ERRORS")
+- `ASPECT_ORDER` = ("LOGGED", "REQUIRES", "TENANT_SCOPED", "THROTTLED", "MONITORED", "WRAP_ERRORS", "RETRIED")
   - applies in reverse: WRAP_ERRORS applied first (innermost), LOGGED applied last (outermost)
 - `ERR_ASPECTS_EMPTY_DECLARATION` = "Aspect declaration is empty."
 - `ERR_ASPECTS_DUPLICATE_KIND` = "Duplicate aspect kind in declaration: {kind}."
@@ -119,14 +114,13 @@ REAL OUTPUT (composed call, with permission):
 
 ## Core Classes
 
-- `AspectKind` ← StrEnum; LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, SENSITIVE
+- `AspectKind` ← StrEnum; LOGGED, REQUIRES, TENANT_SCOPED, THROTTLED, MONITORED, WRAP_ERRORS, RETRIED, REQUIRE_MIXINS
 - `Logged` ← frozen slots; event (str); kind property; build() -> logged decorator
 - `Requires` ← frozen slots; permission (str); kind property; build() -> requires decorator
 - `TenantScoped` ← frozen slots; param_name (str, default="tenant_id"); kind property; build() -> tenant_scoped decorator
 - `Throttled` ← frozen slots; scope (str), rate (str), tiers (tuple of tuples); kind property; build() -> throttled decorator
 - `Monitored` ← frozen slots; event (str), sink (MetricSink | None); kind property; build() -> monitored decorator
 - `WrapErrors` ← frozen slots; as_ (exception class), catch (tuple[BaseException, ...], default=(Exception,)); kind property; build() -> wrap_errors decorator
-- `Sensitive` ← frozen slots; kind property; build() -> sensitive decorator
 - `AspectEntry` ← Union type alias for all entry types
 - `Aspects` ← __call__(*entries), _flatten(), _validate(), _sort(); returns decorator factory
 

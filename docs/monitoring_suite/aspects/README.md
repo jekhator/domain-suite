@@ -1,6 +1,6 @@
 # monitoring_suite.aspects
 
-Composable decorators for logging, auth, throttling, error wrapping, and sensitivity masking.
+Composable decorators for logging, auth, throttling, monitoring, retries, and error wrapping.
 
 ## Overview
 
@@ -8,7 +8,7 @@ Composable decorators for logging, auth, throttling, error wrapping, and sensiti
 
 - **Aspect composition**: Stack multiple cross-cutting concerns on a function
 - **Declarative syntax**: Use `@aspects(...)` to apply multiple decorators atomically
-- **Pre-built aspects**: Logged, Requires, Throttled, TenantScoped, WrapErrors, Sensitive
+- **Pre-built aspects**: Logged, Monitored, Requires, Retried, RequireMixins, Throttled, TenantScoped, WrapErrors
 - **Extensible design**: Create custom aspects by implementing the AspectEntry interface
 
 ## Quick Start
@@ -34,7 +34,6 @@ def create_document(title: str, content: str) -> dict:
 - **`Throttled`**: Rate limiting aspect (from monitoring_suite.api_limiter)
 - **`TenantScoped`**: Tenant isolation aspect (from monitoring_suite.security)
 - **`WrapErrors`**: Error wrapping aspect (from monitoring_suite.errors)
-- **`Sensitive`**: Sensitivity masking aspect (from logging-suite)
 - **`AspectEntry`**: Base interface for custom aspects
 - **`AspectKind`**: Enum of aspect types
 - Aspect error classes: `AspectsError`, `AspectDeclarationError`
@@ -98,19 +97,6 @@ def fetch_tenant_data(tenant_id: str):
     # - Verify tenant_id matches security context
     # - Wrap exceptions as DatabaseError
     return {"tenant": tenant_id, "data": {...}}
-```
-
-### Sensitivity Masking on Sensitive Data
-
-```python
-from monitoring_suite.aspects import aspects, Sensitive
-
-@aspects(
-    Sensitive(),
-)
-def get_user_with_ssn(user_id: str) -> dict:
-    # The decorator automatically masks sensitive fields in repr()
-    return {"user_id": user_id, "ssn": "123-45-6789"}  # ssn field marked @sensitive
 ```
 
 ## Aspect Order Matters

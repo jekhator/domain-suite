@@ -7,8 +7,6 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Optional, cast
 
-from logging_suite.logging import get_correlation_id
-
 from monitoring_suite.monitoring.errors.constants import monitoring as const
 from monitoring_suite.monitoring.errors.monitoring_errors import (
     MonitoringDeclarationError,
@@ -246,7 +244,7 @@ class MonitoredClient:
         Derives domain lane id as scenario_id/monitoring (if scenario id present).
         Returns merged labels with consumer-provided labels taking precedence.
         """
-        scenario_id = get_correlation_id()
+        scenario_id = MonitoredClient._ambient_correlation_id()
         if not scenario_id:
             return labels
 
@@ -261,6 +259,19 @@ class MonitoredClient:
             label_dict[domain_correlation_label] = f"{scenario_id}/monitoring"
 
         return tuple(sorted(label_dict.items()))
+
+    @staticmethod
+    def _ambient_correlation_id() -> Optional[str]:
+        """Read the ambient correlation id; None when logging-suite is absent.
+
+        logging-suite is an optional extra, so it is imported here and never at
+        module top: the base install imports cleanly and stamps no labels.
+        """
+        try:
+            from logging_suite.logging import get_correlation_id
+        except ImportError:
+            return None
+        return get_correlation_id()
 
 
 monitored = MonitoredClient.monitored
